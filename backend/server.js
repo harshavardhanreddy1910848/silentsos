@@ -10,16 +10,18 @@ import { db, initDb } from './db.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 const PORT = process.env.PORT || 3001;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
 
 // Setup directories
 const EVIDENCE_DIR = path.join(__dirname, 'evidence');
@@ -100,7 +102,7 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
     const timeStr = new Date(alert.timestamp).toLocaleTimeString();
     const dateStr = new Date(alert.timestamp).toLocaleDateString();
     
-    const broadcastLink = `http://localhost:5173/receiver/${alertId}`;
+    const broadcastLink = `${FRONTEND_URL}/receiver/${alertId}`;
     const latestCoords = alert.gpsPath && alert.gpsPath.length > 0 
       ? alert.gpsPath[alert.gpsPath.length - 1] 
       : null;
@@ -190,7 +192,7 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
         `;
 
         alert.evidence.files.forEach((file, idx) => {
-          const fileUrl = `http://localhost:3001${file.url}`;
+          const fileUrl = `${APP_URL}${file.url}`;
           htmlContent += `
             <li><strong>${file.type.toUpperCase()}:</strong> <a href="${fileUrl}" style="color: #ef4444; text-decoration: underline;">Open ${file.type} file</a></li>
           `;
@@ -372,31 +374,38 @@ app.use(cors({ origin: '*', methods: ['GET','POST','PUT','DELETE','OPTIONS'], al
 app.use(express.json());
 app.use('/evidence', express.static(EVIDENCE_DIR));
 
-// Health check / root route
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>SilentSOS Backend</title>
-    <style>
-      body { font-family: sans-serif; background: #0f172a; color: #e2e8f0; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
-      .card { background:#1e293b; border-radius:16px; padding:40px; text-align:center; max-width:400px; }
-      h1 { color:#f472b6; margin-bottom:8px; } 
-      .badge { background:#22c55e; color:#fff; border-radius:99px; padding:4px 16px; font-size:14px; display:inline-block; margin:12px 0; }
-      p { color:#94a3b8; font-size:14px; }
-    </style>
-    </head>
-    <body>
-      <div class="card">
-        <h1>🚨 SilentSOS</h1>
-        <div class="badge">✓ Backend Online</div>
-        <p>API is running and ready.</p>
-        <p style="font-size:12px; margin-top:20px;">Frontend: <a href="http://localhost:5173" style="color:#f472b6;">http://localhost:5173</a></p>
-      </div>
-    </body>
-    </html>
-  `);
-});
+// Serve static files from the React frontend app build directory in production
+const frontendBuildPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendBuildPath)) {
+  app.use(express.static(frontendBuildPath));
+  console.log(`🚀 Serving frontend static assets from: ${frontendBuildPath}`);
+} else {
+  // Health check / root route (only if frontend build is not served directly)
+  app.get('/', (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>SilentSOS Backend</title>
+      <style>
+        body { font-family: sans-serif; background: #0f172a; color: #e2e8f0; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+        .card { background:#1e293b; border-radius:16px; padding:40px; text-align:center; max-width:400px; }
+        h1 { color:#f472b6; margin-bottom:8px; } 
+        .badge { background:#22c55e; color:#fff; border-radius:99px; padding:4px 16px; font-size:14px; display:inline-block; margin:12px 0; }
+        p { color:#94a3b8; font-size:14px; }
+      </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>🚨 SilentSOS</h1>
+          <div class="badge">✓ Backend Online</div>
+          <p>API is running and ready.</p>
+          <p style="font-size:12px; margin-top:20px;">Frontend: <a href="${FRONTEND_URL}" style="color:#f472b6;">${FRONTEND_URL}</a></p>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+}
 
 app.get('/api/debug/mail', (req, res) => {
   res.json({
@@ -523,7 +532,7 @@ function broadcastToReceivers(alertId, messageObj) {
 function dispatchEmergencyAlerts(user, contacts, alertId, lat = 19.076, lng = 72.8777) {
   const timeStr = new Date().toLocaleTimeString();
   const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
-  const broadcastLink = `http://localhost:5173/receiver/${alertId}`;
+  const broadcastLink = `${FRONTEND_URL}/receiver/${alertId}`;
 
   return contacts.map(c => {
     return {
@@ -1240,6 +1249,16 @@ app.post('/api/clear-all', async (req, res) => {
   activeAlert = null;
   res.json({ success: true });
 });
+
+// Catch-all route to serve React's index.html in production (for client-side routing)
+if (fs.existsSync(frontendBuildPath)) {
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/evidence')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  });
+}
 
 initDb().then(() => {
   server.listen(PORT, () => {

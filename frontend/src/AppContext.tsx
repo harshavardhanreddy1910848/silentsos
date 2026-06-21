@@ -1,8 +1,8 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { AppState, Contact, Settings, AlertEvent } from './types';
 
-export const API_BASE   = 'http://localhost:3001/api';
-export const MEDIA_BASE = 'http://localhost:3001'; // For /evidence/* static files
+export const API_BASE   = window.location.origin.includes('localhost') ? 'http://localhost:3001/api' : `${window.location.origin}/api`;
+export const MEDIA_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001' : window.location.origin; // For /evidence/* static files
 
 
 const defaultSettings: Settings = {

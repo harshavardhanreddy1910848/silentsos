@@ -520,7 +520,9 @@ const mediaInitRef = useRef(false);
   // Establish WebSockets streaming to send real-time coordinates
   useEffect(() => {
     if (phase === 'capturing' && alertId) {
-      const socket = new WebSocket('ws://localhost:3001');
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const wsHost = window.location.origin.includes('localhost') ? 'localhost:3001' : window.location.host;
+      const socket = new WebSocket(`${wsProtocol}://${wsHost}`);
       wsRef.current = socket;
 
       socket.onopen = () => {
