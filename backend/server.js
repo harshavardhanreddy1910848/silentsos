@@ -448,6 +448,25 @@ app.get('/api/debug/mail', (req, res) => {
   });
 });
 
+app.get('/api/debug/last-alert', async (req, res) => {
+  try {
+    const history = await db.getAllHistory();
+    if (history.length === 0) {
+      return res.json({ message: 'No alerts in history' });
+    }
+    const lastAlert = history[0];
+    const user = await db.getUser(lastAlert.userId);
+    const contacts = await db.getContacts(lastAlert.userId);
+    res.json({
+      lastAlert,
+      user,
+      contacts
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 // Simple JWT-like base64 Token Authentication middleware
 async function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
