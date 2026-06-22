@@ -9,6 +9,12 @@ import { fileURLToPath } from 'url';
 import { db, initDb } from './db.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import dns from 'dns';
+
+// Force DNS resolution to prefer IPv4 (fixes IPv6 ENETUNREACH issues in cloud environments like Railway)
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +67,7 @@ async function getMailTransporter() {
       host: smtpHost,
       port: smtpPort,
       secure: smtpPort === 465,
+      family: 4, // Force IPv4 to avoid IPv6 ENETUNREACH connection errors
       auth: {
         user: smtpUser,
         pass: smtpPass
