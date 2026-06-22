@@ -53,6 +53,23 @@ let lastMailError = null;
 const sentEvidenceAlerts = new Set();
 const activeAlertTimers = new Map();
 
+// Helper to resolve host to IPv4 using dns.resolve4 to completely bypass IPv6 lookup issues
+function resolveHostToIPv4(host) {
+  return new Promise((resolve) => {
+    if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host)) {
+      return resolve(host);
+    }
+    dns.resolve4(host, (err, addresses) => {
+      if (err || !addresses || addresses.length === 0) {
+        console.warn(`⚠️ Failed to resolve host ${host} to IPv4:`, err ? err.message : 'no addresses');
+        resolve(host); // Fallback to original hostname if resolve fails
+      } else {
+        resolve(addresses[0]);
+      }
+    });
+  });
+}
+
 // Initialize mail transporter
 async function getMailTransporter() {
   if (mailTransporter) return mailTransporter;
@@ -63,14 +80,19 @@ async function getMailTransporter() {
   const smtpPass = process.env.SMTP_PASS;
 
   if (smtpUser && smtpPass) {
+    const resolvedHost = await resolveHostToIPv4(smtpHost);
+    console.log(`✉️ Resolved SMTP host ${smtpHost} to IPv4: ${resolvedHost}`);
+
     mailTransporter = nodemailer.createTransport({
-      host: smtpHost,
+      host: resolvedHost,
       port: smtpPort,
       secure: smtpPort === 465,
-      family: 4, // Force IPv4 to avoid IPv6 ENETUNREACH connection errors
       auth: {
         user: smtpUser,
         pass: smtpPass
+      },
+      tls: {
+        servername: smtpHost // Keep original host for SNI / TLS validation when using an IP host
       }
     });
     console.log(`✉️ Nodemailer SMTP configured using user: ${smtpUser}`);
