@@ -118,15 +118,63 @@ async function getMailTransporter() {
   return mailTransporter;
 }
 
+// Sends email using either Resend HTTP API or Nodemailer SMTP depending on configuration
+async function dispatchEmail({ to, subject, html, attachments = [] }) {
+  if (process.env.RESEND_API_KEY) {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const resendSender = process.env.RESEND_SENDER || 'onboarding@resend.dev';
+    const fromName = "SilentSOS System";
+    const fromAddress = resendSender.includes('<') ? resendSender : `${fromName} <${resendSender}>`;
+
+    const body = {
+      from: fromAddress,
+      to,
+      subject,
+      html
+    };
+
+    if (attachments && attachments.length > 0) {
+      body.attachments = attachments;
+    }
+
+    console.log(`✉️ Sending email via Resend API to ${to}...`);
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Resend API error (${response.status}): ${errText}`);
+    }
+
+    const data = await response.json();
+    console.log(`✉️ Email successfully sent via Resend API to ${to} (ID: ${data.id})`);
+    return data;
+  } else {
+    const transporter = await getMailTransporter();
+    if (!transporter) {
+      throw new Error('Mail transporter not initialized');
+    }
+    const info = await transporter.sendMail({
+      from: `"SilentSOS System" <${transporter.options.auth.user}>`,
+      to,
+      subject,
+      html,
+      attachments
+    });
+    console.log(`✉️ Email successfully sent via SMTP to ${to} (MessageID: ${info.messageId})`);
+    return info;
+  }
+}
+
 // Sends alert notification email to emergency contacts
 async function sendAlertEmails(user, contacts, alert, isInitial = false) {
   try {
-    const transporter = await getMailTransporter();
-    if (!transporter) {
-      console.warn('⚠️ Mail transporter not initialized. Skipping emails.');
-      return;
-    }
-
     const alertId = alert.id;
     const timeStr = new Date(alert.timestamp).toLocaleTimeString();
     const dateStr = new Date(alert.timestamp).toLocaleDateString();
@@ -170,6 +218,15 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
     if (emailRecipients.length === 0) {
       console.log('✉️ No contacts or global emails. Skipping email dispatch.');
       return;
+    }
+
+    // Initialize transporter only if we are using SMTP
+    if (!process.env.RESEND_API_KEY) {
+      const transporter = await getMailTransporter();
+      if (!transporter) {
+        console.warn('⚠️ Mail transporter not initialized. Skipping emails.');
+        return;
+      }
     }
 
     for (const contact of emailRecipients) {
@@ -228,10 +285,18 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
           
           const filePath = path.join(EVIDENCE_DIR, path.basename(file.url));
           if (fs.existsSync(filePath)) {
-            attachments.push({
-              filename: `evidence_${file.type}_${idx + 1}${path.extname(file.url)}`,
-              path: filePath
-            });
+            if (process.env.RESEND_API_KEY) {
+              const base64Content = fs.readFileSync(filePath).toString('base64');
+              attachments.push({
+                filename: `evidence_${file.type}_${idx + 1}${path.extname(file.url)}`,
+                content: base64Content
+              });
+            } else {
+              attachments.push({
+                filename: `evidence_${file.type}_${idx + 1}${path.extname(file.url)}`,
+                path: filePath
+              });
+            }
           }
         });
 
@@ -260,16 +325,12 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
         ? `🚨 SilentSOS INITIAL WARNING: Emergency alert triggered by ${user.name}` 
         : `🔒 SilentSOS EVIDENCE ENCLOSED: Emergency alert update for ${user.name}`;
 
-      const info = await transporter.sendMail({
-        from: `"SilentSOS System" <${transporter.options.auth.user}>`,
+      await dispatchEmail({
         to: contact.email,
-        subject: subject,
+        subject,
         html: htmlContent,
-        attachments: attachments
+        attachments
       });
-
-      console.log(`✉️ Email successfully dispatched to ${contact.email} (MessageID: ${info.messageId})`);
-      const previewUrl = nodemailer.getTestMessageUrl(info);
     }
   } catch (err) {
     lastMailError = { message: err.message, stack: err.stack, time: new Date().toISOString() };
@@ -280,12 +341,6 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
 // Sends cancellation email when user cancels alert
 async function sendCancelEmail(user, contacts, alert) {
   try {
-    const transporter = await getMailTransporter();
-    if (!transporter) {
-      console.warn('⚠️ Mail transporter not initialized. Skipping cancel email.');
-      return;
-    }
-
     const alertId = alert.id;
     const timeStr = new Date().toLocaleTimeString();
     
@@ -347,14 +402,11 @@ async function sendCancelEmail(user, contacts, alert) {
 
       const subject = `✅ SilentSOS RESOLVED: Emergency alert cancelled by ${user.name}`;
 
-      const info = await transporter.sendMail({
-        from: `"SilentSOS System" <${transporter.options.auth.user}>`,
+      await dispatchEmail({
         to: contact.email,
-        subject: subject,
+        subject,
         html: htmlContent
       });
-
-      console.log(`✉️ Cancel email successfully dispatched to ${contact.email} (MessageID: ${info.messageId})`);
     }
   } catch (err) {
     console.error('❌ Failed to send cancel emails:', err);
