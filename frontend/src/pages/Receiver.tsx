@@ -14,6 +14,7 @@ import {
   Smartphone,
   CheckCircle,
   Lock
+} from 'lucide-react';
 import { MEDIA_BASE as API_BASE, WS_BASE } from '../AppContext';
 
 
