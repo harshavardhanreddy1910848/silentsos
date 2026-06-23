@@ -1,8 +1,19 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { AppState, Contact, Settings, AlertEvent } from './types';
 
-export const API_BASE   = window.location.origin.includes('localhost') ? 'http://localhost:3001/api' : `${window.location.origin}/api`;
-export const MEDIA_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001' : window.location.origin; // For /evidence/* static files
+const getMediaBase = () => {
+  if (import.meta.env.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE.replace(/\/$/, '');
+  }
+  return window.location.origin.includes('localhost') ? 'http://localhost:3001' : window.location.origin;
+};
+
+export const MEDIA_BASE = getMediaBase();
+export const API_BASE   = `${MEDIA_BASE}/api`;
+export const WS_BASE    = MEDIA_BASE.startsWith('https')
+  ? MEDIA_BASE.replace(/^https/, 'wss')
+  : MEDIA_BASE.replace(/^http/, 'ws');
+
 
 
 const defaultSettings: Settings = {
