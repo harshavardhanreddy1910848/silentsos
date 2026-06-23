@@ -16,7 +16,7 @@ import {
   Lock
 } from 'lucide-react';
 
-import { MEDIA_BASE as API_BASE, WS_BASE } from '../AppContext';
+const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001' : window.location.origin;
 
 
 
@@ -51,7 +51,9 @@ export function Receiver() {
   useEffect(() => {
     if (!alertId) return;
 
-    const socket = new WebSocket(WS_BASE);
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsHost = window.location.origin.includes('localhost') ? 'localhost:3001' : window.location.host;
+    const socket = new WebSocket(`${wsProtocol}://${wsHost}`);
     wsRef.current = socket;
 
     socket.onopen = () => {
