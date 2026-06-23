@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp, API_BASE } from '../AppContext';
+import { useApp, API_BASE, WS_BASE } from '../AppContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import {
   ShieldAlert,
@@ -520,9 +520,7 @@ const mediaInitRef = useRef(false);
   // Establish WebSockets streaming to send real-time coordinates
   useEffect(() => {
     if (phase === 'capturing' && alertId) {
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const wsHost = window.location.origin.includes('localhost') ? 'localhost:3001' : window.location.host;
-      const socket = new WebSocket(`${wsProtocol}://${wsHost}`);
+      const socket = new WebSocket(WS_BASE);
       wsRef.current = socket;
 
       socket.onopen = () => {

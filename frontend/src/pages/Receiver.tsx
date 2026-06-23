@@ -14,9 +14,7 @@ import {
   Smartphone,
   CheckCircle,
   Lock
-} from 'lucide-react';
-
-const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001' : window.location.origin;
+import { MEDIA_BASE as API_BASE, WS_BASE } from '../AppContext';
 
 
 
@@ -51,9 +49,7 @@ export function Receiver() {
   useEffect(() => {
     if (!alertId) return;
 
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsHost = window.location.origin.includes('localhost') ? 'localhost:3001' : window.location.host;
-    const socket = new WebSocket(`${wsProtocol}://${wsHost}`);
+    const socket = new WebSocket(WS_BASE);
     wsRef.current = socket;
 
     socket.onopen = () => {
