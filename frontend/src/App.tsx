@@ -23,8 +23,19 @@ import { AdminSettings } from './pages/AdminSettings';
 
 // A wrapper to handle routing logic based on setup state and auth state
 function AppContent() {
-  const { state, isAuthenticated } = useApp();
+  const { state, isAuthenticated, loadingToken } = useApp();
   const location = useLocation();
+
+  if (loadingToken) {
+    return (
+      <div className="w-full min-h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 border-4 border-red-500/25 border-t-red-500 rounded-full animate-spin" />
+          <p className="text-white/60 text-xs font-medium tracking-wide">Initializing SilentSOS...</p>
+        </div>
+      </div>
+    );
+  }
   const isReceiver = location.pathname.startsWith('/receiver');
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAdminLogin = location.pathname === '/admin/login';

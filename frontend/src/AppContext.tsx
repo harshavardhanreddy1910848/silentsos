@@ -1,5 +1,11 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { AppState, Contact, Settings, AlertEvent } from './types';
+import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
+import { Geolocation } from '@capacitor/geolocation';
+import { initPushNotifications } from './utils/push';
+
+
 
 const getMediaBase = () => {
   if (import.meta.env.VITE_API_BASE) {
@@ -44,6 +50,7 @@ type AppContextType = {
   state: AppState;
   token: string | null;
   isAuthenticated: boolean;
+  loadingToken: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   resetPassword: (email: string, password: string) => Promise<void>;
@@ -73,7 +80,30 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(initialState);
-  const [token, setToken] = useState<string | null>(() => sessionStorage.getItem('silentsos_token'));
+  const [token, setToken] = useState<string | null>(null);
+  const [loadingToken, setLoadingToken] = useState(true);
+
+  // Sync token from persistent Preferences or sessionStorage/localStorage on mount
+  useEffect(() => {
+    const initToken = async () => {
+      try {
+        let savedToken = null;
+        if (Capacitor.isNativePlatform()) {
+          const { value } = await Preferences.get({ key: 'silentsos_token' });
+          savedToken = value;
+        } else {
+          savedToken = sessionStorage.getItem('silentsos_token') || localStorage.getItem('silentsos_token');
+        }
+        setToken(savedToken);
+      } catch (e) {
+        console.error('Failed to load token:', e);
+      } finally {
+        setLoadingToken(false);
+      }
+    };
+    initToken();
+  }, []);
+
 
   // Background geolocation tracker
   const [currentLocation, setCurrentLocation] = useState<{
@@ -89,29 +119,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    let watchId: any = null;
+    const isNative = Capacitor.isNativePlatform();
 
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        setCurrentLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          timestamp: pos.timestamp || Date.now()
-        });
-      },
-      (err) => {
-        console.warn('[Background Geolocation] Error:', err);
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 15000
+    const startWatching = async () => {
+      if (isNative) {
+        try {
+          const perm = await Geolocation.checkPermissions();
+          if (perm.location !== 'granted') {
+            await Geolocation.requestPermissions();
+          }
+          watchId = await Geolocation.watchPosition(
+            {
+              enableHighAccuracy: true,
+              timeout: 15000,
+              maximumAge: 0
+            },
+            (pos, err) => {
+              if (pos) {
+                setCurrentLocation({
+                  lat: pos.coords.latitude,
+                  lng: pos.coords.longitude,
+                  accuracy: pos.coords.accuracy,
+                  timestamp: pos.timestamp || Date.now()
+                });
+              } else if (err) {
+                console.warn('[Native Geolocation] Watch error:', err);
+              }
+            }
+          );
+        } catch (e) {
+          console.error('[Native Geolocation] Failed to start watch:', e);
+        }
+      } else {
+        if (!navigator.geolocation) return;
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            setCurrentLocation({
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+              accuracy: pos.coords.accuracy,
+              timestamp: pos.timestamp || Date.now()
+            });
+          },
+          (err) => {
+            console.warn('[Web Geolocation] Error:', err);
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000
+          }
+        );
       }
-    );
+    };
+
+    startWatching();
 
     return () => {
-      navigator.geolocation.clearWatch(watchId);
+      if (watchId !== null) {
+        if (isNative) {
+          Geolocation.clearWatch({ id: watchId });
+        } else {
+          navigator.geolocation.clearWatch(watchId);
+        }
+      }
     };
   }, []);
 
@@ -122,7 +194,95 @@ export function AppProvider({ children }: { children: ReactNode }) {
     timestamp: number;
     googleMapsLink: string;
   }> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      const isNative = Capacitor.isNativePlatform();
+
+      if (isNative) {
+        try {
+          const perm = await Geolocation.checkPermissions();
+          if (perm.location !== 'granted') {
+            const req = await Geolocation.requestPermissions();
+            if (req.location !== 'granted') {
+              reject(new Error('Location permission denied.'));
+              return;
+            }
+          }
+
+          let watchId: string | null = null;
+          let bestPosition: any = null;
+          let hasResolved = false;
+
+          const resolveWithPosition = (pos: any) => {
+            if (hasResolved) return;
+            hasResolved = true;
+            if (watchId !== null) {
+              Geolocation.clearWatch({ id: watchId });
+            }
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            resolve({
+              lat,
+              lng,
+              accuracy: pos.coords.accuracy,
+              timestamp: pos.timestamp || Date.now(),
+              googleMapsLink: `https://maps.google.com/?q=${lat},${lng}`
+            });
+          };
+
+          const timeoutId = setTimeout(async () => {
+            if (!hasResolved) {
+              if (bestPosition) {
+                console.log(`[Native Geolocation] Resolve on timeout with best position: accuracy ${bestPosition.coords.accuracy}m`);
+                resolveWithPosition(bestPosition);
+              } else {
+                console.log('[Native Geolocation] No position received during watch, falling back to getCurrentPosition');
+                if (watchId !== null) {
+                  Geolocation.clearWatch({ id: watchId });
+                }
+                try {
+                  const pos = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: true,
+                    timeout: 3000,
+                    maximumAge: 0
+                  });
+                  resolveWithPosition(pos);
+                } catch (err) {
+                  reject(err);
+                }
+              }
+            }
+          }, maxWaitMs);
+
+          watchId = await Geolocation.watchPosition(
+            {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: maxWaitMs
+            },
+            (pos, err) => {
+              if (pos) {
+                console.log(`[Native Geolocation] Received update: accuracy ${pos.coords.accuracy}m`);
+                if (!bestPosition || pos.coords.accuracy < bestPosition.coords.accuracy) {
+                  bestPosition = pos;
+                }
+                if (pos.coords.accuracy <= desiredAccuracyMeters) {
+                  console.log(`[Native Geolocation] Desired accuracy (${desiredAccuracyMeters}m) met: accuracy ${pos.coords.accuracy}m. Resolving immediately.`);
+                  clearTimeout(timeoutId);
+                  resolveWithPosition(pos);
+                }
+              }
+              if (err) {
+                console.warn('[Native Geolocation] watch error:', err);
+              }
+            }
+          );
+        } catch (e) {
+          reject(e);
+        }
+        return;
+      }
+
+      // Web implementation
       if (!navigator.geolocation) {
         reject(new Error('Geolocation is not supported by your browser.'));
         return;
@@ -144,7 +304,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           lat,
           lng,
           accuracy: pos.coords.accuracy,
-          timestamp: pos.timestamp || Date.now(),
+          timestamp: pos.coords.accuracy,
           googleMapsLink: `https://maps.google.com/?q=${lat},${lng}`
         });
       };
@@ -196,6 +356,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+
   // Sync state with backend on startup
   const fetchState = async (authToken: string) => {
     try {
@@ -233,6 +394,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (token) {
       fetchState(token);
+      initPushNotifications(token);
     } else {
       setState(initialState);
     }
@@ -263,7 +425,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!res.ok) {
       throw new Error(data.error || 'Login failed');
     }
-    sessionStorage.setItem('silentsos_token', data.token);
+    if (Capacitor.isNativePlatform()) {
+      await Preferences.set({ key: 'silentsos_token', value: data.token });
+    } else {
+      sessionStorage.setItem('silentsos_token', data.token);
+      localStorage.setItem('silentsos_token', data.token);
+    }
     setToken(data.token);
   };
 
@@ -277,7 +444,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!res.ok) {
       throw new Error(data.error || 'Registration failed');
     }
-    sessionStorage.setItem('silentsos_token', data.token);
+    if (Capacitor.isNativePlatform()) {
+      await Preferences.set({ key: 'silentsos_token', value: data.token });
+    } else {
+      sessionStorage.setItem('silentsos_token', data.token);
+      localStorage.setItem('silentsos_token', data.token);
+    }
     setToken(data.token);
   };
 
@@ -293,11 +465,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    sessionStorage.removeItem('silentsos_token');
+  const logout = async () => {
+    if (Capacitor.isNativePlatform()) {
+      await Preferences.remove({ key: 'silentsos_token' });
+    } else {
+      sessionStorage.removeItem('silentsos_token');
+      localStorage.removeItem('silentsos_token');
+    }
     setToken(null);
     setState(initialState);
   };
+
 
   const updateUser = async (name: string) => {
     setState((s) => ({ ...s, userName: name }));
@@ -608,6 +786,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         state,
         token,
         isAuthenticated: !!token,
+        loadingToken,
         login,
         register,
         resetPassword,
