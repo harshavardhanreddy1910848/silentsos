@@ -7,7 +7,6 @@ import {
   Calendar, 
   Filter, 
   CheckCircle2, 
-  XCircle, 
   MapPin, 
   Clock, 
   FileText,
@@ -18,6 +17,7 @@ import {
   Video,
   Mic
 } from 'lucide-react';
+
 
 export function AdminAlerts() {
   const { token } = useApp();

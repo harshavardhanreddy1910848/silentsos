@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp, API_BASE } from '../AppContext';
 import { 
   Users, 
@@ -10,8 +10,7 @@ import {
   AlertCircle,
   TrendingUp,
   ExternalLink,
-  CheckCircle2,
-  Calendar
+  CheckCircle2
 } from 'lucide-react';
 
 export function AdminDashboard() {

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp, API_BASE } from '../AppContext';
 import { 
-  Users, 
   Search, 
-  UserPlus, 
   Edit2, 
   Trash2, 
   UserX, 
