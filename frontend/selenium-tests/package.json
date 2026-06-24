@@ -1,0 +1,15 @@
+{
+  "name": "silentsos-selenium-tests",
+  "version": "1.0.0",
+  "description": "Selenium E2E Tests and Reporting for SilentSOS",
+  "type": "commonjs",
+  "main": "tests/login.test.js",
+  "scripts": {
+    "test": "node tests/login.test.js",
+    "report": "node generate-report.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.22.0",
+    "xlsx": "^0.18.5"
+  }
+}

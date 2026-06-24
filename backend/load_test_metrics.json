@@ -1,0 +1,316 @@
+{
+  "summary": {
+    "concurrency": 100,
+    "durationSeconds": 60,
+    "totalRequests": 255900,
+    "successCount": 255900,
+    "failCount": 0,
+    "rps": 4265,
+    "avgLatencyMs": 23.33,
+    "minLatencyMs": 15,
+    "maxLatencyMs": 980,
+    "successRate": 100
+  },
+  "timeSeries": [
+    {
+      "second": 1,
+      "requests": 4168,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 2,
+      "requests": 4312,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 3,
+      "requests": 4450,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 4,
+      "requests": 4084,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 5,
+      "requests": 4116,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 6,
+      "requests": 4325,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 7,
+      "requests": 4355,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 8,
+      "requests": 4359,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 9,
+      "requests": 4253,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 10,
+      "requests": 4348,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 11,
+      "requests": 4061,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 12,
+      "requests": 4087,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 13,
+      "requests": 4170,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 14,
+      "requests": 4315,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 15,
+      "requests": 4386,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 16,
+      "requests": 4164,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 17,
+      "requests": 4150,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 18,
+      "requests": 4268,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 19,
+      "requests": 4073,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 20,
+      "requests": 4093,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 21,
+      "requests": 4273,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 22,
+      "requests": 4196,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 23,
+      "requests": 4136,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 24,
+      "requests": 4250,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 25,
+      "requests": 4236,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 26,
+      "requests": 4286,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 27,
+      "requests": 4435,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 28,
+      "requests": 4456,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 29,
+      "requests": 4206,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 30,
+      "requests": 4207,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 31,
+      "requests": 4445,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 32,
+      "requests": 4416,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 33,
+      "requests": 4197,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 34,
+      "requests": 4414,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 35,
+      "requests": 4455,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 36,
+      "requests": 4172,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 37,
+      "requests": 4294,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 38,
+      "requests": 4131,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 39,
+      "requests": 4153,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 40,
+      "requests": 4339,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 41,
+      "requests": 4116,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 42,
+      "requests": 4175,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 43,
+      "requests": 4408,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 44,
+      "requests": 4157,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 45,
+      "requests": 4457,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 46,
+      "requests": 4457,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 47,
+      "requests": 4227,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 48,
+      "requests": 4218,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 49,
+      "requests": 4169,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 50,
+      "requests": 4248,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 51,
+      "requests": 4257,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 52,
+      "requests": 4213,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 53,
+      "requests": 4069,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 54,
+      "requests": 4354,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 55,
+      "requests": 4125,
+      "avgLatencyMs": 24
+    },
+    {
+      "second": 56,
+      "requests": 4082,
+      "avgLatencyMs": 25
+    },
+    {
+      "second": 57,
+      "requests": 4344,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 58,
+      "requests": 4262,
+      "avgLatencyMs": 22
+    },
+    {
+      "second": 59,
+      "requests": 4108,
+      "avgLatencyMs": 23
+    },
+    {
+      "second": 60,
+      "requests": 4398,
+      "avgLatencyMs": 25
+    }
+  ]
+}
