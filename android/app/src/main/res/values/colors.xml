@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- SilentSOS Design System Colors -->
+    <color name="silentsos_bg">#09090b</color>
+    <color name="silentsos_surface">#12121a</color>
+    <color name="silentsos_surface_border">#27273a</color>
+    
+    <!-- Primary Emergency Crimson -->
+    <color name="silentsos_red_primary">#ef4444</color>
+    <color name="silentsos_red_dark">#dc2626</color>
+    <color name="silentsos_red_deep">#991b1b</color>
+
+    <!-- Accents -->
+    <color name="silentsos_emerald">#10b981</color>
+    <color name="silentsos_amber">#f59e0b</color>
+
+    <!-- Text and Neutral -->
+    <color name="text_primary">#ffffff</color>
+    <color name="text_secondary">#9ca3af</color>
+    <color name="text_muted">#6b7280</color>
+
+    <!-- Standard system mapping -->
+    <color name="black">#000000</color>
+    <color name="white">#ffffff</color>
+</resources>

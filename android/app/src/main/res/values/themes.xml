@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.SilentSOS" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/silentsos_red_primary</item>
+        <item name="colorPrimaryVariant">@color/silentsos_red_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/silentsos_emerald</item>
+        <item name="colorSecondaryVariant">@color/silentsos_amber</item>
+        <item name="colorOnSecondary">@color/black</item>
+        
+        <item name="android:windowBackground">@color/silentsos_bg</item>
+        <item name="android:statusBarColor">@color/silentsos_bg</item>
+        <item name="android:navigationBarColor">@color/silentsos_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- Native Splash Screen Theme using AndroidX Core Splashscreen -->
+    <style name="Theme.SilentSOS.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/silentsos_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <item name="postSplashScreenTheme">@style/Theme.SilentSOS</item>
+    </style>
+</resources>

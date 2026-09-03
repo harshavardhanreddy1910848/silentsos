@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+    <!-- Outer Shield Glow / Border -->
+    <path
+        android:fillColor="#ef4444"
+        android:pathData="M80,24 C104,24 122,32 126,38 C126,72 108,104 80,120 C52,104 34,72 34,38 C38,32 56,24 80,24 Z" />
+    <!-- Inner Dark Plate -->
+    <path
+        android:fillColor="#09090b"
+        android:pathData="M80,31 C100,31 115,38 118,43 C118,71 103,98 80,111 C57,98 42,71 42,43 C45,38 60,31 80,31 Z" />
+    <!-- White Distress SOS Indicator -->
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M77,50 h6 v28 h-6 z" />
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M80,88 m-3.5,0 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0" />
+</vector>

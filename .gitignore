@@ -38,3 +38,10 @@ uploads/
 *.sln
 *.sw?
 .DS_Store
+
+# Android
+.gradle/
+android/.gradle/
+android/local.properties
+android/.cxx/
+
