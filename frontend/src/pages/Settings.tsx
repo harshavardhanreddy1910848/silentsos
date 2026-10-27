@@ -1,443 +1,682 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../AppContext';
 import {
-  EyeOff,
-  Trash2,
-  Smartphone,
-  MessageSquare,
-  LogOut,
-  Lock,
-  CheckCircle2,
-  ChevronRight,
-  User,
-  X
+  ClockIcon,
+  ImageIcon,
+  VideoIcon,
+  MicIcon,
+  CameraIcon,
+  EyeOffIcon,
+  MessageSquareIcon,
+  Trash2Icon,
+  ChevronRightIcon,
+  RotateCcwIcon,
+  UserRoundIcon,
+  LogOutIcon,
+  ShieldCheckIcon,
+  KeyRoundIcon,
+  EyeIcon,
+  CheckIcon,
+  LockIcon,
+  MessageSquareHeartIcon,
+  StarIcon,
+  SendIcon,
+  CheckCircle2Icon,
+  BellRingIcon,
+  SparklesIcon,
+  MailCheckIcon,
+  Loader2Icon
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Screen } from '../components/ui/Screen';
+import { useApp } from '../context/AppContext';
+import { Toggle } from '../components/ui/Toggle';
+import { Settings as SettingsType } from '../lib/types';
+import { api } from '../lib/api';
+import {
+  requestNotificationPermission,
+  sendBrowserNotification,
+  getNotificationPermission,
+  playAlertChime
+} from '../lib/notifications';
+
+
+function Section({
+  title,
+  children
+}: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-5">
+      <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-white/40">
+        {title}
+      </p>
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SegRow<T extends string | number>({
+  Icon,
+  label,
+  value,
+  options,
+  onChange,
+  fmt
+}: {
+  Icon: React.ComponentType<{ size?: number | string; color?: string }>;
+  label: string;
+  value: T;
+  options: T[];
+  onChange: (v: T) => void;
+  fmt?: (v: T) => string;
+}) {
+  return (
+    <div className="border-b border-white/5 p-4 last:border-0">
+      <div className="mb-2.5 flex items-center gap-2.5">
+        <Icon size={18} color="#fff" />
+        <span className="text-sm font-semibold">{label}</span>
+      </div>
+      <div
+        className="grid gap-1.5"
+        style={{ gridTemplateColumns: `repeat(${options.length},1fr)` }}
+      >
+        {options.map((o) => {
+          const on = o === value;
+          return (
+            <button
+              key={String(o)}
+              onClick={() => onChange(o)}
+              className="rounded-lg py-2 text-xs font-bold capitalize transition-colors"
+              style={{
+                backgroundColor: on ? '#ff1744' : 'rgba(255,255,255,0.05)',
+                color: on ? '#fff' : 'rgba(255,255,255,0.5)'
+              }}
+            >
+              {fmt ? fmt(o) : String(o)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ToggleRow({
+  Icon,
+  label,
+  sub,
+  on,
+  onChange,
+  color
+}: {
+  Icon: React.ComponentType<{ size?: number | string; color?: string }>;
+  label: string;
+  sub?: string;
+  on: boolean;
+  onChange: (v: boolean) => void;
+  color?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 border-b border-white/5 p-4 last:border-0">
+      <Icon size={18} color="#fff" />
+      <div className="flex-1">
+        <p className="text-sm font-semibold">{label}</p>
+        {sub && <p className="text-[11px] text-white/40">{sub}</p>}
+      </div>
+      <Toggle checked={on} onChange={onChange} color={color} />
+    </div>
+  );
+}
 
 export function Settings() {
-  const { state, updateSettings, clearData, logout } = useApp();
-  const navigate = useNavigate();
+  const nav = useNavigate();
+  const { settings, setSettings, profile, setProfile, reset, addFeedback } = useApp();
+  const set = (p: Partial<SettingsType>) => setSettings(p);
 
-  // Change PIN modal states
-  const [showChangePinModal, setShowChangePinModal] = useState(false);
-  const [pinPhase, setPinPhase] = useState<'verify' | 'new' | 'confirm' | 'success'>('verify');
-  const [enteredPin, setEnteredPin] = useState('');
-  const [firstNewPin, setFirstNewPin] = useState('');
-  const [changePinError, setChangePinError] = useState(false);
-  const [changePinErrorMessage, setChangePinErrorMessage] = useState('');
+  const [showPin, setShowPin] = useState(false);
+  const [editingPin, setEditingPin] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [pinMessage, setPinMessage] = useState<string | null>(null);
 
-  const handlePinKeyPress = (num: string) => {
-    if (pinPhase === 'success') return;
-    setChangePinError(false);
-    setChangePinErrorMessage('');
+  // Feedback State
+  const [feedbackRating, setFeedbackRating] = useState<number>(5);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
-    if (enteredPin.length < 4) {
-      const newPin = enteredPin + num;
-      setEnteredPin(newPin);
+  const currentPin = settings.safetyPin || '1234';
+  const isPinEnabled = settings.pinEnabled ?? true;
 
-      if (newPin.length === 4) {
-        if (pinPhase === 'verify') {
-          const targetPin = state.settings.safetyPin || '1234';
-          if (newPin === targetPin) {
-            setTimeout(() => {
-              setPinPhase('new');
-              setEnteredPin('');
-            }, 300);
-          } else {
-            setChangePinError(true);
-            setChangePinErrorMessage('Incorrect current PIN.');
-            setTimeout(() => {
-              setEnteredPin('');
-            }, 800);
-          }
-        } else if (pinPhase === 'new') {
-          setTimeout(() => {
-            setFirstNewPin(newPin);
-            setEnteredPin('');
-            setPinPhase('confirm');
-          }, 300);
-        } else if (pinPhase === 'confirm') {
-          if (newPin === firstNewPin) {
-            handleSavePin(newPin);
-          } else {
-            setChangePinError(true);
-            setChangePinErrorMessage('PINs do not match. Restarting...');
-            setTimeout(() => {
-              setEnteredPin('');
-              setFirstNewPin('');
-              setPinPhase('new');
-              setChangePinError(false);
-            }, 1200);
-          }
-        }
-      }
+  const handleLogout = () => {
+    setProfile({ authenticated: false });
+    nav('/', { replace: true });
+  };
+
+  // Web Notifications & Resend State
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(getNotificationPermission());
+  const [testEmail, setTestEmail] = useState(profile.email || 'sheshadriharshavardhanreddy@gmail.com');
+  const [testingResend, setTestingResend] = useState(false);
+  const [resendStatusMsg, setResendStatusMsg] = useState<{ success: boolean; text: string } | null>(null);
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    setNotifPerm(getNotificationPermission());
+    if (granted) {
+      playAlertChime();
+      sendBrowserNotification('✅ SilentSOS Notifications Enabled', {
+        body: 'You will receive immediate alerts and safety updates directly on your device.',
+        tag: 'silentsos-welcome'
+      });
     }
   };
 
-  const handlePinBackspace = () => {
-    if (pinPhase === 'success') return;
-    setChangePinError(false);
-    setChangePinErrorMessage('');
-    setEnteredPin(p => p.slice(0, -1));
+  const handleTestBrowserNotification = () => {
+    playAlertChime(880, 250);
+    sendBrowserNotification('🚨 SilentSOS Diagnostic Alert', {
+      body: 'Web notification pipeline is operating normally. All alerts will trigger seamlessly.',
+      tag: 'silentsos-test'
+    });
   };
 
-  const handlePinClear = () => {
-    if (pinPhase === 'success') return;
-    setChangePinError(false);
-    setChangePinErrorMessage('');
-    setEnteredPin('');
-  };
+  const handleTestResendEmail = async () => {
+    const target = testEmail.trim();
+    if (!target) return;
+    setTestingResend(true);
+    setResendStatusMsg(null);
 
-  const handleSavePin = async (newPin: string) => {
-    setPinPhase('success');
     try {
-      await updateSettings({ safetyPin: newPin });
-      setTimeout(() => {
-        setShowChangePinModal(false);
-      }, 1500);
-    } catch (err) {
-      console.error('Failed to save settings PIN:', err);
-      setPinPhase('new');
-      setChangePinError(true);
-      setChangePinErrorMessage('Save failed. Try again.');
+      const res = await api.testResend(target);
+      if (res.success) {
+        setResendStatusMsg({
+          success: true,
+          text: `✅ Delivered via Resend to ${target}! Sender: ${res.sender || 'onboarding@resend.dev'}`
+        });
+      } else {
+        setResendStatusMsg({
+          success: false,
+          text: `⚠️ Notice: ${res.error || 'Resend delivery failed'}`
+        });
+      }
+    } catch (err: any) {
+      setResendStatusMsg({
+        success: false,
+        text: `❌ Error: ${err.message}`
+      });
+    } finally {
+      setTestingResend(false);
     }
   };
 
-  useEffect(() => {
-    if (!showChangePinModal || pinPhase === 'success') return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key >= '0' && e.key <= '9') {
-        handlePinKeyPress(e.key);
-      } else if (e.key === 'Backspace') {
-        handlePinBackspace();
-      } else if (e.key === 'Escape') {
-        setShowChangePinModal(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showChangePinModal, pinPhase, enteredPin, firstNewPin]);
-  const handleClearData = () => {
-    if (
-    window.confirm(
-      'Are you sure? This will delete all settings, contacts, and history.'
-    ))
-    {
-      clearData();
-      window.location.reload();
+
+  const handleSavePin = () => {
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      setPinMessage('❌ Please enter a 4-digit numeric PIN');
+      return;
     }
+    set({ safetyPin: newPin });
+    setPinMessage(`✅ Safety PIN updated to ${newPin}!`);
+    setEditingPin(false);
+    setNewPin('');
+    setTimeout(() => setPinMessage(null), 3500);
+  };
+
+  const handleSendFeedback = async () => {
+    const clean = feedbackMessage.trim();
+    if (!clean || feedbackSending) return;
+
+    setFeedbackSending(true);
+    const enrichedMessage = `[${feedbackRating}★] ${clean}`;
+
+    // Record locally in AppContext
+    addFeedback({
+      category: 'feedback',
+      message: enrichedMessage
+    });
+
+    // Sync with backend API
+    try {
+      await api.submitFeedback({
+        category: 'feedback',
+        message: enrichedMessage
+      }, profile.email || 'user');
+    } catch (err) {
+      console.warn('Backend feedback sync warning:', err);
+    }
+
+    setFeedbackSending(false);
+    setFeedbackSuccess(true);
+    setFeedbackMessage('');
+    setTimeout(() => {
+      setFeedbackSuccess(false);
+    }, 4500);
   };
 
   return (
-    <div className="flex flex-col h-full bg-background p-6 overflow-y-auto no-scrollbar pb-24">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+    <Screen title="Settings" back>
+      <Section title="Security & Safety PIN">
+        <ToggleRow
+          Icon={LockIcon}
+          label="Safety PIN protection"
+          sub="Requires 4-digit PIN to cancel active alerts or change security settings"
+          on={isPinEnabled}
+          onChange={(v) => set({ pinEnabled: v })}
+          color="#00e676"
+        />
 
-      <div className="space-y-6">
-        {/* User Account Profile Banner */}
-        <button
-          onClick={() => navigate('/profile')}
-          className="w-full bg-surface border border-surfaceHighlight hover:border-safe/40 rounded-2xl p-4 flex items-center justify-between transition-colors text-left group"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-black font-black text-base shadow-md">
-              {state.userName ? state.userName.substring(0, 2).toUpperCase() : <User className="w-6 h-6" />}
+        {isPinEnabled && (
+          <div className="p-4 border-b border-white/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <KeyRoundIcon size={18} color="#00e676" />
+                <div>
+                  <p className="text-sm font-semibold">Safety PIN Code</p>
+                  <p className="text-[11px] text-white/40">
+                    4-digit security code for emergency cancellation
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-base font-bold text-[#00e676] bg-black/40 px-3 py-1 rounded-lg tracking-widest">
+                  {showPin ? currentPin : '••••'}
+                </span>
+                <button
+                  onClick={() => setShowPin(!showPin)}
+                  className="rounded-lg bg-white/10 p-1.5 text-white/70 hover:bg-white/20"
+                  title={showPin ? 'Hide PIN' : 'Show PIN'}
+                >
+                  {showPin ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                </button>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-white text-base group-hover:text-safe transition-colors">
-                {state.userName || 'Safety User'}
-              </p>
-              <p className="text-xs text-textMuted font-mono">
-                {state.userEmail || 'harshavardhanreddy1910848@gmail.com'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-safe bg-safe/10 border border-safe/20 px-2 py-1 rounded-lg">
-              Manage Profile
-            </span>
-            <ChevronRight className="w-4 h-4 text-textMuted group-hover:text-safe transition-colors" />
-          </div>
-        </button>
 
-        {/* Stealth & Disguise */}
-        <section>
-          <h2 className="text-xs font-bold text-textMuted uppercase mb-3 flex items-center">
-            <EyeOff className="w-4 h-4 mr-2" /> Stealth & Disguise
-          </h2>
-          <div className="bg-surface border border-surfaceHighlight rounded-xl overflow-hidden">
-            <div className="p-4 flex items-center justify-between">
+            {pinMessage && (
+              <div className="mt-3 rounded-xl bg-white/10 p-2.5 text-center text-xs font-bold text-[#00e676]">
+                {pinMessage}
+              </div>
+            )}
+
+            {!editingPin ? (
+              <button
+                onClick={() => {
+                  setEditingPin(true);
+                  setNewPin('');
+                }}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 py-2.5 text-xs font-bold text-white hover:bg-white/15"
+              >
+                <ShieldCheckIcon size={15} color="#00e676" /> Change Safety PIN
+              </button>
+            ) : (
+              <div className="mt-3 rounded-xl border border-white/10 bg-black/40 p-3 space-y-3">
+                <p className="text-xs font-bold text-white/80">Enter new 4-digit Safety PIN:</p>
+                <input
+                  type="password"
+                  maxLength={4}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="e.g. 5829"
+                  className="w-full text-center tracking-[0.5em] font-mono text-xl font-bold bg-white/10 border border-white/20 rounded-xl p-2.5 text-white outline-none focus:border-[#00e676]"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSavePin}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#00e676] py-2 text-xs font-bold text-black"
+                  >
+                    <CheckIcon size={16} /> Save PIN
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingPin(false);
+                      setNewPin('');
+                    }}
+                    className="flex-1 rounded-xl bg-white/10 py-2 text-xs font-bold text-white/70"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Section>
+
+      <Section title="Evidence capture">
+        <SegRow
+          Icon={ImageIcon}
+          label="Photo burst count"
+          value={settings.burstCount}
+          options={[3, 5, 10]}
+          onChange={(v) => set({ burstCount: v as 3 | 5 | 10 })}
+        />
+        <SegRow
+          Icon={VideoIcon}
+          label="Video duration"
+          value={settings.videoDuration}
+          options={['30s', '1min', 'continuous']}
+          onChange={(v) => set({ videoDuration: v as '30s' | '1min' | 'continuous' })}
+        />
+        <SegRow
+          Icon={MicIcon}
+          label="Audio quality"
+          value={settings.audioQuality}
+          options={['low', 'high']}
+          onChange={(v) => set({ audioQuality: v as 'low' | 'high' })}
+          fmt={(v) => (v === 'low' ? 'Low bw' : 'High')}
+        />
+        <SegRow
+          Icon={CameraIcon}
+          label="Cameras used"
+          value={settings.cameraChoice}
+          options={['front', 'rear', 'both']}
+          onChange={(v) => set({ cameraChoice: v as 'front' | 'rear' | 'both' })}
+        />
+      </Section>
+
+      <Section title="Detection & alerts">
+        <SegRow
+          Icon={CameraIcon}
+          label="Gesture sensitivity"
+          value={settings.sensitivity}
+          options={['low', 'medium', 'high']}
+          onChange={(v) => set({ sensitivity: v as 'low' | 'medium' | 'high' })}
+        />
+        <SegRow
+          Icon={ClockIcon}
+          label="Auto-resend interval"
+          value={settings.autoRepeat}
+          options={[5, 10, 15]}
+          onChange={(v) => set({ autoRepeat: v as 5 | 10 | 15 })}
+          fmt={(v) => `${v}m`}
+        />
+      </Section>
+
+      <Section title="Stealth & disguise">
+        <ToggleRow
+          Icon={EyeOffIcon}
+          label="Discreet mode"
+          sub="Black screen while capturing"
+          on={settings.discreet}
+          onChange={(v) => set({ discreet: v })}
+          color="#ff9100"
+        />
+      </Section>
+
+      <Section title="Emergency message">
+        <div className="p-4">
+          <div className="mb-2 flex items-center gap-2.5">
+            <MessageSquareIcon size={18} color="#fff" />
+            <span className="text-sm font-semibold">Message template</span>
+          </div>
+          <textarea
+            value={settings.messageTemplate}
+            onChange={(e) => set({ messageTemplate: e.target.value })}
+            rows={4}
+            className="w-full resize-none rounded-xl bg-black/40 p-3 text-sm outline-none focus:ring-1 focus:ring-[#ff1744]"
+          />
+        </div>
+      </Section>
+
+      <Section title="Web App Notifications & Resend Email">
+        {/* Browser Notifications Row */}
+        <div className="border-b border-white/5 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <BellRingIcon size={18} color="#00e676" />
               <div>
-                <p className="font-medium">Stealth Mode</p>
-                <p className="text-xs text-textMuted">
-                  Black screen, app remains active
+                <p className="text-sm font-semibold">Web App Browser Notifications</p>
+                <p className="text-[11px] text-white/40">
+                  Real-time alerts, chime sounds, and contact notifications
                 </p>
               </div>
-              <button
-                onClick={() =>
-                updateSettings({
-                  stealthMode: !state.settings.stealthMode
-                })
-                }
-                className={`w-12 h-6 rounded-full transition-colors relative ${state.settings.stealthMode ? 'bg-safe' : 'bg-surfaceHighlight'}`}>
-                
-                <div
-                  className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${state.settings.stealthMode ? 'left-7' : 'left-1'}`} />
-                
-              </button>
             </div>
-          </div>
-        </section>
-
-        {/* Capture Settings */}
-        <section>
-          <h2 className="text-xs font-bold text-textMuted uppercase mb-3 flex items-center">
-            <Smartphone className="w-4 h-4 mr-2" /> Capture Settings
-          </h2>
-          <div className="bg-surface border border-surfaceHighlight rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-surfaceHighlight">
-              <div className="flex justify-between mb-2">
-                <p className="font-medium">Photo Burst Count</p>
-                <span className="text-sm text-textMuted">
-                  {state.settings.photoBurstCount}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="3"
-                max="10"
-                step="1"
-                value={state.settings.photoBurstCount}
-                onChange={(e) =>
-                updateSettings({
-                  photoBurstCount: parseInt(e.target.value) as any
-                })
-                }
-                className="w-full accent-safe" />
-              
-            </div>
-            <div className="p-4 border-b border-surfaceHighlight">
-              <p className="font-medium mb-2">Video Duration</p>
-              <div className="flex gap-2">
-                {['30s', '1min', 'continuous'].map((dur) =>
-                <button
-                  key={dur}
-                  onClick={() =>
-                  updateSettings({
-                    videoDuration: dur as any
-                  })
-                  }
-                  className={`flex-1 py-1.5 text-xs rounded-lg transition-colors ${state.settings.videoDuration === dur ? 'bg-safe text-black font-bold' : 'bg-surfaceHighlight text-textMuted'}`}>
-                  
-                    {dur}
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="p-4 bg-warning/10">
-              <p className="text-xs text-warning">
-                Battery &lt; 20% → Video quality will automatically lower to
-                save power.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Message Template */}
-        <section>
-          <h2 className="text-xs font-bold text-textMuted uppercase mb-3 flex items-center">
-            <MessageSquare className="w-4 h-4 mr-2" /> Message Template
-          </h2>
-          <div className="bg-surface border border-surfaceHighlight rounded-xl p-4">
-            <textarea
-              value={state.settings.messageTemplate}
-              onChange={(e) =>
-              updateSettings({
-                messageTemplate: e.target.value
-              })
-              }
-              className="w-full h-32 bg-background rounded-lg p-3 text-xs text-textMuted outline-none focus:ring-1 focus:ring-safe resize-none mb-2" />
-            
-            <p className="text-[10px] text-textMuted">
-              Available tags: {'{name}, {time}, {type}, {gps_link}'}
-            </p>
-          </div>
-        </section>
-
-        {/* Security & PIN */}
-        <section>
-          <h2 className="text-xs font-bold text-textMuted uppercase mb-3 flex items-center">
-            <Lock className="w-4 h-4 mr-2" /> Security & PIN
-          </h2>
-          <div className="bg-surface border border-surfaceHighlight rounded-xl p-4 flex items-center justify-between">
-            <div>
-              <p className="font-medium text-white">Safety PIN</p>
-              <p className="text-xs text-textMuted">
-                Required to stop alerts & delete evidence
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setPinPhase('verify');
-                setEnteredPin('');
-                setFirstNewPin('');
-                setChangePinError(false);
-                setChangePinErrorMessage('');
-                setShowChangePinModal(true);
-              }}
-              className="text-xs bg-surfaceHighlight px-4 py-2 border border-white/5 rounded-xl font-bold hover:bg-surfaceHighlight/80 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+            <span
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold ${
+                notifPerm === 'granted'
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : notifPerm === 'denied'
+                  ? 'bg-red-500/20 text-red-400'
+                  : 'bg-amber-500/20 text-amber-400'
+              }`}
             >
-              Change PIN <ChevronRight className="w-3.5 h-3.5" />
+              {notifPerm === 'granted' ? 'Active' : notifPerm === 'denied' ? 'Blocked' : 'Requires Permission'}
+            </span>
+          </div>
+
+          <div className="mt-3 flex gap-2">
+            {notifPerm !== 'granted' && (
+              <button
+                type="button"
+                onClick={handleEnableNotifications}
+                className="flex-1 rounded-xl bg-[#00e676] py-2 text-xs font-bold text-black shadow-md hover:opacity-95"
+              >
+                Enable Notifications
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleTestBrowserNotification}
+              className="flex-1 rounded-xl bg-white/10 py-2 text-xs font-bold text-white/80 hover:bg-white/15"
+            >
+              Test Notification
             </button>
           </div>
-        </section>
+        </div>
 
-        {/* Account Session Actions */}
-        <section className="pt-4 space-y-3">
-          <button
-            onClick={() => {
-              logout();
-              window.location.reload();
-            }}
-            className="w-full py-4 bg-surfaceHighlight hover:bg-surface border border-surfaceHighlight text-white rounded-xl font-semibold flex items-center justify-center transition-colors"
-          >
-            <LogOut className="w-5 h-5 mr-2 text-warning" /> Log Out Session
-          </button>
-          
-          <button
-            onClick={handleClearData}
-            className="w-full py-4 border border-emergency/30 text-emergency rounded-xl font-medium flex items-center justify-center hover:bg-emergency/10 transition-colors"
-          >
-            <Trash2 className="w-5 h-5 mr-2" /> Reset App Data
-          </button>
-        </section>
-      </div>
-
-      {/* Change PIN Modal Overlay */}
-      <AnimatePresence>
-        {showChangePinModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/95 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center"
-          >
-            <div className="max-w-xs w-full flex flex-col items-center relative">
-              {/* Close Button (only show if not in success state) */}
-              {pinPhase !== 'success' && (
-                <button
-                  onClick={() => setShowChangePinModal(false)}
-                  className="absolute -top-12 -right-2 text-white/50 hover:text-white bg-white/10 rounded-full p-2 transition-all cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-
-              {pinPhase === 'success' ? (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mb-6 shadow-lg shadow-emerald-950/20">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Safety PIN Changed!
-                  </h3>
-                  <p className="text-xs text-emerald-400 font-bold tracking-wide uppercase">
-                    Settings Saved
-                  </p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="pin-phases"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="w-full flex flex-col items-center"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-surfaceHighlight border border-white/10 flex items-center justify-center mb-6 shadow-md shadow-red-950/20">
-                    <Lock className="w-6 h-6 text-red-400" />
-                  </div>
-
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    {pinPhase === 'verify' && 'Verify Current PIN'}
-                    {pinPhase === 'new' && 'Enter New PIN'}
-                    {pinPhase === 'confirm' && 'Confirm New PIN'}
-                  </h3>
-                  <p className="text-xs text-textMuted mb-8 leading-relaxed max-w-[240px]">
-                    {pinPhase === 'verify' && 'Enter your current 4-digit Safety PIN to verify identity.'}
-                    {pinPhase === 'new' && 'Enter your new secure 4-digit Safety PIN.'}
-                    {pinPhase === 'confirm' && 'Re-enter your new 4-digit Safety PIN to confirm.'}
-                  </p>
-
-                  {/* PIN Dot Indicators */}
-                  <div className="flex gap-4 mb-8">
-                    {[0, 1, 2, 3].map((index) => (
-                      <motion.div
-                        key={index}
-                        animate={changePinError ? { x: [0, -10, 10, -10, 10, 0] } : {}}
-                        transition={{ duration: 0.4 }}
-                        className={`w-4 h-4 rounded-full border-2 transition-all ${
-                          enteredPin.length > index
-                            ? changePinError
-                              ? 'bg-red-500 border-red-500'
-                              : 'bg-emerald-500 border-emerald-500 shadow-[0_0_8px_#10b981]'
-                            : 'border-white/25 bg-transparent'
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Keypad */}
-                  <div className="grid grid-cols-3 gap-4 w-full max-w-[260px] mb-8">
-                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
-                      <button
-                        key={num}
-                        onClick={() => handlePinKeyPress(num)}
-                        className="aspect-square rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 text-lg font-bold text-white flex items-center justify-center transition-all active:scale-90 shadow-sm cursor-pointer"
-                      >
-                        {num}
-                      </button>
-                    ))}
-                    <button
-                      onClick={handlePinClear}
-                      disabled={enteredPin.length === 0}
-                      className="aspect-square rounded-2xl text-[10px] uppercase font-bold text-white/40 hover:text-white transition-colors flex items-center justify-center disabled:opacity-0 disabled:cursor-default cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                    <button
-                      onClick={() => handlePinKeyPress('0')}
-                      className="aspect-square rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 text-lg font-bold text-white flex items-center justify-center transition-all active:scale-90 shadow-sm cursor-pointer"
-                    >
-                      0
-                    </button>
-                    <button
-                      onClick={handlePinBackspace}
-                      disabled={enteredPin.length === 0}
-                      className="aspect-square rounded-2xl text-[10px] uppercase font-bold text-white/40 hover:text-white transition-colors flex items-center justify-center disabled:opacity-0 disabled:cursor-default cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </div>
-
-                  {changePinErrorMessage && (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-xs text-red-400 font-bold animate-pulse"
-                    >
-                      {changePinErrorMessage}
-                    </motion.p>
-                  )}
-                </motion.div>
-              )}
+        {/* Resend Service Status */}
+        <div className="border-b border-white/5 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <SparklesIcon size={18} color="#00e676" />
+              <div>
+                <p className="text-sm font-semibold">Resend Email Gateway</p>
+                <p className="text-[11px] text-white/40">
+                  Key: <code className="font-mono text-[#00e676]">re_L1***NwPN</code> · High-speed delivery
+                </p>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>);
+            <span className="flex items-center gap-1 rounded-lg bg-[#00e676]/15 px-2.5 py-1 text-xs font-bold text-[#00e676]">
+              <span className="h-2 w-2 rounded-full bg-[#00e676] animate-pulse"></span>
+              Connected
+            </span>
+          </div>
+        </div>
+
+        {/* Resend Live Diagnostic Test */}
+        <div className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <MailCheckIcon size={16} color="#00e676" />
+            <p className="text-xs font-bold text-white/80">Send Test Email via Resend</p>
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="recipient@example.com"
+              className="flex-1 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-white outline-none focus:border-[#00e676]"
+            />
+            <button
+              type="button"
+              disabled={testingResend || !testEmail.trim()}
+              onClick={handleTestResendEmail}
+              className="flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white hover:bg-white/15 disabled:opacity-40"
+            >
+              {testingResend ? <Loader2Icon size={13} className="animate-spin" /> : <SendIcon size={13} />}
+              <span>{testingResend ? 'Sending...' : 'Test Send'}</span>
+            </button>
+          </div>
+
+          {resendStatusMsg && (
+            <div
+              className={`rounded-xl p-2.5 text-xs font-bold ${
+                resendStatusMsg.success
+                  ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                  : 'border border-amber-500/20 bg-amber-500/10 text-amber-400'
+              }`}
+            >
+              {resendStatusMsg.text}
+            </div>
+          )}
+        </div>
+      </Section>
+
+      <Section title="Storage">
+        <SegRow
+          Icon={Trash2Icon}
+          label="Auto-delete old evidence"
+          value={settings.autoDeleteDays}
+          options={[7, 14, 30, 0]}
+          onChange={(v) => set({ autoDeleteDays: v as 7 | 14 | 30 | 0 })}
+          fmt={(v) => (v === 0 ? 'Never' : `${v}d`)}
+        />
+      </Section>
+
+      <Section title="Feedback">
+        <div className="p-4 space-y-3.5">
+          <div className="flex items-center gap-2.5">
+            <MessageSquareHeartIcon size={18} color="#ff1744" />
+            <div>
+              <span className="text-sm font-semibold">Share your feedback</span>
+              <p className="text-[11px] text-white/40">
+                Rate your experience, report an issue, or suggest improvements
+              </p>
+            </div>
+          </div>
+
+          {/* Star Rating */}
+          <div className="rounded-xl bg-black/40 border border-white/5 p-2.5">
+            <div className="flex items-center justify-between mb-1.5 px-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-white/50">Experience Rating</span>
+              <span className="text-[11px] font-semibold text-amber-400">
+                {feedbackRating === 5 && 'Outstanding 🌟'}
+                {feedbackRating === 4 && 'Very Good ✨'}
+                {feedbackRating === 3 && 'Good 👍'}
+                {feedbackRating === 2 && 'Fair ⚠️'}
+                {feedbackRating === 1 && 'Needs Work 🛠️'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 justify-center py-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFeedbackRating(star)}
+                  className="p-1 transition-transform active:scale-90 hover:scale-110"
+                  title={`${star} Star`}
+                >
+                  <StarIcon
+                    size={22}
+                    className={
+                      star <= feedbackRating
+                        ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]'
+                        : 'text-white/20'
+                    }
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Tags */}
+          <div className="flex flex-wrap gap-1.5">
+            {['Gestures', 'SOS Trigger', 'Contacts', 'Camera/Audio', 'Discreet Mode'].map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => {
+                  const tagPrefix = `[${tag}] `;
+                  if (!feedbackMessage.includes(tagPrefix)) {
+                    setFeedbackMessage((prev) => (prev ? `${tagPrefix}${prev}` : tagPrefix));
+                  }
+                }}
+                className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/70 hover:bg-white/10 hover:text-white"
+              >
+                +{tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Textarea */}
+          <textarea
+            value={feedbackMessage}
+            onChange={(e) => {
+              setFeedbackMessage(e.target.value);
+              setFeedbackSuccess(false);
+            }}
+            rows={3}
+            placeholder="Share details, suggestions or report an issue..."
+            className="w-full resize-none rounded-xl bg-black/40 border border-white/10 p-3 text-xs outline-none focus:border-[#ff1744] placeholder:text-white/30 text-white"
+          />
+
+          {/* Submit Button & Confirmation */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled={!feedbackMessage.trim() || feedbackSending}
+              onClick={handleSendFeedback}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff1744] py-2.5 text-xs font-bold text-white transition-opacity hover:opacity-95 disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-[#ff1744]/20"
+            >
+              <SendIcon size={14} />
+              <span>{feedbackSending ? 'Submitting...' : 'Submit Feedback'}</span>
+            </button>
+
+            {feedbackSuccess && (
+              <div className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-2.5 text-xs font-bold text-emerald-400">
+                <CheckCircle2Icon size={16} />
+                <span>Thank you! Your feedback has been received.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Account">
+        <button
+          onClick={() => nav('/profile')}
+          className="flex w-full items-center justify-between border-b border-white/5 p-4 text-left"
+        >
+          <span className="flex items-center gap-2.5 text-sm font-semibold">
+            <UserRoundIcon size={18} /> Your safety profile
+          </span>
+          <ChevronRightIcon size={18} color="#666" />
+        </button>
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center justify-between p-4 text-left text-[#ff1744]"
+        >
+          <span className="flex items-center gap-2.5 text-sm font-semibold">
+            <LogOutIcon size={18} /> Log out
+          </span>
+          <ChevronRightIcon size={18} color="#666" />
+        </button>
+      </Section>
+
+      <button
+        onClick={() => nav('/history')}
+        className="mb-3 flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-4"
+      >
+        <span className="flex items-center gap-2.5 text-sm font-semibold">
+          <ClockIcon size={18} /> View alert history
+        </span>
+        <ChevronRightIcon size={18} color="#666" />
+      </button>
+
+      <button
+        onClick={() => {
+          if (confirm('Reset SilentSOS? This clears your profile, contacts and evidence.')) {
+            reset();
+            nav('/onboarding', { replace: true });
+          }
+        }}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#ff1744]/30 py-3.5 font-bold text-[#ff1744]"
+      >
+        <RotateCcwIcon size={18} /> Reset app
+      </button>
+
+      <p className="mt-5 text-center text-[11px] text-white/30">
+        SilentSOS · armed for {profile.name || 'you'}
+      </p>
+    </Screen>
+  );
 }

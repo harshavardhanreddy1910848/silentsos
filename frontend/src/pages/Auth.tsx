@@ -1,711 +1,461 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useApp } from '../AppContext';
+import { FormEvent, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-  ShieldAlert,
-  LogIn,
-  UserPlus,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  User,
-  Wifi,
-  Camera,
-  MapPin,
-  Bell,
-  Key,
-  CheckCircle2,
-  ArrowLeft,
-  Send,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  EyeIcon,
+  EyeOffIcon,
+  LockKeyholeIcon,
+  MailIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  KeyRoundIcon,
+  CheckCircle2Icon,
+  Loader2Icon
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useApp } from '../context/AppContext';
+import { api } from '../lib/api';
+import { requestNotificationPermission } from '../lib/notifications';
 
-/* ─────────────────────────────────────────────
-   Floating particle dot
-───────────────────────────────────────────── */
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  speed: number;
-  opacity: number;
-  color: string;
-}
+export function Auth() {
+  const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlToken = searchParams.get('token') || '';
 
-function ParticleBg() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { profile, setProfile } = useApp();
+  const [authMode, setAuthMode] = useState<'password' | 'token'>('password');
+  const [isCreating, setIsCreating] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
+  const [loading, setLoading] = useState(false);
 
+  // Token Auth states
+  const [tokenStep, setTokenStep] = useState<'request' | 'verify'>('request');
+  const [tokenCode, setTokenCode] = useState('');
+  const [tokenVerifying, setTokenVerifying] = useState(false);
+
+  // 1. AUTO-LOGIN IF URL HAS ?token=
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!urlToken) return;
 
-    let raf: number;
-    const particles: Particle[] = [];
-    const colors = ['#ef4444', '#f97316', '#ec4899'];
+    let isMounted = true;
+    setTokenVerifying(true);
+    setInfoMsg('⚡ Verifying token authentication...');
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    for (let i = 0; i < 38; i++) {
-      particles.push({
-        id: i,
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2.5 + 0.5,
-        speed: Math.random() * 0.4 + 0.1,
-        opacity: Math.random() * 0.4 + 0.05,
-        color: colors[Math.floor(Math.random() * colors.length)],
+    api.tokenLogin({ token: urlToken })
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.success && res.profile) {
+          setProfile({
+            ...res.profile,
+            authenticated: true,
+            onboarded: res.profile.onboarded ?? true
+          });
+          setInfoMsg('✅ Authenticated successfully via token! Loading SilentSOS...');
+          // Request browser notifications permissions seamlessly
+          requestNotificationPermission().catch(() => {});
+          setTimeout(() => {
+            nav(res.profile.onboarded ? '/home' : '/onboarding', { replace: true });
+          }, 800);
+        } else {
+          setError(res.error || 'Token authentication failed or expired.');
+          setTokenVerifying(false);
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setError(err.message || 'Token verification network exception.');
+        setTokenVerifying(false);
       });
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p) => {
-        p.y -= p.speed;
-        if (p.y < -4) p.y = canvas.height + 4;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = p.color + Math.floor(p.opacity * 255).toString(16).padStart(2, '0');
-        ctx.fill();
-      });
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
 
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
+      isMounted = false;
     };
-  }, []);
+  }, [urlToken, nav, setProfile]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ zIndex: 0 }}
-    />
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Feature badge
-───────────────────────────────────────────── */
-const features = [
-  { icon: MapPin, label: 'Live GPS' },
-  { icon: Camera, label: 'Auto Capture' },
-  { icon: Bell, label: 'SOS Alerts' },
-  { icon: Wifi, label: 'Real-Time' },
-];
-
-/* ─────────────────────────────────────────────
-   Main Auth component
-───────────────────────────────────────────── */
-export function Auth() {
-  const { login, register, sendResetCode, resetPassword } = useApp();
-  const [showIntro, setShowIntro] = useState(true);
-  const [isLogin, setIsLogin] = useState(true);
-  const [isForgot, setIsForgot] = useState(false);
-  const [forgotStep, setForgotStep] = useState<'request' | 'verify'>('request');
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [sendingCode, setSendingCode] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const [codeSentMsg, setCodeSentMsg] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
-
-  if (showIntro) {
-    return (
-      <div className="relative flex flex-col w-full min-h-screen bg-[#0a0a0f] overflow-y-auto no-scrollbar text-white">
-        <ParticleBg />
-        
-        <div className="absolute -top-32 -left-32 w-72 h-72 rounded-full bg-red-600/20 blur-[80px] pointer-events-none" />
-        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-pink-600/15 blur-[80px] pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col flex-1 items-center justify-center px-6 py-10 w-full max-w-md mx-auto">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            className="relative mb-6"
-          >
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-600/30 to-pink-600/20 border border-red-500/30 flex items-center justify-center shadow-lg shadow-red-900/40">
-              <ShieldAlert className="w-10 h-10 text-red-400 animate-pulse" />
-            </div>
-            <div className="absolute inset-0 rounded-2xl border-2 border-red-500/40 animate-ping opacity-25" style={{ animationDuration: '3s' }} />
-          </motion.div>
-
-          <motion.h1 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl font-black tracking-tight text-white mb-2"
-          >
-            SilentSOS
-          </motion.h1>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-xs text-red-400 font-bold tracking-widest uppercase mb-6"
-          >
-            Discreet Personal Safety Assistant
-          </motion.p>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white/[0.03] border border-white/5 backdrop-blur-md rounded-2xl p-5 mb-6 text-center shadow-xl"
-          >
-            <p className="text-sm text-white/70 leading-relaxed">
-              SilentSOS is designed to protect you in critical moments. Using intelligent real-time gesture recognition, location tracking, and silent evidence capture, it keeps your emergency contacts informed instantly and securely.
-            </p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="w-full space-y-3.5 mb-8 text-left"
-          >
-            {[
-              { icon: ShieldAlert, color: 'text-red-400', bg: 'bg-red-500/10', title: 'Stealth Activation', desc: 'Blink patterns or raised palms trigger distress signal silently.' },
-              { icon: MapPin, color: 'text-emerald-400', bg: 'bg-emerald-500/10', title: 'Live Location Tracking', desc: 'Broadcasts your live GPS coordinates directly to responders.' },
-              { icon: Camera, color: 'text-purple-400', bg: 'bg-purple-500/10', title: 'Secure Evidence Vault', desc: 'Captures and locks photos, audio, and video in the cloud.' },
-              { icon: Bell, color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Automated Dispatch', desc: 'Notifies emergency contacts via SMS, WhatsApp, and Email.' }
-            ].map((f, i) => (
-              <div key={i} className="flex gap-4 p-3 rounded-xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
-                <div className={`w-10 h-10 rounded-lg ${f.bg} flex items-center justify-center shrink-0`}>
-                  <f.icon className={`w-5 h-5 ${f.color}`} />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white mb-0.5">{f.title}</h4>
-                  <p className="text-[11px] text-white/50 leading-relaxed">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </motion.div>
-
-          <motion.button
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setShowIntro(false)}
-            className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold py-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-900/40 cursor-pointer"
-          >
-            Get Started <User className="w-4 h-4" />
-          </motion.button>
-        </div>
-      </div>
-    );
-  }
-
-  const switchTab = (toLogin: boolean) => {
-    setIsLogin(toLogin);
-    setIsForgot(false);
-    setForgotStep('request');
-    setCode('');
-    setCodeSentMsg(null);
-    setError(null);
-    setEmail('');
-    setPassword('');
-    setName('');
-  };
-
-  const startForgotPassword = () => {
-    setIsForgot(true);
-    setForgotStep('request');
-    setCode('');
-    setCodeSentMsg(null);
-    setError(null);
-    setPassword('');
-  };
-
-  const handleSendCode = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!email || !email.trim()) {
-      setError('Please enter your email address to receive the verification code.');
+  // Standard Password Submit
+  const handlePasswordSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+      setError('Enter a valid email address.');
       return;
     }
-    setError(null);
-    setSendingCode(true);
-    try {
-      await sendResetCode(email.trim());
-      setForgotStep('verify');
-      setCodeSentMsg(`Verification code sent to ${email.trim()}! Please check your Gmail inbox.`);
-      setResendCooldown(60);
-    } catch (err: any) {
-      setError(err.message || 'Failed to send verification code. Please check your email and try again.');
-    } finally {
-      setSendingCode(false);
+    if (password.length < 6) {
+      setError('Use at least 6 characters for your password.');
+      return;
     }
+
+    const isAlreadyOnboarded = !isCreating || profile.onboarded;
+
+    setProfile({
+      authenticated: true,
+      email: normalizedEmail,
+      createdAt: profile.createdAt ?? Date.now(),
+      role: 'user',
+      onboarded: isAlreadyOnboarded
+    });
+
+    requestNotificationPermission().catch(() => {});
+    nav(isAlreadyOnboarded ? '/home' : '/onboarding', { replace: true });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Request Magic Token via Resend
+  const handleRequestToken = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-
-    if (isForgot) {
-      if (forgotStep === 'request') {
-        await handleSendCode();
-        return;
-      }
-
-      if (!code || code.trim().length !== 6) {
-        setError('Please enter the 6-digit verification code sent to your Gmail.');
-        return;
-      }
-      if (!password || password.length < 6) {
-        setError('New password must be at least 6 characters long.');
-        return;
-      }
-
-      setLoading(true);
-      try {
-        await resetPassword(email.trim(), code.trim(), password);
-        setSuccess(true);
-        setTimeout(() => {
-          setIsForgot(false);
-          setForgotStep('request');
-          setIsLogin(true);
-          setSuccess(false);
-          setPassword('');
-          setCode('');
-          setError(null);
-        }, 2200);
-      } catch (err: any) {
-        setError(err.message || 'Password reset failed. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+      setError('Enter a valid email address.');
       return;
     }
 
     setLoading(true);
+    setError('');
+    setInfoMsg('');
+
     try {
-      if (isLogin) {
-        await login(email, password);
+      const res = await api.requestTokenAuth(normalizedEmail, profile.name || undefined);
+      if (res.success) {
+        setTokenStep('verify');
+        setInfoMsg(`✓ Access token and 6-digit code dispatched to ${normalizedEmail} via Resend.`);
       } else {
-        if (!name.trim()) throw new Error('Please enter your full name');
-        await register(email, password, name);
-        setSuccess(true);
+        setError(res.error || 'Failed to dispatch authentication token.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.');
+    } catch {
+      setError('Unable to reach authentication server.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="relative flex flex-col w-full min-h-screen bg-[#0a0a0f] overflow-hidden text-white">
-      <ParticleBg />
+  // Verify 6-digit token code
+  const handleVerifyTokenCode = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    const cleanCode = tokenCode.trim();
 
-      <div className="absolute -top-32 -left-32 w-72 h-72 rounded-full bg-red-600/20 blur-[80px] pointer-events-none" />
-      <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-pink-600/15 blur-[80px] pointer-events-none" />
+    if (cleanCode.length < 6) {
+      setError('Please enter the full 6-digit code.');
+      return;
+    }
 
-      <div className="relative z-10 flex flex-col flex-1 items-center justify-center px-4 py-8 max-w-sm mx-auto w-full">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col items-center mb-6 text-center"
-        >
-          <div className="relative mb-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600/40 to-pink-600/20 border border-red-500/30 flex items-center justify-center shadow-lg shadow-red-900/40">
-              <ShieldAlert className="w-7 h-7 text-red-400" />
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await api.tokenLogin({ email: normalizedEmail, code: cleanCode });
+      if (res.success && res.profile) {
+        setProfile({
+          ...res.profile,
+          authenticated: true,
+          onboarded: res.profile.onboarded ?? true
+        });
+        setInfoMsg('✅ Authenticated successfully!');
+        requestNotificationPermission().catch(() => {});
+        setTimeout(() => {
+          nav(res.profile.onboarded ? '/home' : '/onboarding', { replace: true });
+        }, 500);
+      } else {
+        setError(res.error || 'Invalid or expired authentication code.');
+      }
+    } catch {
+      setError('Error verifying token code.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If token is currently verifying via URL
+  if (tokenVerifying) {
+    return (
+      <div className="flex h-full items-center justify-center bg-[#0a0a0a] px-5">
+        <div className="flex max-w-sm flex-col items-center text-center">
+          <Loader2Icon className="h-10 w-10 animate-spin text-[#00e676]" />
+          <h2 className="mt-4 text-xl font-black text-white">Authenticating via Token...</h2>
+          <p className="mt-2 text-sm text-white/50">{infoMsg || 'Validating your secure access token'}</p>
+          {error && (
+            <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-400 font-bold">
+              {error}
+              <button
+                onClick={() => setTokenVerifying(false)}
+                className="mt-2 block w-full text-center text-white underline">
+                Back to Sign In
+              </button>
             </div>
-            <div className="absolute inset-0 rounded-2xl border border-red-500/40 animate-ping opacity-30" style={{ animationDuration: '3s' }} />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="no-scrollbar flex h-full overflow-y-auto bg-[#0a0a0a] px-5 py-6 sm:px-10">
+      <div className="mx-auto flex w-full max-w-md flex-col justify-center py-4 sm:py-10">
+        <button
+          onClick={() => nav('/')}
+          className="mb-8 flex min-h-11 w-fit items-center gap-2 rounded-xl px-2 text-sm font-bold text-white/55 hover:bg-white/5 hover:text-white">
+          <ArrowLeftIcon size={17} /> Back
+        </button>
+
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 shadow-2xl sm:p-8">
+          
+          <div className="flex items-center justify-between">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff1744] shadow-[0_0_28px_rgba(255,23,68,0.3)]">
+              <ShieldCheckIcon size={25} color="#fff" />
+            </div>
+
+            {/* Switch Between Password & Token Authentication */}
+            <div className="flex rounded-xl bg-black/40 border border-white/10 p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('password');
+                  setError('');
+                }}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                  authMode === 'password' ? 'bg-white/15 text-white' : 'text-white/40 hover:text-white'
+                }`}>
+                Password
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('token');
+                  setError('');
+                }}
+                className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                  authMode === 'token' ? 'bg-[#00e676]/20 text-[#00e676]' : 'text-white/40 hover:text-[#00e676]'
+                }`}>
+                <SparklesIcon size={12} /> Token Login
+              </button>
+            </div>
           </div>
 
-          <h1 className="text-2xl font-black tracking-tight text-white">
-            SilentSOS
-          </h1>
-          <p className="text-[11px] text-red-400/80 font-semibold tracking-widest uppercase mt-0.5">
-            Personal Safety Network
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-[#ff1744]">
+            {authMode === 'token' ? '⚡ Token Authentication' : 'User Safety Account'}
           </p>
 
-          <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-            {features.map(({ icon: Icon, label }) => (
-              <span
-                key={label}
-                className="flex items-center gap-1 px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] text-white/50 font-medium"
-              >
-                <Icon className="w-3 h-3 text-red-400" />
-                {label}
-              </span>
-            ))}
-          </div>
-        </motion.div>
+          <h1 className="mt-2 text-3xl font-black tracking-tight">
+            {authMode === 'token'
+              ? 'Instant Token Sign In'
+              : isCreating
+              ? 'Create your safety profile'
+              : 'Welcome back'}
+          </h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.15, ease: 'easeOut' }}
-          className="w-full"
-        >
-          <div className="relative bg-white/[0.04] backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-red-500 to-transparent" />
+          <p className="mt-2 text-sm leading-relaxed text-white/50">
+            {authMode === 'token'
+              ? 'Sign in securely with a one-time link or 6-digit access code sent via Resend.'
+              : isCreating
+              ? 'Start with a private account, then configure your contacts and silent triggers.'
+              : 'Sign in to access your SilentSOS safety setup.'}
+          </p>
 
-            {isForgot ? (
-              <div className="mb-5">
-                <div className="flex items-center gap-2 mb-1.5">
+          {infoMsg && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-[#00e676]/30 bg-[#00e676]/10 p-3 text-xs font-bold text-[#00e676]">
+              <CheckCircle2Icon size={16} className="shrink-0" />
+              <span>{infoMsg}</span>
+            </div>
+          )}
+
+          {/* MODE 1: PASSWORD AUTHENTICATION */}
+          {authMode === 'password' && (
+            <form onSubmit={handlePasswordSubmit} className="mt-7 space-y-4" noValidate>
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold">Email address</span>
+                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 focus-within:border-[#ff1744]">
+                  <MailIcon size={18} color="#8a8a8a" />
+                  <input
+                    autoComplete="email"
+                    inputMode="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      setError('');
+                    }}
+                    placeholder="you@example.com"
+                    className="min-h-14 w-full bg-transparent text-sm font-medium outline-none placeholder:text-white/25"
+                  />
+                </div>
+              </label>
+
+              <label className="block">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="block text-sm font-bold">Password</span>
                   <button
                     type="button"
                     onClick={() => {
-                      if (forgotStep === 'verify') {
-                        setForgotStep('request');
-                      } else {
-                        setIsForgot(false);
-                      }
-                      setError(null);
+                      const trimmed = email.trim();
+                      const query = trimmed ? `?email=${encodeURIComponent(trimmed)}&autoSend=1` : '';
+                      nav(`/forgot-password${query}`);
                     }}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
-                    title="Back"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
+                    className="text-xs font-bold text-[#ff1744] hover:underline">
+                    Forgot password?
                   </button>
-                  <h2 className="text-lg font-bold text-white">
-                    {forgotStep === 'request' ? 'Reset Password' : 'Enter Verification Code'}
-                  </h2>
                 </div>
-                <p className="text-xs text-white/50 font-medium">
-                  {forgotStep === 'request'
-                    ? 'Enter your email to receive a 6-digit verification code in Gmail.'
-                    : `Enter the code sent to ${email} and your new password.`}
-                </p>
-              </div>
-            ) : (
-              <div className="relative flex bg-black/30 rounded-xl p-1 mb-6 border border-white/8">
-                <motion.div
-                  layout
-                  className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/40"
-                  style={{ left: isLogin ? '4px' : 'calc(50%)' }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => switchTab(true)}
-                  className={`relative flex-1 py-2.5 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors z-10 ${
-                    isLogin ? 'text-white' : 'text-white/40 hover:text-white/70'
-                  }`}
-                >
-                  <LogIn className="w-3.5 h-3.5" /> Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => switchTab(false)}
-                  className={`relative flex-1 py-2.5 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors z-10 ${
-                    !isLogin ? 'text-white' : 'text-white/40 hover:text-white/70'
-                  }`}
-                >
-                  <UserPlus className="w-3.5 h-3.5" /> Sign Up
-                </button>
-              </div>
-            )}
+                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 focus-within:border-[#ff1744]">
+                  <LockKeyholeIcon size={18} color="#8a8a8a" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete={isCreating ? 'new-password' : 'current-password'}
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      setError('');
+                    }}
+                    placeholder="At least 6 characters"
+                    className="min-h-14 w-full bg-transparent text-sm font-medium outline-none placeholder:text-white/25"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-white/50 hover:bg-white/5">
+                    {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                  </button>
+                </div>
+              </label>
 
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden mb-4"
-                >
-                  <div className="bg-red-500/10 border border-red-500/20 text-red-300 text-xs p-3 rounded-xl flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{error}</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              {error && <p role="alert" className="text-sm font-semibold text-[#ff1744]">{error}</p>}
 
-            <AnimatePresence>
-              {isForgot && forgotStep === 'verify' && codeSentMsg && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden mb-4"
-                >
-                  <div className="bg-sky-500/10 border border-sky-500/25 text-sky-300 text-xs p-3 rounded-xl flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-sky-400" />
-                    <span>{codeSentMsg}</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              <button
+                type="submit"
+                className="mt-2 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#ff1744] text-base font-black shadow-[0_0_28px_rgba(255,23,68,0.25)] transition-transform active:scale-[0.98]">
+                {isCreating ? 'Create account' : 'Sign in'} <ArrowRightIcon size={19} />
+              </button>
+            </form>
+          )}
 
-            <AnimatePresence>
-              {success && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden mb-4"
-                >
-                  <div className="bg-green-500/10 border border-green-500/20 text-green-300 text-xs p-3 rounded-xl flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-green-400" />
-                    <span>
-                      {isForgot ? 'Password reset successful! Redirecting to login...' : 'Account created! Signing you in…'}
-                    </span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <AnimatePresence initial={false}>
-                {!isLogin && !isForgot && (
-                  <motion.div
-                    key="name"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.22 }}
-                    className="overflow-hidden"
-                  >
-                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
-                      Full Name
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+          {/* MODE 2: TOKEN / MAGIC LINK AUTHENTICATION */}
+          {authMode === 'token' && (
+            <div className="mt-7">
+              {tokenStep === 'request' ? (
+                <form onSubmit={handleRequestToken} className="space-y-4" noValidate>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-bold">Email address</span>
+                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 focus-within:border-[#00e676]">
+                      <MailIcon size={18} color="#00e676" />
                       <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Sarah Smith"
-                        required={!isLogin && !isForgot}
-                        className="w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-sm placeholder-white/20 focus:border-red-500/60 focus:ring-1 focus:ring-red-500/30 outline-none transition-all"
+                        autoComplete="email"
+                        inputMode="email"
+                        value={email}
+                        onChange={(event) => {
+                          setEmail(event.target.value);
+                          setError('');
+                        }}
+                        placeholder="you@example.com"
+                        className="min-h-14 w-full bg-transparent text-sm font-medium outline-none placeholder:text-white/25"
                       />
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </label>
 
-              <div>
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    required
-                    readOnly={isForgot && forgotStep === 'verify'}
-                    autoComplete="email"
-                    className={`w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-sm placeholder-white/20 focus:border-red-500/60 focus:ring-1 focus:ring-red-500/30 outline-none transition-all ${
-                      isForgot && forgotStep === 'verify' ? 'opacity-80 cursor-not-allowed text-white/80' : ''
-                    }`}
-                  />
-                  {isForgot && forgotStep === 'verify' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setForgotStep('request');
-                        setCode('');
-                        setCodeSentMsg(null);
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-red-400 hover:text-red-300 underline font-medium"
-                    >
-                      Change
-                    </button>
-                  )}
-                </div>
-              </div>
+                  {error && <p role="alert" className="text-sm font-semibold text-[#ff1744]">{error}</p>}
 
-              {isForgot && forgotStep === 'request' && (
-                <motion.button
-                  type="submit"
-                  disabled={sendingCode || !email.trim()}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 mt-2 shadow-lg shadow-red-900/40 cursor-pointer"
-                >
-                  {sendingCode ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Sending Verification Code...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>Send Gmail Verification Code</span>
-                    </>
-                  )}
-                </motion.button>
-              )}
-
-              {isForgot && forgotStep === 'verify' && (
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                      6-Digit Verification Code
-                    </label>
-                    <button
-                      type="button"
-                      disabled={resendCooldown > 0 || sendingCode}
-                      onClick={() => handleSendCode()}
-                      className="text-[10px] text-red-400 hover:text-red-300 disabled:text-white/30 disabled:cursor-not-allowed transition-colors font-medium"
-                    >
-                      {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400/70" />
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123456"
-                      required
-                      autoFocus
-                      className="w-full bg-black/40 border border-red-500/40 focus:border-red-500 rounded-xl pl-9 pr-4 py-3 text-base tracking-[6px] font-mono placeholder:tracking-normal placeholder-white/20 focus:ring-1 focus:ring-red-500/40 outline-none transition-all text-white font-bold text-center"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {(!isForgot || forgotStep === 'verify') && (
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                      {isForgot ? 'New Password' : 'Password'}
-                    </label>
-                    {isLogin && !isForgot && (
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="mt-2 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#00e676] text-base font-black text-black shadow-[0_0_28px_rgba(0,230,118,0.25)] transition-transform active:scale-[0.98] disabled:opacity-50">
+                    {loading ? (
+                      <>
+                        <Loader2Icon className="h-5 w-5 animate-spin" /> Sending Token...
+                      </>
+                    ) : (
+                      <>
+                        Send Login Token via Resend <ArrowRightIcon size={19} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyTokenCode} className="space-y-4" noValidate>
+                  <label className="block">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="block text-sm font-bold">Enter 6-Digit Code</span>
                       <button
                         type="button"
-                        onClick={startForgotPassword}
-                        className="text-[10px] text-red-400/70 hover:text-red-300 transition-colors"
-                      >
-                        Forgot password?
+                        onClick={() => {
+                          setTokenStep('request');
+                          setError('');
+                        }}
+                        className="text-xs text-white/50 hover:text-white">
+                        Change email
                       </button>
+                    </div>
+                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 focus-within:border-[#00e676]">
+                      <KeyRoundIcon size={18} color="#00e676" />
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={tokenCode}
+                        onChange={(e) => {
+                          setTokenCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                          setError('');
+                        }}
+                        placeholder="••••••"
+                        className="min-h-14 w-full bg-transparent text-center font-mono text-2xl font-bold tracking-[0.4em] outline-none placeholder:text-white/20 text-[#00e676]"
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-white/40">
+                      Check your email ({email}) for the direct login link or enter the 6-digit code above.
+                    </p>
+                  </label>
+
+                  {error && <p role="alert" className="text-sm font-semibold text-[#ff1744]">{error}</p>}
+
+                  <button
+                    type="submit"
+                    disabled={loading || tokenCode.length < 6}
+                    className="mt-2 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#00e676] text-base font-black text-black shadow-[0_0_28px_rgba(0,230,118,0.25)] transition-transform active:scale-[0.98] disabled:opacity-40">
+                    {loading ? (
+                      <>
+                        <Loader2Icon className="h-5 w-5 animate-spin" /> Verifying...
+                      </>
+                    ) : (
+                      <>
+                        Verify & Sign In <ArrowRightIcon size={19} />
+                      </>
                     )}
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
-                    <input
-                      type={showPass ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      minLength={6}
-                      autoComplete={isForgot ? 'new-password' : isLogin ? 'current-password' : 'new-password'}
-                      className="w-full bg-black/30 border border-white/10 rounded-xl pl-9 pr-10 py-3 text-sm placeholder-white/20 focus:border-red-500/60 focus:ring-1 focus:ring-red-500/30 outline-none transition-all"
-                    />
+                  </button>
+
+                  <div className="text-center pt-2">
                     <button
                       type="button"
-                      onClick={() => setShowPass((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-                    >
-                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      onClick={(e) => handleRequestToken(e as any)}
+                      className="text-xs font-semibold text-[#00e676] hover:underline">
+                      Resend new token code
                     </button>
                   </div>
-                </div>
+                </form>
               )}
-
-              {(!isForgot || forgotStep === 'verify') && (
-                <motion.button
-                  type="submit"
-                  disabled={loading}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 mt-2 shadow-lg shadow-red-900/40 cursor-pointer"
-                >
-                  {loading ? (
-                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : isForgot ? (
-                    <><Key className="w-4 h-4" /> Verify & Reset Password</>
-                  ) : isLogin ? (
-                    <><LogIn className="w-4 h-4" /> Sign In to SilentSOS</>
-                  ) : (
-                    <><UserPlus className="w-4 h-4" /> Create My Account</>
-                  )}
-                </motion.button>
-              )}
-            </form>
-
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-white/8" />
-              <span className="text-[10px] text-white/25 font-medium">OR</span>
-              <div className="flex-1 h-px bg-white/8" />
             </div>
+          )}
 
-            <p className="text-center text-xs text-white/35">
-              {isForgot ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsForgot(false);
-                    setForgotStep('request');
-                    setError(null);
-                  }}
-                  className="text-red-400 font-semibold hover:text-red-300 transition-colors underline underline-offset-2"
-                >
-                  Back to Sign In
-                </button>
-              ) : isLogin ? (
-                <>
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => switchTab(false)}
-                    className="text-red-400 font-semibold hover:text-red-300 transition-colors underline underline-offset-2"
-                  >
-                    Sign Up
-                  </button>
-                </>
-              ) : (
-                <>
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => switchTab(true)}
-                    className="text-red-400 font-semibold hover:text-red-300 transition-colors underline underline-offset-2"
-                  >
-                    Sign In
-                  </button>
-                </>
-              )}
-            </p>
-          </div>
-        </motion.div>
+          {authMode === 'password' && (
+            <div className="mt-6 border-t border-white/10 pt-5 text-center text-sm text-white/50">
+              {isCreating ? 'Already set up?' : 'New to SilentSOS?'}{' '}
+              <button
+                onClick={() => {
+                  setIsCreating((value) => !value);
+                  setError('');
+                }}
+                className="font-bold text-white underline decoration-[#ff1744] underline-offset-4">
+                {isCreating ? 'Sign in' : 'Create an account'}
+              </button>
+            </div>
+          )}
+        </motion.section>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="text-[10px] text-white/20 text-center mt-6 max-w-[280px] leading-relaxed"
-        >
-          By continuing you authorize secure cloud storage of your evidence, coordinates, and alert logs.
-        </motion.p>
+        <p className="mt-5 text-center text-xs leading-relaxed text-white/30">
+          SilentSOS Emergency Platform • Token authentication & notifications secured via Resend.
+        </p>
       </div>
     </div>
   );
