@@ -13,11 +13,7 @@ import {
   CheckCircle,
   Lock
 } from 'lucide-react';
-
-const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
-const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-const API_BASE = `${isHttps ? 'https:' : 'http:'}//${host}:3001`;
-const WS_BASE = `${isHttps ? 'wss:' : 'ws:'}//${host}:3001`;
+import { MEDIA_BASE as API_BASE, WS_BASE } from '../AppContext';
 
 export function Receiver() {
   const { alertId } = useParams<{ alertId: string }>();

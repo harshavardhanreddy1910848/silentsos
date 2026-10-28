@@ -235,6 +235,33 @@ async function sendEmailViaResend({ to, subject, html, attachments = [] }) {
   return { success: false, error: 'Failed to deliver email through Resend API and SMTP fallback.' };
 }
 
+// Helpers to dynamically resolve application base URL (for Vercel services, Railway, or local)
+function getAppBaseUrl(req = null) {
+  if (process.env.APP_URL) {
+    return process.env.APP_URL.replace(/\/$/, '');
+  }
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL.replace(/\/$/, '');
+  }
+  if (req && req.headers && req.headers.origin) {
+    return req.headers.origin.replace(/\/$/, '');
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return 'http://localhost:5173';
+}
+
+function getMediaBaseUrl(req = null) {
+  if (process.env.MEDIA_URL) {
+    return process.env.MEDIA_URL.replace(/\/$/, '');
+  }
+  return getAppBaseUrl(req);
+}
+
 // Sends alert notification email to emergency contacts with complete medical & profile details
 async function sendAlertEmails(user, contacts, alert, isInitial = false) {
   try {
@@ -242,7 +269,7 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
     const timeStr = new Date(alert.timestamp).toLocaleTimeString();
     const dateStr = new Date(alert.timestamp).toLocaleDateString();
     
-    const broadcastLink = `http://localhost:5173/receiver/${alertId}`;
+    const broadcastLink = `${getAppBaseUrl()}/receiver/${alertId}`;
     const latestCoords = alert.gpsPath && alert.gpsPath.length > 0 
       ? alert.gpsPath[alert.gpsPath.length - 1] 
       : null;
@@ -341,7 +368,7 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
         `;
 
         alert.evidence.files.forEach((file, idx) => {
-          const fileUrl = `http://localhost:3001${file.url}`;
+          const fileUrl = `${getMediaBaseUrl()}${file.url}`;
           htmlContent += `
             <li><strong>${file.type.toUpperCase()}:</strong> <a href="${fileUrl}" style="color: #ef4444; text-decoration: underline;">Open ${file.type} file</a></li>
           `;
@@ -512,7 +539,7 @@ async function sendResolvedEmail(user, contacts, alert, resolutionSource = 'user
 
     const latestGps = alert.gpsPath && alert.gpsPath.length > 0 ? alert.gpsPath[alert.gpsPath.length - 1] : null;
     const googleMapsLink = latestGps ? `https://www.google.com/maps?q=${latestGps.lat},${latestGps.lng}` : '';
-    const broadcastLink = `http://localhost:5173/receiver.html?alertId=${alertId}`;
+    const broadcastLink = `${getAppBaseUrl()}/receiver/${alertId}`;
     const duration = alert.durationSeconds || Math.max(1, Math.round((Date.now() - (alert.timestamp || Date.now())) / 1000));
     const authorityLabel = resolutionSource === 'admin' ? 'Emergency Dispatch Operations Center (Admin)' : 'User Verified with Safety PIN (Confirmed Safe)';
 
@@ -736,7 +763,7 @@ async function sendPeriodicAlertEmail(alertId, customLocation = null) {
     const elapsedMinutes = Math.max(1, Math.round(elapsedMs / 60000));
     const updateTimeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const updateDateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const broadcastLink = `http://localhost:5173/receiver/${alertId}`;
+    const broadcastLink = `${getAppBaseUrl()}/receiver/${alertId}`;
     const googleMapsLink = `https://maps.google.com/?q=${latestCoords.lat},${latestCoords.lng}`;
 
     // Collect attachments from evidence files (photos, audio recordings, video clips)
@@ -751,7 +778,7 @@ async function sendPeriodicAlertEmail(alertId, customLocation = null) {
 
       sortedFiles.forEach((file, idx) => {
         const filePath = path.join(EVIDENCE_DIR, path.basename(file.url));
-        const fileUrl = `http://localhost:3001${file.url}`;
+        const fileUrl = `${getMediaBaseUrl()}${file.url}`;
         const fileTypeLabel = (file.type || 'media').toUpperCase();
 
         evidenceListHtml.push(`
@@ -1109,7 +1136,7 @@ function broadcastToReceivers(alertId, messageObj) {
 function dispatchEmergencyAlerts(user, contacts, alertId, lat = 19.076, lng = 72.8777) {
   const timeStr = new Date().toLocaleTimeString();
   const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
-  const broadcastLink = `http://localhost:5173/receiver/${alertId}`;
+  const broadcastLink = `${getAppBaseUrl()}/receiver/${alertId}`;
 
   return contacts.map(c => {
     return {
@@ -1200,7 +1227,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     // Save tokens in auth_tokens table
     await db.saveAuthToken(cleanEmail, resetCode, 'reset', expiresAt);
 
-    const clientOrigin = req.headers.origin || 'http://localhost:5173';
+    const clientOrigin = getAppBaseUrl(req);
     const directResetLink = `${clientOrigin}/?resetEmail=${encodeURIComponent(cleanEmail)}&resetCode=${resetCode}`;
 
     const htmlContent = `
@@ -1311,7 +1338,7 @@ app.post('/api/auth/send-token', async (req, res) => {
     await db.saveAuthToken(cleanEmail, otpCode, 'otp', expiresAt);
     await db.saveAuthToken(cleanEmail, magicToken, 'magic', expiresAt);
 
-    const magicLink = `http://localhost:5173/?authEmail=${encodeURIComponent(cleanEmail)}&authToken=${magicToken}`;
+    const magicLink = `${getAppBaseUrl(req)}/?authEmail=${encodeURIComponent(cleanEmail)}&authToken=${magicToken}`;
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 540px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background: #ffffff;">
@@ -2443,4 +2470,5 @@ async function connectDatabaseWithRetry(retries = 5, delay = 3000) {
 
 connectDatabaseWithRetry();
 
-// Server live
+export { app, server };
+export default app;

@@ -1,10 +1,26 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { AppState, Contact, Settings, AlertEvent, UserProfile, FeedbackSubmission, FeedbackItem } from './types';
 
-const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
-const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https:' : 'http:';
-export const API_BASE   = `${protocol}//${host}:3001/api`;
-export const MEDIA_BASE = `${protocol}//${host}:3001`; // For /evidence/* static files
+const getMediaBase = () => {
+  if (import.meta.env.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    // Standalone local Vite dev server without reverse proxy
+    if (window.location.hostname === 'localhost' && window.location.port === '5173') {
+      return 'http://localhost:3001';
+    }
+    // Vercel dev or production deployment on same origin
+    return window.location.origin;
+  }
+  return '';
+};
+
+export const MEDIA_BASE = getMediaBase();
+export const API_BASE   = `${MEDIA_BASE}/api`;
+export const WS_BASE    = MEDIA_BASE.startsWith('https')
+  ? MEDIA_BASE.replace(/^https/, 'wss')
+  : MEDIA_BASE.replace(/^http/, 'ws');
 
 
 const defaultSettings: Settings = {
