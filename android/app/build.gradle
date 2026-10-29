@@ -16,8 +16,8 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        def webUrl = project.findProperty("silentsos.web.url") ?: "https://frontend-tau-roan-95.vercel.app"
-        def apiBase = project.findProperty("silentsos.api.base") ?: "https://frontend-tau-roan-95.vercel.app"
+        def webUrl = project.findProperty("silentsos.web.url") ?: "https://silentsos-rose.vercel.app"
+        def apiBase = project.findProperty("silentsos.api.base") ?: "https://silentsos-rose.vercel.app"
 
         buildConfigField "String", "SILENTSOS_WEB_URL", "\"${webUrl}\""
         buildConfigField "String", "BACKEND_API_BASE", "\"${apiBase}\""
