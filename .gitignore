@@ -43,3 +43,11 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Android build outputs & local SDK config
+.gradle/
+*/.gradle/
+*.apk
+*.aab
+local.properties
+*/local.properties
+
