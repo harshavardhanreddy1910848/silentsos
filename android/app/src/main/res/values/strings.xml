@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">SilentSOS</string>
+    <string name="loading_app">Connecting to SilentSOS Security Network…</string>
+    <string name="connection_error_title">Connection Error</string>
+    <string name="connection_error_subtitle">Unable to reach the SilentSOS server. If the server was idle, it may take a moment to wake up.</string>
+    <string name="retry_connection">Retry Connection</string>
+    <string name="exit_confirm_title">Exit SilentSOS?</string>
+    <string name="exit_confirm_message">Are you sure you want to leave? Active emergency monitoring and live distress alerts will be interrupted.</string>
+    <string name="stay_in_app">Stay</string>
+    <string name="exit_app">Exit</string>
+    <string name="notification_channel_name">Emergency Alert Notifications</string>
+    <string name="notification_channel_desc">Real-time distress notifications and evidence recording updates</string>
+    <string name="permission_camera_rationale">SilentSOS requires camera access for discreet gesture detection and emergency evidence capture.</string>
+    <string name="permission_location_rationale">SilentSOS requires high-accuracy GPS location to share your live coordinates with trusted responders.</string>
+    <string name="permission_mic_rationale">SilentSOS requires microphone access to record ambient audio distress evidence.</string>
+</resources>

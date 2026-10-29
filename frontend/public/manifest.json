@@ -1,0 +1,16 @@
+{
+  "short_name": "SilentSOS",
+  "name": "SilentSOS — Emergency Response System",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#09090b",
+  "theme_color": "#ef4444",
+  "display": "standalone",
+  "orientation": "portrait"
+}
