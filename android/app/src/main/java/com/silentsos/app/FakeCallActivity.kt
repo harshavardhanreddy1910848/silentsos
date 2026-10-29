@@ -65,3 +65,4 @@ class FakeCallActivity : AppCompatActivity() {
         handler.removeCallbacks(timerRunnable)
     }
 }
+

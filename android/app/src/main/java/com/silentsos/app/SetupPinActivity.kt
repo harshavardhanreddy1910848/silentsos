@@ -137,3 +137,4 @@ class SetupPinActivity : AppCompatActivity() {
         }
     }
 }
+

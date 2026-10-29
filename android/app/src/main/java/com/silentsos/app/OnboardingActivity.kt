@@ -227,3 +227,4 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 }
+

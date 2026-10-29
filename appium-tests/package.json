@@ -1,0 +1,14 @@
+{
+  "name": "silentsos-appium-tests",
+  "version": "1.0.0",
+  "description": "Appium E2E functional testing suite and automated test case generator for SilentSOS Android native app",
+  "main": "tests/appium-e2e-tests.js",
+  "scripts": {
+    "test": "node tests/appium-e2e-tests.js",
+    "report": "node generate-excel.js"
+  },
+  "dependencies": {
+    "webdriverio": "^8.38.2",
+    "xlsx": "^0.18.5"
+  }
+}
