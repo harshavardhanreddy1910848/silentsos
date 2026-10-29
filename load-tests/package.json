@@ -1,0 +1,16 @@
+{
+  "name": "silentsos-load-tests",
+  "version": "1.0.0",
+  "description": "Baseline & Load Testing Suite for SilentSOS API with 100 Virtual Users for 1 Minute",
+  "main": "baseline-load-test.js",
+  "scripts": {
+    "test:baseline": "node baseline-load-test.js",
+    "test:local": "node baseline-load-test.js --target=http://localhost:3001 --vus=100 --duration=60",
+    "test:cloud": "node baseline-load-test.js --target=https://silentsos-rose.vercel.app --vus=100 --duration=60",
+    "report": "node generate-load-report.js"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}
+
