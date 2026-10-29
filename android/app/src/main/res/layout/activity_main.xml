@@ -1,89 +1,355 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipeRefreshLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/silentsos_bg">
 
-    <!-- Swipe Refresh Container -->
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <!-- SilentSOS Main WebView -->
-        <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/silentsos_bg" />
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <!-- Top Loading Progress Bar -->
-    <ProgressBar
-        android:id="@+id/loadingProgressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_gravity="top"
-        android:indeterminate="false"
-        android:max="100"
-        android:progressDrawable="@color/silentsos_red_primary"
-        android:visibility="gone" />
-
-    <!-- Native Network Error / Server Cold-Start Overlay Screen -->
-    <LinearLayout
-        android:id="@+id/layoutNetworkError"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/silentsos_bg"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="32dp"
-        android:visibility="gone">
+        android:fillViewport="true">
 
-        <ImageView
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/ic_splash_logo" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/connection_error_title"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:lineSpacingMultiplier="1.2"
-            android:text="@string/connection_error_subtitle"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            <!-- Top App Bar -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnRetry"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginTop="32dp"
-            android:background="@drawable/bg_retry_button"
-            android:drawableStart="@drawable/ic_retry"
-            android:drawablePadding="8dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:text="@string/retry_connection"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-    </LinearLayout>
+                    <TextView
+                        android:id="@+id/tvWelcomeUser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Welcome Back"
+                        android:textColor="@color/white"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
 
-</FrameLayout>
+                    <!-- Armed Security Status Chip -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_badge_armed"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="10dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="4dp">
+
+                        <View
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:background="@drawable/bg_badge_armed"
+                            android:backgroundTint="@color/silentsos_emerald" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="SYSTEM ARMED &amp; READY"
+                            android:textColor="@color/silentsos_emerald"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.04" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_card_surface"
+                    android:src="@android:drawable/ic_menu_preferences"
+                    android:contentDescription="Settings"
+                    app:tint="@color/text_secondary" />
+            </RelativeLayout>
+
+            <!-- Giant Circular SOS Distress Button -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:layout_marginTop="24dp">
+
+                <!-- Outer Glowing Rings -->
+                <View
+                    android:layout_width="260dp"
+                    android:layout_height="260dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sos_button_pulsing"
+                    android:alpha="0.25" />
+
+                <View
+                    android:layout_width="220dp"
+                    android:layout_height="220dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sos_button_pulsing"
+                    android:alpha="0.5" />
+
+                <!-- Main Tap Target -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnTriggerSos"
+                    android:layout_width="180dp"
+                    android:layout_height="180dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sos_button_pulsing"
+                    android:elevation="12dp"
+                    android:gravity="center"
+                    android:text="SOS"
+                    android:textColor="@color/white"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.06" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="-16dp"
+                android:text="Tap to trigger immediate emergency broadcast"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
+
+            <!-- Live GPS Status Card -->
+            <LinearLayout
+                android:id="@+id/cardGpsStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_card_surface"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    android:contentDescription="GPS"
+                    app:tint="@color/silentsos_emerald" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Live GPS Geolocation"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvGpsCoordinates"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Acquiring satellite lock…"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvGpsAccuracy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#162c20"
+                    android:paddingStart="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="4dp"
+                    android:text="±12m"
+                    android:textColor="@color/silentsos_emerald"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Quick Action 2x2 Grid -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="EMERGENCY MODULES"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:columnCount="2"
+                android:rowCount="2"
+                android:useDefaultMargins="true">
+
+                <!-- 1. Trusted Contacts -->
+                <LinearLayout
+                    android:id="@+id/cardContacts"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_columnWeight="1"
+                    android:background="@drawable/bg_card_surface"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@android:drawable/ic_menu_myplaces"
+                        app:tint="@color/silentsos_red_primary"
+                        android:contentDescription="Contacts" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Trusted Contacts"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvContactCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 Responders"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- 2. Evidence Vault -->
+                <LinearLayout
+                    android:id="@+id/cardEvidence"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_columnWeight="1"
+                    android:background="@drawable/bg_card_surface"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@android:drawable/ic_menu_camera"
+                        app:tint="#a855f7"
+                        android:contentDescription="Camera" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Evidence Capture"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Audio &amp; Photo Vault"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- 3. Direct Helpline 112 -->
+                <LinearLayout
+                    android:id="@+id/cardHelpline"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_columnWeight="1"
+                    android:background="@drawable/bg_card_surface"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@android:drawable/ic_menu_call"
+                        app:tint="@color/silentsos_amber"
+                        android:contentDescription="Call" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Dial Police / 112"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Direct 1-Tap Call"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- 4. Safety Settings -->
+                <LinearLayout
+                    android:id="@+id/cardSettingsQuick"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_columnWeight="1"
+                    android:background="@drawable/bg_card_surface"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@android:drawable/ic_lock_lock"
+                        app:tint="@color/silentsos_emerald"
+                        android:contentDescription="PIN" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Safety PIN &amp; Mode"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PIN: Protected"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+            </GridLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

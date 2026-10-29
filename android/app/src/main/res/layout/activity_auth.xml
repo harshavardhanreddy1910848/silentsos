@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/silentsos_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <!-- Logo & Header -->
+        <ImageView
+            android:id="@+id/imgLogo"
+            android:layout_width="84dp"
+            android:layout_height="84dp"
+            android:layout_marginTop="32dp"
+            android:src="@drawable/ic_splash_logo"
+            android:contentDescription="@string/app_name" />
+
+        <TextView
+            android:id="@+id/tvAppTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/app_name"
+            android:textColor="@color/white"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.02" />
+
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="DISCREET PERSONAL SAFETY ASSISTANT"
+            android:textColor="@color/silentsos_red_primary"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+
+        <!-- Auth Card Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Tab Switcher -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="#0c0c14"
+                android:orientation="horizontal"
+                android:padding="4dp"
+                android:weightSum="2">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnTabLogin"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_retry_button"
+                    android:text="Sign In"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnTabRegister"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:text="Create Account"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Error Banner -->
+            <TextView
+                android:id="@+id/tvAuthError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="#2d1217"
+                android:padding="12dp"
+                android:textColor="#f87171"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- Name Input (Register only) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColorHint="@color/text_muted"
+                app:hintTextColor="@color/silentsos_red_primary"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="Full Name"
+                    android:inputType="textPersonName"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Email Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColorHint="@color/text_muted"
+                app:hintTextColor="@color/silentsos_red_primary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="Email Address"
+                    android:inputType="textEmailAddress"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColorHint="@color/text_muted"
+                app:hintTextColor="@color/silentsos_red_primary"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/text_secondary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Submit Button -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnSubmitAuth"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_retry_button"
+                android:text="Sign In"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/pbAuthLoading"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:indeterminateTint="@color/silentsos_red_primary"
+                android:visibility="gone" />
+
+            <!-- Offline / Demo Bypass Button -->
+            <TextView
+                android:id="@+id/tvDemoBypass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:padding="8dp"
+                android:text="Quick Start / Offline Demo Mode"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/silentsos_bg"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Emergency Beacon Pulsing Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#2d0f14"
+        android:padding="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_splash_logo"
+            android:contentDescription="SOS" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="🚨 DISTRESS BEACON ACTIVE"
+            android:textColor="#f87171"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.04" />
+    </LinearLayout>
+
+    <!-- Countdown Timer Container -->
+    <LinearLayout
+        android:id="@+id/layoutCountdown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BROADCASTING IN"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:letterSpacing="0.08"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCountdownSeconds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3"
+            android:textColor="@color/silentsos_red_primary"
+            android:textSize="80sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnCancelCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card_surface"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:text="CANCEL SOS"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Active Incident Telemetry Details -->
+    <LinearLayout
+        android:id="@+id/layoutActiveDetails"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Live GPS Beacon Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LIVE GPS STREAM"
+                android:textColor="@color/silentsos_emerald"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/tvLiveAlertCoordinates"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Lat: 0.000000, Lng: 0.000000"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAlertAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Accuracy: High Precision Satellite Lock"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Dispatch Telemetry Badges -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EMERGENCY DISPATCH STATUS"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/tvSmsStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="📱 Native Emergency SMS: Sent to Contacts"
+                android:textColor="@color/white"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvEvidenceStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="🎙️ Ambient Audio &amp; Photo Vault: Recording"
+                android:textColor="@color/white"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvServerSyncStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="☁️ Cloud Gateway: Synchronized &amp; Broadcasting"
+                android:textColor="@color/white"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Action Quick Buttons (WhatsApp / Call) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnBroadcastWhatsApp"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_badge_armed"
+                android:text="WhatsApp Alert"
+                android:textAllCaps="false"
+                android:textColor="@color/silentsos_emerald"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnCallPolice"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:background="#2d2212"
+                android:text="Call 112"
+                android:textAllCaps="false"
+                android:textColor="@color/silentsos_amber"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Stop Alert / I Am Safe Button -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnStopAlert"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_retry_button"
+        android:text="I AM SAFE — DEACTIVATE SOS"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

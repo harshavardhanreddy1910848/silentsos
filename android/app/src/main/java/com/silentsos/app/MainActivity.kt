@@ -3,307 +3,174 @@ package com.silentsos.app
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.webkit.CookieManager
-import android.webkit.GeolocationPermissions
-import android.webkit.PermissionRequest
-import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.widget.ProgressBar
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var webView: WebView
+    private lateinit var sessionManager: SessionManager
+    private lateinit var locationHelper: LocationHelper
+    private lateinit var apiClient: ApiClient
+
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    private lateinit var loadingProgressBar: ProgressBar
-    private lateinit var layoutNetworkError: View
-    private lateinit var btnRetry: AppCompatButton
+    private lateinit var tvWelcomeUser: TextView
+    private lateinit var tvGpsCoordinates: TextView
+    private lateinit var tvGpsAccuracy: TextView
+    private lateinit var tvContactCount: TextView
+    private lateinit var btnTriggerSos: AppCompatButton
+    private lateinit var btnSettings: ImageButton
 
-    // Pending permission and file chooser callbacks
-    private var pendingMediaRequest: PermissionRequest? = null
-    private var pendingLocationCallback: GeolocationPermissions.Callback? = null
-    private var pendingLocationOrigin: String? = null
-    private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
+    private lateinit var cardContacts: LinearLayout
+    private lateinit var cardEvidence: LinearLayout
+    private lateinit var cardHelpline: LinearLayout
+    private lateinit var cardSettingsQuick: LinearLayout
 
-    // Activity Result Launchers
-    private lateinit var mediaPermissionLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var locationPermissionLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var notificationPermissionLauncher: ActivityResultLauncher<String>
-    private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (locationGranted) {
+            refreshLocation()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 1. Install AndroidX Splash Screen before super.onCreate
-        installSplashScreen()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        // 2. Initialize Notification Channel
+        sessionManager = SessionManager(this)
+        locationHelper = LocationHelper(this)
+        apiClient = ApiClient(this)
+
+        if (!sessionManager.isLoggedIn) {
+            startActivity(Intent(this, AuthActivity::class.java))
+            finish()
+            return
+        }
+
+        setContentView(R.layout.activity_main)
         NotificationHelper.createNotificationChannel(this)
 
-        // 3. Register Permission & Intent Launchers
-        setupPermissionLaunchers()
-
-        // 4. Bind Views
-        webView = findViewById(R.id.webView)
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
-        loadingProgressBar = findViewById(R.id.loadingProgressBar)
-        layoutNetworkError = findViewById(R.id.layoutNetworkError)
-        btnRetry = findViewById(R.id.btnRetry)
-
-        // 5. Configure WebView Settings & Engine
-        setupWebView()
-
-        // 6. Modern Back Button Navigation
-        setupBackNavigation()
-
-        // 7. Swipe-to-refresh & Retry listeners
-        swipeRefreshLayout.setColorSchemeResources(R.color.silentsos_red_primary)
-        swipeRefreshLayout.setProgressBackgroundColorSchemeResource(R.color.silentsos_surface)
-        swipeRefreshLayout.setOnRefreshListener {
-            layoutNetworkError.visibility = View.GONE
-            webView.reload()
-        }
-
-        btnRetry.setOnClickListener {
-            layoutNetworkError.visibility = View.GONE
-            loadingProgressBar.visibility = View.VISIBLE
-            webView.reload()
-        }
-
-        // 8. Request notification permission on Android 13+ if not already granted
-        checkNotificationPermission()
-
-        // 9. Load Production Web Application
-        if (savedInstanceState != null) {
-            webView.restoreState(savedInstanceState)
-        } else {
-            val targetUrl = intent?.dataString ?: BuildConfig.SILENTSOS_WEB_URL
-            webView.loadUrl(targetUrl)
-        }
-    }
-
-    private fun setupPermissionLaunchers() {
-        mediaPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { permissions ->
-            val granted = mutableListOf<String>()
-            val request = pendingMediaRequest
-
-            if (request != null) {
-                for (res in request.resources) {
-                    if (res == PermissionRequest.RESOURCE_VIDEO_CAPTURE &&
-                        permissions[Manifest.permission.CAMERA] == true
-                    ) {
-                        granted.add(res)
-                    }
-                    if (res == PermissionRequest.RESOURCE_AUDIO_CAPTURE &&
-                        permissions[Manifest.permission.RECORD_AUDIO] == true
-                    ) {
-                        granted.add(res)
-                    }
-                }
-                if (granted.isNotEmpty()) {
-                    request.grant(granted.toTypedArray())
-                } else {
-                    request.deny()
-                }
-                pendingMediaRequest = null
-            }
-        }
-
-        locationPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { permissions ->
-            val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                    permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-            val origin = pendingLocationOrigin
-            val callback = pendingLocationCallback
-
-            if (origin != null && callback != null) {
-                callback.invoke(origin, isGranted, true)
-                pendingLocationOrigin = null
-                pendingLocationCallback = null
-            }
-        }
-
-        notificationPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { /* Notification permission handled gracefully */ }
-
-        fileChooserLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (fileUploadCallback != null) {
-                val results: Array<Uri>? = when {
-                    result.resultCode == RESULT_OK && result.data != null -> {
-                        val clipData = result.data?.clipData
-                        if (clipData != null) {
-                            val uriList = ArrayList<Uri>()
-                            for (i in 0 until clipData.itemCount) {
-                                uriList.add(clipData.getItemAt(i).uri)
-                            }
-                            uriList.toTypedArray()
-                        } else {
-                            val dataUri = result.data?.data
-                            if (dataUri != null) arrayOf(dataUri) else null
-                        }
-                    }
-                    else -> null
-                }
-                fileUploadCallback?.onReceiveValue(results)
-                fileUploadCallback = null
-            }
-        }
-    }
-
-    private fun setupWebView() {
-        val settings: WebSettings = webView.settings
-
-        // JavaScript & DOM Storage
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.databaseEnabled = true
-
-        // Security Hardening
-        settings.allowFileAccess = false
-        settings.allowContentAccess = true
-        settings.cacheMode = WebSettings.LOAD_DEFAULT
-        settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-
-        // Geolocation and Media
-        settings.setGeolocationEnabled(true)
-        settings.mediaPlaybackRequiresUserGesture = false
-
-        // Viewport & Scaling
-        settings.useWideViewPort = true
-        settings.loadWithOverviewMode = true
-        settings.setSupportZoom(false)
-
-        // Cookies
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setAcceptCookie(true)
-        cookieManager.setAcceptThirdPartyCookies(webView, true)
-
-        // Webview Debugging in Debug builds only
-        if (BuildConfig.DEBUG) {
-            WebView.setWebContentsDebuggingEnabled(true)
-        }
-
-        // Clients
-        webView.webViewClient = SilentSOSWebViewClient(
-            this,
-            loadingProgressBar,
-            swipeRefreshLayout,
-            layoutNetworkError
-        )
-        webView.webChromeClient = SilentSOSWebChromeClient(this, loadingProgressBar)
-    }
-
-    private fun setupBackNavigation() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (webView.canGoBack()) {
-                    webView.goBack()
-                } else {
-                    showExitConfirmation()
-                }
-            }
-        })
-    }
-
-    private fun showExitConfirmation() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.exit_confirm_title)
-            .setMessage(R.string.exit_confirm_message)
-            .setPositiveButton(R.string.exit_app) { _, _ ->
-                finish()
-            }
-            .setNegativeButton(R.string.stay_in_app, null)
-            .show()
-    }
-
-    fun requestMediaPermissions(permissions: Array<String>, request: PermissionRequest) {
-        pendingMediaRequest = request
-        mediaPermissionLauncher.launch(permissions)
-    }
-
-    fun requestLocationPermissions(
-        origin: String,
-        callback: GeolocationPermissions.Callback
-    ) {
-        pendingLocationOrigin = origin
-        pendingLocationCallback = callback
-        locationPermissionLauncher.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        )
-    }
-
-    fun launchFileChooser(
-        callback: ValueCallback<Array<Uri>>,
-        params: WebChromeClient.FileChooserParams?
-    ): Boolean {
-        fileUploadCallback?.onReceiveValue(null)
-        fileUploadCallback = callback
-
-        try {
-            val intent = params?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*"
-                addCategory(Intent.CATEGORY_OPENABLE)
-            }
-            fileChooserLauncher.launch(intent)
-            return true
-        } catch (e: Exception) {
-            fileUploadCallback = null
-            Toast.makeText(this, "Cannot launch file chooser", Toast.LENGTH_SHORT).show()
-            return false
-        }
-    }
-
-    private fun checkNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        webView.saveState(outState)
+        initViews()
+        requestAllPermissions()
+        refreshLocation()
+        syncStateWithServer()
     }
 
     override fun onResume() {
         super.onResume()
-        webView.onResume()
+        updateDashboardInfo()
+        refreshLocation()
     }
 
-    override fun onPause() {
-        super.onPause()
-        webView.onPause()
+    private fun initViews() {
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
+        tvWelcomeUser = findViewById(R.id.tvWelcomeUser)
+        tvGpsCoordinates = findViewById(R.id.tvGpsCoordinates)
+        tvGpsAccuracy = findViewById(R.id.tvGpsAccuracy)
+        tvContactCount = findViewById(R.id.tvContactCount)
+        btnTriggerSos = findViewById(R.id.btnTriggerSos)
+        btnSettings = findViewById(R.id.btnSettings)
+
+        cardContacts = findViewById(R.id.cardContacts)
+        cardEvidence = findViewById(R.id.cardEvidence)
+        cardHelpline = findViewById(R.id.cardHelpline)
+        cardSettingsQuick = findViewById(R.id.cardSettingsQuick)
+
+        updateDashboardInfo()
+
+        // SOS Button Click -> Launch Active Emergency Activity
+        btnTriggerSos.setOnClickListener {
+            startActivity(Intent(this, AlertActiveActivity::class.java))
+        }
+
+        btnSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        cardContacts.setOnClickListener {
+            startActivity(Intent(this, ContactsActivity::class.java))
+        }
+
+        cardEvidence.setOnClickListener {
+            Toast.makeText(this, "Evidence sensors armed & active during SOS", Toast.LENGTH_SHORT).show()
+        }
+
+        cardHelpline.setOnClickListener {
+            EmergencyDispatcher.dialEmergencyServices(this, "112")
+        }
+
+        cardSettingsQuick.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        swipeRefreshLayout.setOnRefreshListener {
+            refreshLocation()
+            syncStateWithServer()
+        }
     }
 
-    override fun onDestroy() {
-        webView.destroy()
-        super.onDestroy()
+    private fun updateDashboardInfo() {
+        val user = sessionManager.currentUser
+        tvWelcomeUser.text = "Hello, ${user?.name ?: "User"}"
+        val contacts = sessionManager.getContacts()
+        tvContactCount.text = "${contacts.size} Responders"
+    }
+
+    private fun refreshLocation() {
+        locationHelper.getSingleAccurateLocation { loc ->
+            runOnUiThread {
+                if (loc != null) {
+                    tvGpsCoordinates.text = String.format("Lat: %.5f, Lng: %.5f", loc.latitude, loc.longitude)
+                    tvGpsAccuracy.text = "±${loc.accuracy.toInt()}m"
+                } else {
+                    tvGpsCoordinates.text = "GPS active (Locking satellites...)"
+                }
+                swipeRefreshLayout.isRefreshing = false
+            }
+        }
+    }
+
+    private fun syncStateWithServer() {
+        lifecycleScope.launch {
+            apiClient.fetchState()
+            runOnUiThread {
+                updateDashboardInfo()
+                swipeRefreshLayout.isRefreshing = false
+            }
+        }
+    }
+
+    private fun requestAllPermissions() {
+        val perms = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.SEND_SMS
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            perms.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        val ungranted = perms.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (ungranted.isNotEmpty()) {
+            permissionLauncher.launch(ungranted.toTypedArray())
+        }
     }
 }
