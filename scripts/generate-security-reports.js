@@ -533,3 +533,4 @@ After applying the remediations:
 createExcelWorkbooks();
 createMarkdownReports();
 console.log('\n🎉 All Student Project Friendly Security Artifacts successfully generated in "Vulnerability Test Results/"!');
+
