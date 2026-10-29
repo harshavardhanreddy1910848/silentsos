@@ -61,3 +61,4 @@ reports.forEach(r => {
 console.log('='.repeat(75));
 console.log(`🎉 Bundled ${bundledCount} of ${reports.length} Excel reports into: ${bundleDir}`);
 console.log('='.repeat(75));
+
