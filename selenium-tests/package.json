@@ -1,0 +1,14 @@
+{
+  "name": "silentsos-selenium-tests",
+  "version": "1.0.0",
+  "description": "Selenium E2E functional testing suite and automated test case generator for SilentSOS",
+  "main": "tests/login-tests.js",
+  "scripts": {
+    "test": "node tests/login-tests.js",
+    "report": "node generate-excel.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.22.0",
+    "xlsx": "^0.18.5"
+  }
+}
