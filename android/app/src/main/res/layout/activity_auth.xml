@@ -4,87 +4,265 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/silentsos_bg"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:padding="24dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="24dp">
 
-        <!-- Logo & Header -->
-        <ImageView
-            android:id="@+id/imgLogo"
-            android:layout_width="84dp"
-            android:layout_height="84dp"
-            android:layout_marginTop="32dp"
-            android:src="@drawable/ic_splash_logo"
-            android:contentDescription="@string/app_name" />
+        <!-- Top Glowing Hero Logo Badge -->
+        <FrameLayout
+            android:layout_width="86dp"
+            android:layout_height="86dp"
+            android:background="@drawable/bg_auth_logo_badge">
 
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_shield_alert_vector"
+                android:contentDescription="SilentSOS Shield" />
+        </FrameLayout>
+
+        <!-- Brand Title: SilentSOS (Spanned in Kotlin with White + Coral SOS) -->
         <TextView
             android:id="@+id/tvAppTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/app_name"
+            android:text="SilentSOS"
             android:textColor="@color/white"
             android:textSize="32sp"
+            android:fontFamily="sans-serif-black"
             android:textStyle="bold"
             android:letterSpacing="-0.02" />
 
+        <!-- Subtitle -->
         <TextView
             android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="DISCREET PERSONAL SAFETY ASSISTANT"
-            android:textColor="@color/silentsos_red_primary"
+            android:layout_marginTop="3dp"
+            android:text="WOMEN'S SAFETY &amp; EMERGENCY ALERT"
+            android:textColor="#788296"
             android:textSize="11sp"
             android:textStyle="bold"
             android:letterSpacing="0.08" />
 
-        <!-- Auth Card Container -->
+        <!-- 4 Feature Badges Pill Row -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Live GPS -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_auth_pill"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:layout_marginEnd="5dp"
+                android:text="📍 Live GPS"
+                android:textColor="#94a3b8"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+
+            <!-- Auto Capture -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_auth_pill"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:layout_marginEnd="5dp"
+                android:text="📷 Auto Capture"
+                android:textColor="#94a3b8"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+
+            <!-- SOS Alerts -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_auth_pill"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:layout_marginEnd="5dp"
+                android:text="🔔 SOS Alerts"
+                android:textColor="#94a3b8"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+
+            <!-- Real-Time -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_auth_pill"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:text="📶 Real-Time"
+                android:textColor="#94a3b8"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Main Card Container -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:background="@drawable/bg_card_surface"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/bg_auth_card_container"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingHorizontal="18dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="22dp">
 
-            <!-- Tab Switcher -->
+            <!-- Top Red Ambient Glow Line -->
+            <View
+                android:layout_width="140dp"
+                android:layout_height="2.5dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_auth_top_accent_glow" />
+
+            <!-- Top Right: What is SilentSOS? Link -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="#0c0c14"
+                android:id="@+id/btnWhatIsSilentSos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal"
-                android:padding="4dp"
-                android:weightSum="2">
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:selectableItemBackground"
+                android:padding="4dp">
 
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btnTabLogin"
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_sparkle_vector"
+                    app:tint="#ff5770" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="What is SilentSOS?"
+                    android:textColor="#8b96a8"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 3-Way Tab Switcher Bar -->
+            <LinearLayout
+                android:id="@+id/tabBarContainer"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_auth_tab_bar"
+                android:orientation="horizontal"
+                android:padding="3dp"
+                android:weightSum="3">
+
+                <!-- Tab 1: Password (Active Default) -->
+                <LinearLayout
+                    android:id="@+id/tabPassword"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_retry_button"
-                    android:text="Sign In"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:background="@drawable/bg_auth_tab_active"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
 
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btnTabRegister"
+                    <ImageView
+                        android:id="@+id/ivTabPasswordIcon"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_login_arrow_vector"
+                        app:tint="#ffffff" />
+
+                    <TextView
+                        android:id="@+id/tvTabPasswordText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Password"
+                        android:textColor="#ffffff"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Tab 2: Token OTP -->
+                <LinearLayout
+                    android:id="@+id/tabOtp"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
-                    android:text="Create Account"
-                    android:textAllCaps="false"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/ivTabOtpIcon"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_key_vector" />
+
+                    <TextView
+                        android:id="@+id/tvTabOtpText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Token OTP"
+                        android:textColor="#8e98a8"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Tab 3: Sign Up -->
+                <LinearLayout
+                    android:id="@+id/tabRegister"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/ivTabRegisterIcon"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_user_plus_vector"
+                        app:tint="#8e98a8" />
+
+                    <TextView
+                        android:id="@+id/tvTabRegisterText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Sign Up"
+                        android:textColor="#8e98a8"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Error Banner -->
@@ -92,117 +270,359 @@
                 android:id="@+id/tvAuthError"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:background="#2d1217"
-                android:padding="12dp"
+                android:padding="10dp"
                 android:textColor="#f87171"
-                android:textSize="12sp"
+                android:textSize="11.5sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
 
-            <!-- Name Input (Register only) -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutName"
+            <!-- Input Group: FULL NAME (Sign Up only) -->
+            <LinearLayout
+                android:id="@+id/groupName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:textColorHint="@color/text_muted"
-                app:hintTextColor="@color/silentsos_red_primary"
+                android:orientation="vertical"
                 android:visibility="gone">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etName"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:background="@drawable/bg_input_field"
-                    android:hint="Full Name"
-                    android:inputType="textPersonName"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FULL NAME"
+                    android:textColor="#64748b"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.06" />
 
-            <!-- Email Input -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutEmail"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_auth_input_selector"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_user_plus_vector"
+                        app:tint="#64748b" />
+
+                    <EditText
+                        android:id="@+id/etName"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="10dp"
+                        android:background="@android:color/transparent"
+                        android:hint="Your Full Name"
+                        android:textColorHint="#3d4454"
+                        android:textColor="@color/white"
+                        android:textSize="13.5sp"
+                        android:inputType="textPersonName"
+                        android:singleLine="true" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Input Group: EMAIL ADDRESS -->
+            <LinearLayout
+                android:id="@+id/groupEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:textColorHint="@color/text_muted"
-                app:hintTextColor="@color/silentsos_red_primary">
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmail"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EMAIL ADDRESS"
+                    android:textColor="#64748b"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.06" />
+
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:background="@drawable/bg_input_field"
-                    android:hint="Email Address"
-                    android:inputType="textEmailAddress"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_auth_input_selector"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp">
 
-            <!-- Password Input -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutPassword"
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_mail_vector" />
+
+                    <EditText
+                        android:id="@+id/etEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="10dp"
+                        android:background="@android:color/transparent"
+                        android:hint="name@example.com"
+                        android:textColorHint="#3d4454"
+                        android:textColor="@color/white"
+                        android:textSize="13.5sp"
+                        android:inputType="textEmailAddress"
+                        android:singleLine="true" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Input Group: PASSWORD -->
+            <LinearLayout
+                android:id="@+id/groupPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:textColorHint="@color/text_muted"
-                app:hintTextColor="@color/silentsos_red_primary"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/text_secondary">
+                android:layout_marginTop="14dp"
+                android:orientation="vertical">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPassword"
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:background="@drawable/bg_input_field"
-                    android:hint="Password"
-                    android:inputType="textPassword"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_height="wrap_content">
 
-            <!-- Submit Button -->
-            <androidx.appcompat.widget.AppCompatButton
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:text="PASSWORD"
+                        android:textColor="#64748b"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.06" />
+
+                    <TextView
+                        android:id="@+id/tvForgotPassword"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="Forgot password?"
+                        android:textColor="#ff5770"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:id="@+id/boxPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_auth_input_focused"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_lock_vector" />
+
+                    <EditText
+                        android:id="@+id/etPassword"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:background="@android:color/transparent"
+                        android:hint="••••••••"
+                        android:textColorHint="#4b5568"
+                        android:textColor="@color/white"
+                        android:textSize="13.5sp"
+                        android:inputType="textPassword"
+                        android:singleLine="true" />
+
+                    <ImageView
+                        android:id="@+id/ivTogglePassword"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:src="@drawable/ic_eye_vector"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?android:selectableItemBackgroundBorderless"
+                        android:contentDescription="Toggle Password Visibility" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Input Group: SECURITY TOKEN / OTP (Only visible in Token OTP mode) -->
+            <LinearLayout
+                android:id="@+id/groupOtp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SECURITY TOKEN / DISPATCH PIN"
+                    android:textColor="#64748b"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.06" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_auth_input_selector"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_key_vector" />
+
+                    <EditText
+                        android:id="@+id/etOtp"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="10dp"
+                        android:background="@android:color/transparent"
+                        android:hint="6-digit dispatch token"
+                        android:textColorHint="#3d4454"
+                        android:textColor="@color/white"
+                        android:textSize="13.5sp"
+                        android:inputType="number"
+                        android:maxLength="6"
+                        android:singleLine="true" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Primary Action Button: Sign In to SilentSOS -->
+            <RelativeLayout
                 android:id="@+id/btnSubmitAuth"
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/bg_retry_button"
-                android:text="Sign In"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_auth_btn_primary"
+                android:clickable="true"
+                android:focusable="true">
 
-            <ProgressBar
-                android:id="@+id/pbAuthLoading"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                <LinearLayout
+                    android:id="@+id/layoutBtnContent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:id="@+id/ivBtnIcon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_login_arrow_vector"
+                        app:tint="#ffffff" />
+
+                    <TextView
+                        android:id="@+id/tvBtnText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Sign In to SilentSOS"
+                        android:textColor="@color/white"
+                        android:textSize="14.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/pbAuthLoading"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_centerInParent="true"
+                    android:indeterminateTint="@color/white"
+                    android:visibility="gone" />
+            </RelativeLayout>
+
+            <!-- Status Indicator Badge: ✨ Resend Token Authentication & Alert Dispatch Active -->
+            <LinearLayout
+                android:id="@+id/layoutActiveBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="16dp"
-                android:indeterminateTint="@color/silentsos_red_primary"
-                android:visibility="gone" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <!-- Offline / Demo Bypass Button -->
+                <ImageView
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:src="@drawable/ic_sparkle_vector"
+                    app:tint="#eab308" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="Resend Token Authentication &amp; Alert Dispatch Active"
+                    android:textColor="#717d91"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Card Bottom Switcher: Don't have an account? Sign Up -->
+            <LinearLayout
+                android:id="@+id/layoutToggleMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/tvTogglePrompt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Don't have an account?"
+                    android:textColor="#717d91"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvToggleAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="Sign Up"
+                    android:textColor="#ff5770"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Offline / Demo Quick-Start Bypass -->
             <TextView
                 android:id="@+id/tvDemoBypass"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
-                android:padding="8dp"
-                android:text="Quick Start / Offline Demo Mode"
-                android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:layout_marginTop="12dp"
+                android:padding="6dp"
+                android:text="⚡ Quick Demo Mode"
+                android:textColor="#475569"
+                android:textSize="11sp" />
 
         </LinearLayout>
+
+        <!-- Bottom Legal / Cloud Disclaimer -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:paddingHorizontal="24dp"
+            android:gravity="center"
+            android:text="By continuing you authorize secure cloud storage of your evidence, coordinates, and alert logs."
+            android:textColor="#485264"
+            android:textSize="10.5sp"
+            android:lineSpacingExtra="2dp" />
+
     </LinearLayout>
 </ScrollView>

@@ -150,3 +150,4 @@ class ContactsAdapter(
 
     override fun getItemCount(): Int = items.size
 }
+

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- SilentSOS Design System Colors -->
-    <color name="silentsos_bg">#09090b</color>
-    <color name="silentsos_surface">#12121a</color>
-    <color name="silentsos_surface_border">#27273a</color>
+    <color name="silentsos_bg">#07070a</color>
+    <color name="silentsos_surface">#0d0e14</color>
+    <color name="silentsos_surface_border">#1a1c27</color>
     
-    <!-- Primary Emergency Crimson -->
-    <color name="silentsos_red_primary">#ef4444</color>
+    <!-- Primary Emergency Crimson & Coral Accents -->
+    <color name="silentsos_red_primary">#e11d48</color>
     <color name="silentsos_red_dark">#dc2626</color>
     <color name="silentsos_red_deep">#991b1b</color>
+    <color name="silentsos_sos_pink">#ff5770</color>
 
     <!-- Accents -->
     <color name="silentsos_emerald">#10b981</color>
@@ -16,8 +17,14 @@
 
     <!-- Text and Neutral -->
     <color name="text_primary">#ffffff</color>
-    <color name="text_secondary">#9ca3af</color>
-    <color name="text_muted">#6b7280</color>
+    <color name="text_secondary">#94a3b8</color>
+    <color name="text_muted">#64748b</color>
+    <color name="text_hint">#334155</color>
+
+    <!-- Input and Card Backgrounds -->
+    <color name="auth_input_bg">#090a10</color>
+    <color name="auth_input_stroke">#1c1e2b</color>
+    <color name="auth_tab_bar_bg">#08090e</color>
 
     <!-- Standard system mapping -->
     <color name="black">#000000</color>

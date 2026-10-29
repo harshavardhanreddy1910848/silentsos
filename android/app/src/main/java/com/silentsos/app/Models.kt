@@ -62,3 +62,4 @@ data class AlertEvent(
     val lng: Double,
     val address: String = ""
 )
+

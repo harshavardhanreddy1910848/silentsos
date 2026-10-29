@@ -103,3 +103,4 @@ class LocationHelper(private val context: Context) {
         onResult(null)
     }
 }
+
