@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#07090e"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:paddingBottom="40dp">
+
+        <!-- Top Back Bar -->
+        <LinearLayout
+            android:id="@+id/btnProfileBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_arrow_left_vector" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Settings"
+                android:textColor="#94a3b8"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="EMERGENCY IDENTITY PROFILE"
+            android:textColor="#ff5770"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Personal &amp; Medical Record"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Crucial medical and contact details transmitted automatically during distress dispatch."
+            android:textColor="#94a3b8"
+            android:textSize="12sp" />
+
+        <!-- Form Fields -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical">
+
+            <!-- Full Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FULL LEGAL NAME"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfName"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:textSize="13.5sp"
+                android:singleLine="true" />
+
+            <!-- Email -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="REGISTERED EMAIL"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfEmail"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:textSize="13.5sp"
+                android:inputType="textEmailAddress"
+                android:singleLine="true" />
+
+            <!-- Phone -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="PHONE NUMBER"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfPhone"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:textSize="13.5sp"
+                android:inputType="phone"
+                android:singleLine="true" />
+
+            <!-- Blood Group -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="BLOOD GROUP"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfBlood"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="e.g. O+, A+, B+, AB+, O-"
+                android:textSize="13.5sp"
+                android:singleLine="true" />
+
+            <!-- Address -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="RESIDENTIAL ADDRESS"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfAddress"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:textSize="13.5sp"
+                android:singleLine="true" />
+
+            <!-- Mother's Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="MOTHER'S NAME"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfMother"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:textSize="13.5sp"
+                android:singleLine="true" />
+
+            <!-- Father's Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="FATHER'S NAME"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfFather"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:textSize="13.5sp"
+                android:singleLine="true" />
+
+            <!-- Save Profile Button -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnSaveProfile"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_auth_btn_primary"
+                android:text="Save Emergency Profile"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="14.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

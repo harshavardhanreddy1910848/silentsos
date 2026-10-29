@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/silentsos_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Progress Indicator (Steps 1 to 4) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:weightSum="4">
+
+            <View
+                android:id="@+id/prog1"
+                android:layout_width="0dp"
+                android:layout_height="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="#e11d48" />
+
+            <View
+                android:id="@+id/prog2"
+                android:layout_width="0dp"
+                android:layout_height="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="#1e2230" />
+
+            <View
+                android:id="@+id/prog3"
+                android:layout_width="0dp"
+                android:layout_height="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="#1e2230" />
+
+            <View
+                android:id="@+id/prog4"
+                android:layout_width="0dp"
+                android:layout_height="4dp"
+                android:layout_weight="1"
+                android:background="#1e2230" />
+        </LinearLayout>
+
+        <!-- Header Title & Subtitle -->
+        <TextView
+            android:id="@+id/tvOnboardingStep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="STEP 1 OF 4"
+            android:textColor="#ff5770"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:id="@+id/tvOnboardingTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Emergency Identity Profile"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvOnboardingSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="This medical and personal data is dispatched to responders during a distress crisis."
+            android:textColor="#94a3b8"
+            android:textSize="12sp" />
+
+        <!-- STEP 1: Profile Form Container -->
+        <LinearLayout
+            android:id="@+id/containerStep1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical">
+
+            <!-- Full Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FULL NAME"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfileName"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="Full Name"
+                android:textSize="14sp"
+                android:singleLine="true" />
+
+            <!-- Email -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="EMAIL ADDRESS"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfileEmail"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="name@example.com"
+                android:textSize="14sp"
+                android:inputType="textEmailAddress"
+                android:singleLine="true" />
+
+            <!-- Phone -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="EMERGENCY PHONE"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfilePhone"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="+91 98765 43210"
+                android:textSize="14sp"
+                android:inputType="phone"
+                android:singleLine="true" />
+
+            <!-- Blood Group -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="BLOOD GROUP"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfileBlood"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="e.g. O+, A+, B+, AB+"
+                android:textSize="14sp"
+                android:singleLine="true" />
+
+            <!-- Residential Address -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="HOME ADDRESS"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etProfileAddress"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="City, State, Zip"
+                android:textSize="14sp"
+                android:singleLine="true" />
+        </LinearLayout>
+
+        <!-- STEP 2: Emergency Contact Form Container -->
+        <LinearLayout
+            android:id="@+id/containerStep2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PRIMARY GUARDIAN NAME"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etContactName"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="e.g. Mom / Spouse / Best Friend"
+                android:textSize="14sp"
+                android:singleLine="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="PHONE NUMBER (SMS DISPATCH)"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etContactPhone"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="+91 98765 43210"
+                android:textSize="14sp"
+                android:inputType="phone"
+                android:singleLine="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="EMAIL ADDRESS"
+                android:textColor="#64748b"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etContactEmail"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_auth_input_selector"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="#3d4454"
+                android:hint="guardian@example.com"
+                android:textSize="14sp"
+                android:inputType="textEmailAddress"
+                android:singleLine="true" />
+        </LinearLayout>
+
+        <!-- STEP 3: Permissions Container -->
+        <LinearLayout
+            android:id="@+id/containerStep3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Location Permission Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_surface"
+                android:padding="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_map_pin_vector" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Live GPS Satellite Tracking"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Broadcasting real-time coordinates to emergency responders."
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Camera Permission Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_surface"
+                android:padding="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_camera_vector" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Automated Evidence Capture"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Photo bursts and rolling video evidence recorded in crisis."
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Microphone Permission Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_surface"
+                android:padding="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_mic_vector" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Audio Voice Surveillance"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Encrypted high-fidelity audio capture for courtroom evidence."
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- STEP 4: System Armed Confirmation -->
+        <LinearLayout
+            android:id="@+id/containerStep4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/ic_check_vector"
+                app:tint="#10b981" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="SYSTEM ARMED &amp; READY"
+                android:textColor="#10b981"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.06" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Your SilentSOS personal defense assistant is active with instantaneous crisis triggers, live satellite telemetry, and auto-dispatch."
+                android:textColor="#94a3b8"
+                android:textSize="12.5sp"
+                android:gravity="center"
+                android:paddingHorizontal="16dp" />
+        </LinearLayout>
+
+        <!-- Bottom Action Button -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnOnboardingAction"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/bg_auth_btn_primary"
+            android:text="Next: Trusted Contacts"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="14.5sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/silentsos_bg"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="24dp">
+
+    <!-- Top Badge -->
+    <FrameLayout
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/bg_auth_logo_badge">
+
+        <ImageView
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_shield_alert_vector"
+            app:tint="#f43f5e" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvPinTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Set Your Safety PIN"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvPinSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Enter a secret 4-digit code to disarm alarms and protect evidence."
+        android:textColor="#94a3b8"
+        android:textSize="12.5sp"
+        android:gravity="center"
+        android:paddingHorizontal="16dp" />
+
+    <!-- 4 PIN Dots -->
+    <LinearLayout
+        android:id="@+id/layoutPinDots"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/dot1"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_pin_box" />
+
+        <View
+            android:id="@+id/dot2"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_pin_box" />
+
+        <View
+            android:id="@+id/dot3"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_pin_box" />
+
+        <View
+            android:id="@+id/dot4"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_pin_box" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvPinError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="#f87171"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        android:text="PINs do not match. Please try again." />
+
+    <!-- Keypad Grid -->
+    <GridLayout
+        android:id="@+id/gridKeypad"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:columnCount="3"
+        android:rowCount="4"
+        android:alignmentMode="alignMargins"
+        android:columnOrderPreserved="true">
+
+        <!-- 1..9 Buttons -->
+        <!-- Row 1 -->
+        <TextView
+            android:id="@+id/btnKey1"
+            style="@style/PinKeypadStyle"
+            android:text="1" />
+        <TextView
+            android:id="@+id/btnKey2"
+            style="@style/PinKeypadStyle"
+            android:text="2" />
+        <TextView
+            android:id="@+id/btnKey3"
+            style="@style/PinKeypadStyle"
+            android:text="3" />
+
+        <!-- Row 2 -->
+        <TextView
+            android:id="@+id/btnKey4"
+            style="@style/PinKeypadStyle"
+            android:text="4" />
+        <TextView
+            android:id="@+id/btnKey5"
+            style="@style/PinKeypadStyle"
+            android:text="5" />
+        <TextView
+            android:id="@+id/btnKey6"
+            style="@style/PinKeypadStyle"
+            android:text="6" />
+
+        <!-- Row 3 -->
+        <TextView
+            android:id="@+id/btnKey7"
+            style="@style/PinKeypadStyle"
+            android:text="7" />
+        <TextView
+            android:id="@+id/btnKey8"
+            style="@style/PinKeypadStyle"
+            android:text="8" />
+        <TextView
+            android:id="@+id/btnKey9"
+            style="@style/PinKeypadStyle"
+            android:text="9" />
+
+        <!-- Row 4 -->
+        <TextView
+            android:id="@+id/btnKeyClear"
+            style="@style/PinKeypadStyle"
+            android:text="C"
+            android:textColor="#64748b"
+            android:textSize="18sp" />
+        <TextView
+            android:id="@+id/btnKey0"
+            style="@style/PinKeypadStyle"
+            android:text="0" />
+        <TextView
+            android:id="@+id/btnKeyBack"
+            style="@style/PinKeypadStyle"
+            android:text="⌫"
+            android:textColor="#64748b"
+            android:textSize="20sp" />
+    </GridLayout>
+
+</LinearLayout>

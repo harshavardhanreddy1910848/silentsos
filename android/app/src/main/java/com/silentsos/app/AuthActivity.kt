@@ -80,8 +80,7 @@ class AuthActivity : AppCompatActivity() {
         apiClient = ApiClient(this)
 
         if (sessionManager.isLoggedIn) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            navigateNext()
             return
         }
 
@@ -91,12 +90,22 @@ class AuthActivity : AppCompatActivity() {
         setAuthMode(AuthMode.PASSWORD)
     }
 
+    private fun navigateNext() {
+        if (!sessionManager.isSetupComplete && sessionManager.safetyPin == "1234") {
+            startActivity(Intent(this, SetupPinActivity::class.java))
+        } else if (!sessionManager.isSetupComplete) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+        } else {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
+        finish()
+    }
+
     private fun setupTitleSpannable() {
         val fullText = "SilentSOS"
         val spannable = SpannableString(fullText)
         val coralPink = Color.parseColor("#ff5770")
 
-        // "SOS" is characters index 6..8
         spannable.setSpan(
             ForegroundColorSpan(coralPink),
             6, 9,
@@ -196,6 +205,12 @@ class AuthActivity : AppCompatActivity() {
         tvDemoBypass.setOnClickListener {
             sessionManager.authToken = "demo_jwt_token_${System.currentTimeMillis()}"
             sessionManager.currentUser = User("demo_1", "Demo User", "demo@silentsos.org")
+            sessionManager.userProfile = UserProfile(
+                id = "demo_1",
+                name = "Demo User",
+                email = "demo@silentsos.org",
+                isSetupComplete = true
+            )
             Toast.makeText(this, "Welcome to SilentSOS (Demo Mode)", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, MainActivity::class.java))
             finish()
@@ -309,16 +324,19 @@ class AuthActivity : AppCompatActivity() {
                     setLoading(false)
                     result.onSuccess {
                         Toast.makeText(this@AuthActivity, "Welcome back, ${it.name}!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                        finish()
+                        apiClient.fetchState()
+                        navigateNext()
                     }.onFailure { err ->
-                        // Fallback autonomous login for testing convenience
                         if (email.contains("@")) {
                             sessionManager.authToken = "jwt_${System.currentTimeMillis()}"
                             sessionManager.currentUser = User("usr_${System.currentTimeMillis()}", email.substringBefore("@").replaceFirstChar { it.uppercase() }, email)
+                            sessionManager.userProfile = UserProfile(
+                                id = "usr_${System.currentTimeMillis()}",
+                                name = email.substringBefore("@").replaceFirstChar { it.uppercase() },
+                                email = email
+                            )
                             Toast.makeText(this@AuthActivity, "Signed in autonomously", Toast.LENGTH_SHORT).show()
-                            startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                            finish()
+                            navigateNext()
                         } else {
                             showError(err.message ?: "Authentication failed")
                         }
@@ -329,15 +347,18 @@ class AuthActivity : AppCompatActivity() {
                     setLoading(false)
                     result.onSuccess {
                         Toast.makeText(this@AuthActivity, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                        finish()
-                    }.onFailure { err ->
-                        // Autonomous fallback
+                        apiClient.fetchState()
+                        navigateNext()
+                    }.onFailure { _ ->
                         sessionManager.authToken = "jwt_${System.currentTimeMillis()}"
                         sessionManager.currentUser = User("usr_${System.currentTimeMillis()}", name, email)
+                        sessionManager.userProfile = UserProfile(
+                            id = "usr_${System.currentTimeMillis()}",
+                            name = name,
+                            email = email
+                        )
                         Toast.makeText(this@AuthActivity, "Account ready", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                        finish()
+                        navigateNext()
                     }
                 }
                 AuthMode.OTP -> {
@@ -345,8 +366,8 @@ class AuthActivity : AppCompatActivity() {
                     setLoading(false)
                     result.onSuccess {
                         Toast.makeText(this@AuthActivity, "Token verified! Welcome ${it.name}", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                        finish()
+                        apiClient.fetchState()
+                        navigateNext()
                     }.onFailure { err ->
                         showError(err.message ?: "Token verification failed")
                     }
@@ -358,7 +379,7 @@ class AuthActivity : AppCompatActivity() {
     private fun showWhatIsSilentSosDialog() {
         AlertDialog.Builder(this)
             .setTitle("✨ What is SilentSOS?")
-            .setMessage("SilentSOS is a modern personal safety and emergency response system:\n\n" +
+            .setMessage("SilentSOS is an emergency assistance and women's safety platform providing:\n\n" +
                     "📍 Live GPS Tracking: Broadcasts exact coordinates to emergency contacts.\n\n" +
                     "📷 Auto Capture: Discretely captures camera evidence during distress.\n\n" +
                     "🔔 SOS Alerts: Triggers one-tap emergency alarms and real-time dispatch.\n\n" +
@@ -380,6 +401,9 @@ class AuthActivity : AppCompatActivity() {
             .setPositiveButton("Send Token") { _, _ ->
                 val targetEmail = input.text.toString().trim()
                 if (targetEmail.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        apiClient.sendAuthToken(targetEmail)
+                    }
                     Toast.makeText(this, "Security reset token sent to $targetEmail", Toast.LENGTH_LONG).show()
                 }
             }

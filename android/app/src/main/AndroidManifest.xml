@@ -56,7 +56,21 @@
             </intent-filter>
         </activity>
 
-        <!-- Main Dashboard: Native Armed Protection & SOS Button -->
+        <!-- Setup Safety PIN Activity -->
+        <activity
+            android:name=".SetupPinActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
+
+        <!-- 4-Step Onboarding Activity -->
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
+
+        <!-- Main Tactical Console Activity (6 Tabs Bottom Nav) -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
@@ -72,13 +86,33 @@
             android:showOnLockScreen="true"
             android:turnScreenOn="true" />
 
-        <!-- Trusted Contacts Management -->
+        <!-- Emergency Profile Identity Activity -->
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
+
+        <!-- Surveillance & Capture Hardware Buffers Activity -->
+        <activity
+            android:name=".CaptureSettingsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
+
+        <!-- Fake Call Escape Simulator Activity -->
+        <activity
+            android:name=".FakeCallActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Trusted Contacts Management (standalone route fallback) -->
         <activity
             android:name=".ContactsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Safety Settings & PIN Configuration -->
+        <!-- Safety Settings (standalone route fallback) -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"

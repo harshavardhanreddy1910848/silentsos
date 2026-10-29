@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_card_surface"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_file_nav"
+                app:tint="#22d3ee" />
+
+            <TextView
+                android:id="@+id/tvEvItemTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Alert Evidence Session"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvEvItemDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="Today, 10:24 AM"
+            android:textColor="#64748b"
+            android:textSize="11sp"
+            android:fontFamily="monospace" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tvEvItemLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="📍 17.4485° N, 78.3908° E (Hyderabad, IN)"
+        android:textColor="#94a3b8"
+        android:textSize="11.5sp" />
+
+    <!-- Badges Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvEvBadgePhotos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0f172a"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:layout_marginEnd="6dp"
+            android:text="📷 5 Photos"
+            android:textColor="#22d3ee"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvEvBadgeAudio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0f172a"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:layout_marginEnd="6dp"
+            android:text="🎤 1 Audio"
+            android:textColor="#10b981"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvEvBadgeVideo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0f172a"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="🎥 1 Video"
+            android:textColor="#f43f5e"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

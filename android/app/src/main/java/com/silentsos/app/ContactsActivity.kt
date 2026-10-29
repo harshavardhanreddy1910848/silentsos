@@ -1,13 +1,9 @@
 package com.silentsos.app
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -39,8 +35,8 @@ class ContactsActivity : AppCompatActivity() {
 
         btnBackContacts.setOnClickListener { finish() }
 
-        adapter = ContactsAdapter(contactsList) { position ->
-            deleteContact(position)
+        adapter = ContactsAdapter(contactsList) { contact ->
+            deleteContact(contact)
         }
 
         rvContacts.layoutManager = LinearLayoutManager(this)
@@ -58,13 +54,11 @@ class ContactsActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
-    private fun deleteContact(position: Int) {
-        if (position in contactsList.indices) {
-            val removed = contactsList.removeAt(position)
-            sessionManager.saveContacts(contactsList)
-            adapter.notifyItemRemoved(position)
-            Toast.makeText(this, "Removed ${removed.name}", Toast.LENGTH_SHORT).show()
-        }
+    private fun deleteContact(contact: Contact) {
+        contactsList.remove(contact)
+        sessionManager.saveContacts(contactsList)
+        adapter.notifyDataSetChanged()
+        Toast.makeText(this, "Removed ${contact.name}", Toast.LENGTH_SHORT).show()
     }
 
     private fun showAddContactDialog() {
@@ -113,41 +107,10 @@ class ContactsActivity : AppCompatActivity() {
                 )
                 contactsList.add(newContact)
                 sessionManager.saveContacts(contactsList)
-                adapter.notifyItemInserted(contactsList.size - 1)
+                adapter.notifyDataSetChanged()
                 Toast.makeText(this, "Added $name to emergency contacts", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 }
-
-class ContactsAdapter(
-    private val items: List<Contact>,
-    private val onDeleteClick: (Int) -> Unit
-) : RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>() {
-
-    class ContactViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvName: TextView = view.findViewById(R.id.tvItemContactName)
-        val tvPhone: TextView = view.findViewById(R.id.tvItemContactPhone)
-        val tvEmail: TextView = view.findViewById(R.id.tvItemContactEmail)
-        val btnDelete: ImageButton = view.findViewById(R.id.btnItemDelete)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_contact, parent, false)
-        return ContactViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
-        val contact = items[position]
-        holder.tvName.text = contact.name
-        holder.tvPhone.text = contact.phone
-        holder.tvEmail.text = if (contact.email.isNotBlank()) contact.email else "No email specified"
-        holder.btnDelete.setOnClickListener {
-            onDeleteClick(position)
-        }
-    }
-
-    override fun getItemCount(): Int = items.size
-}
-
