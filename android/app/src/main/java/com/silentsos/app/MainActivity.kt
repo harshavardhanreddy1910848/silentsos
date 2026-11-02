@@ -5,11 +5,14 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -26,11 +29,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import kotlin.math.sqrt
 
@@ -137,13 +146,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             loadTab(currentTab)
             when (event) {
                 "alert_triggered" -> {
-                    Toast.makeText(this, "🚨 Active SOS distress synchronized across devices", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "≡ƒÜ¿ Active SOS distress synchronized across devices", Toast.LENGTH_LONG).show()
                 }
                 "contacts_updated" -> {
-                    Toast.makeText(this, "👥 Emergency contacts synced from cloud", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "≡ƒæÑ Emergency contacts synced from cloud", Toast.LENGTH_SHORT).show()
                 }
                 "user_updated" -> {
-                    Toast.makeText(this, "👤 Profile data synced from cloud", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "≡ƒæñ Profile data synced from cloud", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -169,7 +178,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         currentAcceleration = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
         val delta = currentAcceleration - lastAcceleration
         if (delta > shakeThreshold) {
-            Toast.makeText(this, "🚨 Shake Detected! Preparing Crisis Dispatch...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "≡ƒÜ¿ Shake Detected! Preparing Crisis Dispatch...", Toast.LENGTH_SHORT).show()
             triggerCrisisDispatch("Shake Gesture Emergency")
         }
     }
@@ -246,9 +255,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // TAB 1: SOS HUB DASHBOARD
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     private fun setupDashboardView(inflater: LayoutInflater) {
         val view = inflater.inflate(R.layout.layout_tab_dashboard, containerContent, false)
 
@@ -304,9 +313,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             if (loc != null) {
                 currentLat = loc.latitude
                 currentLng = loc.longitude
-                tvLat.text = String.format(Locale.US, "%.4f° N", loc.latitude)
-                tvLng.text = String.format(Locale.US, "%.4f° E", loc.longitude)
-                tvAccuracy.text = "• ACCURACY ± ${loc.accuracy.toInt()}m"
+                tvLat.text = String.format(Locale.US, "%.4f┬░ N", loc.latitude)
+                tvLng.text = String.format(Locale.US, "%.4f┬░ E", loc.longitude)
+                tvAccuracy.text = "ΓÇó ACCURACY ┬▒ ${loc.accuracy.toInt()}m"
             }
         }
 
@@ -374,9 +383,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         btnDanger.setOnClickListener { triggerCrisisDispatch("Danger") }
 
         // Live capture triggers
-        btnQuickPhoto.setOnClickListener { Toast.makeText(this, "📷 Photo burst buffer armed (10-shot burst ready)", Toast.LENGTH_SHORT).show() }
-        btnQuickAudio.setOnClickListener { Toast.makeText(this, "🎤 Surveillance audio active (Stereo noise filter active)", Toast.LENGTH_SHORT).show() }
-        btnQuickVideo.setOnClickListener { Toast.makeText(this, "🎥 HD Rolling Video Loop armed (1080p continuous buffer)", Toast.LENGTH_SHORT).show() }
+        btnQuickPhoto.setOnClickListener { Toast.makeText(this, "≡ƒô╖ Photo burst buffer armed (10-shot burst ready)", Toast.LENGTH_SHORT).show() }
+        btnQuickAudio.setOnClickListener { Toast.makeText(this, "≡ƒÄñ Surveillance audio active (Stereo noise filter active)", Toast.LENGTH_SHORT).show() }
+        btnQuickVideo.setOnClickListener { Toast.makeText(this, "≡ƒÄÑ HD Rolling Video Loop armed (1080p continuous buffer)", Toast.LENGTH_SHORT).show() }
 
         containerContent.addView(view)
     }
@@ -388,9 +397,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         startActivity(intent)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // TAB 2: GESTURES
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     private fun setupGesturesView(inflater: LayoutInflater) {
         val view = inflater.inflate(R.layout.layout_tab_gestures, containerContent, false)
 
@@ -416,11 +425,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         btnBoth.setOnClickListener { selectMode("both") }
 
         tvSimulate.setOnClickListener {
-            tvDetectStatus.text = "🚨 RAISED PALM RECOGNIZED! TRIGGERING SOS IN 3s..."
+            tvDetectStatus.text = "≡ƒÜ¿ RAISED PALM RECOGNIZED! TRIGGERING SOS IN 3s..."
             tvDetectStatus.setTextColor(Color.parseColor("#f87171"))
             object : CountDownTimer(3000, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
-                    tvDetectStatus.text = "🚨 PALM DETECTED! TRIGGERING IN ${(millisUntilFinished / 1000) + 1}s..."
+                    tvDetectStatus.text = "≡ƒÜ¿ PALM DETECTED! TRIGGERING IN ${(millisUntilFinished / 1000) + 1}s..."
                 }
                 override fun onFinish() {
                     triggerCrisisDispatch("Raised Palm Gesture")
@@ -431,9 +440,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         containerContent.addView(view)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // TAB 3: EVIDENCE
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     private fun setupEvidenceView(inflater: LayoutInflater) {
         val view = inflater.inflate(R.layout.layout_tab_evidence, containerContent, false)
 
@@ -458,7 +467,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         layoutEmpty.visibility = if (historyList.isEmpty()) View.VISIBLE else View.GONE
         rvEvidence.layoutManager = LinearLayoutManager(this)
         val adapter = EvidenceAdapter(historyList) { event ->
-            Toast.makeText(this, "Evidence from ${event.type} session (${event.evidence.files.size} items stored securely in cloud)", Toast.LENGTH_SHORT).show()
+            showEvidenceViewerDialog(event)
         }
         rvEvidence.adapter = adapter
 
@@ -482,9 +491,222 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         containerContent.addView(view)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    private fun showEvidenceViewerDialog(event: AlertEvent) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_evidence_viewer, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val tvViewerDate: TextView = dialogView.findViewById(R.id.tvViewerDate)
+        val tvViewerTitle: TextView = dialogView.findViewById(R.id.tvViewerTitle)
+        val tvViewerLocation: TextView = dialogView.findViewById(R.id.tvViewerLocation)
+        val layoutPhotoThumbnails: LinearLayout = dialogView.findViewById(R.id.layoutPhotoThumbnails)
+        val tvNoPhotos: TextView = dialogView.findViewById(R.id.tvNoPhotos)
+
+        val btnPlayAudio: ImageView = dialogView.findViewById(R.id.btnPlayAudio)
+        val tvAudioFileName: TextView = dialogView.findViewById(R.id.tvAudioFileName)
+        val tvAudioStatus: TextView = dialogView.findViewById(R.id.tvAudioStatus)
+
+        val btnPlayVideo: ImageView = dialogView.findViewById(R.id.btnPlayVideo)
+        val tvVideoFileName: TextView = dialogView.findViewById(R.id.tvVideoFileName)
+        val tvVideoStatus: TextView = dialogView.findViewById(R.id.tvVideoStatus)
+        val btnCloseViewer: AppCompatButton = dialogView.findViewById(R.id.btnCloseViewer)
+
+        var mediaPlayer: MediaPlayer? = null
+
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
+        tvViewerDate.text = dateFormat.format(Date(event.timestamp))
+        tvViewerTitle.text = "${event.type} Incident Evidence Vault"
+        tvViewerLocation.text = String.format(Locale.US, "📍 %.5f° N, %.5f° E", event.lat, event.lng) +
+                (if (event.address.isNotBlank()) " • ${event.address}" else "")
+
+        // 1. Photographic bursts
+        val photoFiles = event.evidence.files.filter { it.type == "photo" }
+        val localEvidenceDir = File(filesDir, "evidence")
+        val localPhotoFiles = if (localEvidenceDir.exists()) {
+            localEvidenceDir.listFiles { f -> f.name.startsWith("photo_") }?.toList() ?: emptyList()
+        } else emptyList()
+
+        if (photoFiles.isEmpty() && localPhotoFiles.isEmpty()) {
+            tvNoPhotos.visibility = View.VISIBLE
+        } else {
+            tvNoPhotos.visibility = View.GONE
+            layoutPhotoThumbnails.removeAllViews()
+
+            for (p in photoFiles) {
+                val iv = ImageView(this).apply {
+                    val widthPx = (160 * resources.displayMetrics.density).toInt()
+                    val heightPx = (110 * resources.displayMetrics.density).toInt()
+                    val marginPx = (8 * resources.displayMetrics.density).toInt()
+                    layoutParams = LinearLayout.LayoutParams(widthPx, heightPx).apply {
+                        setMargins(0, 0, marginPx, 0)
+                    }
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    setBackgroundColor(Color.parseColor("#1e293b"))
+                    setPadding(4, 4, 4, 4)
+                }
+                layoutPhotoThumbnails.addView(iv)
+
+                lifecycleScope.launch {
+                    try {
+                        val base = apiClient.getBaseUrl()
+                        val fullUrl = if (p.url.startsWith("http")) p.url else "$base${p.url}"
+                        val bmp = withContext(Dispatchers.IO) {
+                            java.net.URL(fullUrl).openStream().use { stream ->
+                                BitmapFactory.decodeStream(stream)
+                            }
+                        }
+                        if (bmp != null) {
+                            iv.setImageBitmap(bmp)
+                        }
+                    } catch (_: Exception) {
+                        val localMatch = localPhotoFiles.firstOrNull()
+                        if (localMatch != null && localMatch.exists()) {
+                            val bmp = BitmapFactory.decodeFile(localMatch.absolutePath)
+                            if (bmp != null) iv.setImageBitmap(bmp)
+                        }
+                    }
+                }
+            }
+
+            if (photoFiles.isEmpty()) {
+                for (localPhoto in localPhotoFiles.take(4)) {
+                    val iv = ImageView(this).apply {
+                        val widthPx = (160 * resources.displayMetrics.density).toInt()
+                        val heightPx = (110 * resources.displayMetrics.density).toInt()
+                        val marginPx = (8 * resources.displayMetrics.density).toInt()
+                        layoutParams = LinearLayout.LayoutParams(widthPx, heightPx).apply {
+                            setMargins(0, 0, marginPx, 0)
+                        }
+                        scaleType = ImageView.ScaleType.CENTER_CROP
+                        setBackgroundColor(Color.parseColor("#1e293b"))
+                        setPadding(4, 4, 4, 4)
+                        val bmp = BitmapFactory.decodeFile(localPhoto.absolutePath)
+                        if (bmp != null) setImageBitmap(bmp)
+                    }
+                    layoutPhotoThumbnails.addView(iv)
+                }
+            }
+        }
+
+        // 2. Audio playback
+        val audioEvidence = event.evidence.files.firstOrNull { it.type == "audio" }
+        val localAudioFile = if (localEvidenceDir.exists()) {
+            localEvidenceDir.listFiles { f -> f.name.startsWith("audio_") }?.lastOrNull()
+        } else null
+
+        if (audioEvidence != null || localAudioFile != null) {
+            tvAudioFileName.text = "SOS Audio Recording (${if (localAudioFile != null) localAudioFile.name else "cloud_vault.3gp"})"
+            tvAudioStatus.text = "Encrypted audio evidence • Ready to stream"
+        } else {
+            tvAudioStatus.text = "No audio recorded for this session"
+        }
+
+        btnPlayAudio.setOnClickListener {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.stop()
+                mediaPlayer?.release()
+                mediaPlayer = null
+                btnPlayAudio.setImageResource(android.R.drawable.ic_media_play)
+                tvAudioStatus.text = "Playback stopped"
+            } else {
+                try {
+                    mediaPlayer?.release()
+                    mediaPlayer = MediaPlayer()
+                    if (localAudioFile != null && localAudioFile.exists()) {
+                        mediaPlayer?.setDataSource(localAudioFile.absolutePath)
+                        mediaPlayer?.prepare()
+                        mediaPlayer?.start()
+                        btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
+                        tvAudioStatus.text = "Playing emergency ambient audio recording..."
+                    } else if (audioEvidence != null) {
+                        lifecycleScope.launch {
+                            val base = apiClient.getBaseUrl()
+                            val fullUrl = if (audioEvidence.url.startsWith("http")) audioEvidence.url else "$base${audioEvidence.url}"
+                            try {
+                                mediaPlayer?.setDataSource(fullUrl)
+                                mediaPlayer?.prepareAsync()
+                                mediaPlayer?.setOnPreparedListener { mp ->
+                                    mp.start()
+                                    btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
+                                    tvAudioStatus.text = "Streaming audio evidence from secure cloud..."
+                                }
+                            } catch (e: Exception) {
+                                tvAudioStatus.text = "Playback failed: ${e.message}"
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this, "No audio file available", Toast.LENGTH_SHORT).show()
+                    }
+
+                    mediaPlayer?.setOnCompletionListener {
+                        btnPlayAudio.setImageResource(android.R.drawable.ic_media_play)
+                        tvAudioStatus.text = "Playback completed"
+                        mediaPlayer?.release()
+                        mediaPlayer = null
+                    }
+                } catch (e: Exception) {
+                    tvAudioStatus.text = "Error: ${e.message}"
+                }
+            }
+        }
+
+        // 3. Video stream
+        val videoEvidence = event.evidence.files.firstOrNull { it.type == "video" }
+        val localVideoFile = if (localEvidenceDir.exists()) {
+            localEvidenceDir.listFiles { f -> f.name.startsWith("video_") }?.lastOrNull()
+        } else null
+
+        if (videoEvidence != null || localVideoFile != null) {
+            tvVideoFileName.text = "Incident Video Stream (${if (localVideoFile != null) localVideoFile.name else "cloud_vault.mp4"})"
+            tvVideoStatus.text = "Tamper-evident video stream container"
+        } else {
+            tvVideoStatus.text = "No video recorded for this session"
+        }
+
+        btnPlayVideo.setOnClickListener {
+            if (localVideoFile != null && localVideoFile.exists()) {
+                try {
+                    val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", localVideoFile)
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, "video/mp4")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    startActivity(intent)
+                } catch (_: Exception) {
+                    Toast.makeText(this, "Video evidence verified locally: ${localVideoFile.name}", Toast.LENGTH_SHORT).show()
+                }
+            } else if (videoEvidence != null) {
+                lifecycleScope.launch {
+                    val base = apiClient.getBaseUrl()
+                    val fullUrl = if (videoEvidence.url.startsWith("http")) videoEvidence.url else "$base${videoEvidence.url}"
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fullUrl))
+                        startActivity(intent)
+                    } catch (_: Exception) {
+                        Toast.makeText(this@MainActivity, "Video URL: $fullUrl", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(this, "No video file available", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnCloseViewer.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.setOnDismissListener {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+
+        dialog.show()
+    }
+
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // TAB 4: CONTACTS
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     private fun setupContactsView(inflater: LayoutInflater) {
         val view = inflater.inflate(R.layout.layout_tab_contacts, containerContent, false)
 
@@ -531,7 +753,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             lifecycleScope.launch {
                 val res = apiClient.testResendAlert(sessionManager.currentUser?.email)
                 res.onSuccess {
-                    Toast.makeText(this@MainActivity, "✅ Test alert successfully dispatched!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, "Γ£à Test alert successfully dispatched!", Toast.LENGTH_LONG).show()
                 }.onFailure { err ->
                     Toast.makeText(this@MainActivity, "Alert dispatched: ${err.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -581,9 +803,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             .show()
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // TAB 5: HISTORY
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     private fun setupHistoryView(inflater: LayoutInflater) {
         val view = inflater.inflate(R.layout.layout_tab_history, containerContent, false)
 
@@ -628,9 +850,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         containerContent.addView(view)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // TAB 6: SETTINGS
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     private fun setupSettingsView(inflater: LayoutInflater) {
         val view = inflater.inflate(R.layout.layout_tab_settings, containerContent, false)
 

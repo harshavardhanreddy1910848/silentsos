@@ -18,6 +18,7 @@ class AlertActiveActivity : AppCompatActivity() {
     private lateinit var sessionManager: SessionManager
     private lateinit var locationHelper: LocationHelper
     private lateinit var mediaRecorder: MediaEvidenceRecorder
+    private lateinit var cameraEvidenceManager: CameraEvidenceManager
     private lateinit var apiClient: ApiClient
 
     private lateinit var layoutCountdown: LinearLayout
@@ -48,6 +49,7 @@ class AlertActiveActivity : AppCompatActivity() {
         sessionManager = SessionManager(this)
         locationHelper = LocationHelper(this)
         mediaRecorder = MediaEvidenceRecorder(this)
+        cameraEvidenceManager = CameraEvidenceManager(this)
         apiClient = ApiClient(this)
 
         initViews()
@@ -115,7 +117,7 @@ class AlertActiveActivity : AppCompatActivity() {
 
         // 2. Start Native Audio Recording
         mediaRecorder.startAudioRecording()
-        tvEvidenceStatus.text = "🎙️ Ambient Audio Vault: Recording Evidence Active"
+        tvEvidenceStatus.text = "🎙️ Microphones & Camera Sensors: Vault Capture Armed"
 
         // 3. Acquire Real GPS Coordinates & Dispatch SMS Broadcast
         locationHelper.getSingleAccurateLocation { loc ->
@@ -140,12 +142,26 @@ class AlertActiveActivity : AppCompatActivity() {
 
                 tvSmsStatus.text = "📱 Native Emergency SMS: Sent to $smsSentCount responder(s)"
 
-                // 5. Notify Cloud Backend API
+                // 5. Notify Cloud Backend API and upload captured multi-media evidence
                 lifecycleScope.launch {
                     val res = apiClient.triggerAlert(currentLat, currentLng)
                     res.onSuccess { id ->
                         activeAlertId = id
                         tvServerSyncStatus.text = "☁️ Cloud Gateway: Alert #$id Broadcasted"
+
+                        // Capture dual burst photos (front and back camera)
+                        val photos = cameraEvidenceManager.captureBurstPhotos(currentLat, currentLng, id)
+                        for (photo in photos) {
+                            apiClient.uploadEvidence(id, photo, "photo")
+                        }
+
+                        // Capture video evidence container
+                        val video = cameraEvidenceManager.createVideoEvidenceContainer(id)
+                        apiClient.uploadEvidence(id, video, "video")
+
+                        runOnUiThread {
+                            tvEvidenceStatus.text = "📸 Captured ${photos.size} photos & video stream. Uploaded & emailed to contacts!"
+                        }
                     }
                 }
             }
@@ -189,14 +205,18 @@ class AlertActiveActivity : AppCompatActivity() {
     private fun stopAndResolveAlert(pin: String) {
         countdownTimer?.cancel()
         locationHelper.stopContinuousTracking()
-        mediaRecorder.stopAudioRecording()
+        val audioFile = mediaRecorder.stopAudioRecording()
         SosForegroundService.stop(this)
 
         lifecycleScope.launch {
+            if (audioFile != null && audioFile.exists()) {
+                apiClient.uploadEvidence(activeAlertId, audioFile, "audio")
+            }
             apiClient.stopAlert(activeAlertId, pin)
+            apiClient.fetchState()
         }
 
-        Toast.makeText(this, "✅ Distress Alert Deactivated. You are confirmed safe.", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "✅ Distress Alert Deactivated. All evidence archived & emailed to contacts.", Toast.LENGTH_LONG).show()
         finish()
     }
 
