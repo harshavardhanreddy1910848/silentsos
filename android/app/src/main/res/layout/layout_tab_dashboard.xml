@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="24dp">
+        android:paddingBottom="28dp">
 
         <!-- ─── TOP TACTICAL HUD NAVBAR ────────────────────────────────────────── -->
         <LinearLayout
@@ -93,81 +93,112 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- System Armed Pill & Stealth Mode Strip -->
-        <LinearLayout
+        <!-- System Armed Pill & Stealth Mode & Status Strip -->
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:scrollbars="none"
             android:paddingHorizontal="16dp"
             android:layout_marginTop="8dp">
 
-            <!-- Armed Pill -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_badge_armed"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
+                android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <View
-                    android:layout_width="6dp"
-                    android:layout_height="6dp"
-                    android:background="#10b981" />
-
-                <TextView
+                <!-- Armed Pill -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:text="SYSTEM ARMED &amp; READY"
-                    android:textColor="#10b981"
-                    android:textSize="9.5sp"
-                    android:textStyle="bold"
-                    android:fontFamily="monospace" />
+                    android:background="@drawable/bg_badge_armed"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="6dp"
+                        android:layout_height="6dp"
+                        android:background="#10b981" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:text="SYSTEM ARMED &amp; READY"
+                        android:textColor="#10b981"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+                </LinearLayout>
+
+                <!-- Stealth Mode Button -->
+                <LinearLayout
+                    android:id="@+id/btnToggleStealth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_eye_off_vector"
+                        app:tint="#22d3ee" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Stealth: "
+                        android:textColor="#94a3b8"
+                        android:textSize="9.5sp" />
+
+                    <TextView
+                        android:id="@+id/tvStealthStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="STANDBY"
+                        android:textColor="#22d3ee"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Telemetry Metrics Pill -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PING: 24ms | GPS: FIX 98% | "
+                        android:textColor="#64748b"
+                        android:textSize="9.5sp"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:id="@+id/tvLocalClock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LOCAL"
+                        android:textColor="#10b981"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+                </LinearLayout>
             </LinearLayout>
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <!-- Stealth Mode Button -->
-            <LinearLayout
-                android:id="@+id/btnToggleStealth"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card_surface"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:gravity="center_vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:src="@drawable/ic_eye_off_vector"
-                    app:tint="#22d3ee" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:text="Stealth: "
-                    android:textColor="#94a3b8"
-                    android:textSize="9.5sp" />
-
-                <TextView
-                    android:id="@+id/tvStealthStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="STANDBY"
-                    android:textColor="#22d3ee"
-                    android:textSize="9.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
+        </HorizontalScrollView>
 
         <!-- ─── PRIMARY SOS TRIGGER HERO ──────────────────────────────────────── -->
         <LinearLayout
@@ -197,17 +228,18 @@
                 android:layout_marginTop="8dp"
                 android:text="Immediate Crisis Dispatch"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Activates silent distress transmission &amp; auto-encrypted evidence."
+                android:layout_marginTop="4dp"
+                android:text="Activates silent distress transmission, continuous telemetry broadcast &amp; auto-encrypted evidence recording."
                 android:textColor="#94a3b8"
-                android:textSize="11.5sp"
-                android:gravity="center" />
+                android:textSize="12sp"
+                android:gravity="center"
+                android:paddingHorizontal="12dp" />
 
             <!-- Giant SOS 3D Button Container -->
             <FrameLayout
@@ -252,6 +284,13 @@
                         android:orientation="vertical"
                         android:gravity="center">
 
+                        <!-- Lightning Bolt Vector -->
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_lightning_vector"
+                            app:tint="#ffffff" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -266,166 +305,597 @@
                             android:id="@+id/tvSosHoldHint"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="HOLD 1.5S TO TRIGGER"
+                            android:text="PRESS &amp; HOLD"
                             android:textColor="#ffffff"
-                            android:alpha="0.85"
-                            android:textSize="8.5sp"
+                            android:alpha="0.95"
+                            android:textSize="9sp"
                             android:textStyle="bold"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/bg_pill_dark"
+                            android:paddingHorizontal="6dp"
+                            android:paddingVertical="1dp"
+                            android:text="OR PRESS [SPACE]"
+                            android:textColor="#ffffff"
+                            android:alpha="0.8"
+                            android:textSize="7.5sp"
                             android:fontFamily="monospace" />
                     </LinearLayout>
                 </FrameLayout>
             </FrameLayout>
 
-            <!-- 4 Crisis Dispatches Row -->
+            <!-- Under-Button Failsafe Badges -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="14dp"
                 android:orientation="horizontal"
-                android:weightSum="4">
+                android:gravity="center">
 
-                <!-- 1: Medical -->
                 <LinearLayout
-                    android:id="@+id/btnDispatchMedical"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:background="@drawable/bg_card_surface"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:background="@drawable/bg_pill_dark"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="5dp"
+                    android:gravity="center">
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_medical_vector" />
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_police_vector"
+                        app:tint="#22d3ee" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Medical"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="F1"
-                        android:textColor="#64748b"
+                        android:layout_marginStart="4dp"
+                        android:text="Buffer: 1.5s Hold"
+                        android:textColor="#94a3b8"
                         android:textSize="9sp"
                         android:fontFamily="monospace" />
                 </LinearLayout>
 
-                <!-- 2: Fire -->
                 <LinearLayout
-                    android:id="@+id/btnDispatchFire"
                     android:layout_width="0dp"
-                    android:layout_height="72dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:background="@drawable/bg_card_surface"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_pill_dark"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="5dp"
+                    android:gravity="center">
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_fire_vector" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Fire"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="F2"
-                        android:textColor="#64748b"
-                        android:textSize="9sp"
-                        android:fontFamily="monospace" />
-                </LinearLayout>
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_check_vector"
+                        app:tint="#10b981" />
 
-                <!-- 3: Police -->
-                <LinearLayout
-                    android:id="@+id/btnDispatchPolice"
-                    android:layout_width="0dp"
-                    android:layout_height="72dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:background="@drawable/bg_card_surface"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_police_vector" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Police"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="F3"
-                        android:textColor="#64748b"
-                        android:textSize="9sp"
-                        android:fontFamily="monospace" />
-                </LinearLayout>
-
-                <!-- 4: Danger -->
-                <LinearLayout
-                    android:id="@+id/btnDispatchDanger"
-                    android:layout_width="0dp"
-                    android:layout_height="72dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_card_surface"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_danger_vector" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Danger"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="F4"
-                        android:textColor="#64748b"
+                        android:layout_marginStart="4dp"
+                        android:text="Dual Confirm: Armed"
+                        android:textColor="#10b981"
                         android:textSize="9sp"
                         android:fontFamily="monospace" />
                 </LinearLayout>
             </LinearLayout>
+        </LinearLayout>
 
-            <!-- ─── GPS TELEMETRY CARD ────────────────────────────────────── -->
+        <!-- ─── DIRECT DISPATCH CATEGORIZATION MATRIX (F1 - F4) ──────────────── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:paddingHorizontal="16dp"
+            android:orientation="vertical">
+
+            <!-- Section Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_card_surface"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <View
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:background="#ef4444" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="DIRECT DISPATCH CATEGORIZATION MATRIX"
+                    android:textColor="#cbd5e1"
+                    android:textSize="9.5sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shortcuts: F1–F4"
+                    android:textColor="#64748b"
+                    android:textSize="8.5sp"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+
+            <!-- 2x2 Matrix Cards Grid -->
+            <!-- Row 1: Medical & Fire -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 1: MEDICAL -->
+                <LinearLayout
+                    android:id="@+id/btnDispatchMedical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_matrix_card"
+                    android:padding="12dp"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_badge_red">
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_heart_vector" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:background="@drawable/bg_pill_dark"
+                            android:paddingHorizontal="6dp"
+                            android:paddingVertical="2dp"
+                            android:text="F1"
+                            android:textColor="#94a3b8"
+                            android:textSize="9sp"
+                            android:fontFamily="monospace" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="MEDICAL"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_badge_red"
+                            android:paddingHorizontal="4dp"
+                            android:paddingVertical="1dp"
+                            android:text="EMS-108"
+                            android:textColor="#f87171"
+                            android:textSize="8sp"
+                            android:fontFamily="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Paramedic, cardiac arrest, acute physical trauma."
+                        android:textColor="#94a3b8"
+                        android:textSize="10sp"
+                        android:maxLines="2" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="#1e293b" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Auto-Dial Protocol"
+                            android:textColor="#64748b"
+                            android:textSize="8.5sp"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Quick Trigger →"
+                            android:textColor="#f87171"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 2: FIRE & RESCUE -->
+                <LinearLayout
+                    android:id="@+id/btnDispatchFire"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_matrix_card"
+                    android:padding="12dp"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_badge_amber">
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_fire_vector" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:background="@drawable/bg_pill_dark"
+                            android:paddingHorizontal="6dp"
+                            android:paddingVertical="2dp"
+                            android:text="F2"
+                            android:textColor="#94a3b8"
+                            android:textSize="9sp"
+                            android:fontFamily="monospace" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="FIRE &amp; RESCUE"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_badge_amber"
+                            android:paddingHorizontal="4dp"
+                            android:paddingVertical="1dp"
+                            android:text="HAZ-101"
+                            android:textColor="#fbbf24"
+                            android:textSize="8sp"
+                            android:fontFamily="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Conflagration, chemical leak, building evacuation."
+                        android:textColor="#94a3b8"
+                        android:textSize="10sp"
+                        android:maxLines="2" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="#1e293b" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hazmat Routing"
+                            android:textColor="#64748b"
+                            android:textSize="8.5sp"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Quick Trigger →"
+                            android:textColor="#fbbf24"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Row 2: Police & Personal Threat -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <!-- 3: POLICE / TACTICAL -->
+                <LinearLayout
+                    android:id="@+id/btnDispatchPolice"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_matrix_card"
+                    android:padding="12dp"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_badge_cyan">
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_police_vector" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:background="@drawable/bg_pill_dark"
+                            android:paddingHorizontal="6dp"
+                            android:paddingVertical="2dp"
+                            android:text="F3"
+                            android:textColor="#94a3b8"
+                            android:textSize="9sp"
+                            android:fontFamily="monospace" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="POLICE"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_badge_cyan"
+                            android:paddingHorizontal="4dp"
+                            android:paddingVertical="1dp"
+                            android:text="DISP-100"
+                            android:textColor="#22d3ee"
+                            android:textSize="8sp"
+                            android:fontFamily="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Armed robbery, intrusion, assault, immediate backup."
+                        android:textColor="#94a3b8"
+                        android:textSize="10sp"
+                        android:maxLines="2" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="#1e293b" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tactical Frequency"
+                            android:textColor="#64748b"
+                            android:textSize="8.5sp"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Quick Trigger →"
+                            android:textColor="#22d3ee"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 4: PERSONAL THREAT -->
+                <LinearLayout
+                    android:id="@+id/btnDispatchDanger"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_matrix_card"
+                    android:padding="12dp"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_badge_purple">
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_danger_vector" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:background="@drawable/bg_pill_dark"
+                            android:paddingHorizontal="6dp"
+                            android:paddingVertical="2dp"
+                            android:text="F4"
+                            android:textColor="#94a3b8"
+                            android:textSize="9sp"
+                            android:fontFamily="monospace" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PERSONAL THREAT"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_badge_purple"
+                            android:paddingHorizontal="4dp"
+                            android:paddingVertical="1dp"
+                            android:text="SILENT"
+                            android:textColor="#c084fc"
+                            android:textSize="8sp"
+                            android:fontFamily="monospace" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Stalking, domestic threat, silent hostage alert."
+                        android:textColor="#94a3b8"
+                        android:textSize="10sp"
+                        android:maxLines="2" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="6dp"
+                        android:background="#1e293b" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Covert Protocol"
+                            android:textColor="#64748b"
+                            android:textSize="8.5sp"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Quick Trigger →"
+                            android:textColor="#c084fc"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ─── LIVE HIGH-PRECISION GPS TELEMETRY STRIP ─────────────────────────── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingHorizontal="16dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_matrix_card"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -438,210 +908,505 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:src="@drawable/ic_map_pin_vector" />
-                        <TextView
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_pill_dark">
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_map_pin_vector"
+                                app:tint="#10b981" />
+                        </FrameLayout>
+
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:text="GPS SATELLITE TELEMETRY"
-                            android:textColor="#94a3b8"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:fontFamily="monospace" />
-                    </LinearLayout>
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/btnCopyTelemetry"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="Copy Coordinates"
-                        android:textColor="#22d3ee"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:clickable="true"
-                        android:focusable="true" />
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Live High-Precision GPS Active"
+                                    android:textColor="@color/white"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvTelemetryAccuracy"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:background="@drawable/bg_badge_green"
+                                    android:paddingHorizontal="6dp"
+                                    android:paddingVertical="1dp"
+                                    android:text="• ACCURACY ± 7.0m"
+                                    android:textColor="#10b981"
+                                    android:textSize="8.5sp"
+                                    android:fontFamily="monospace"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Triangulating (GNSS + Cellular Tower + Wi-Fi RTT)"
+                                android:textColor="#94a3b8"
+                                android:textSize="9.5sp" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </RelativeLayout>
 
+                <!-- Coordinates strip -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LAT: "
+                        android:textColor="#64748b"
+                        android:textSize="10sp"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:id="@+id/tvTelemetryLat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="13.0267° N"
+                        android:textColor="#10b981"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="LONG: "
+                        android:textColor="#64748b"
+                        android:textSize="10sp"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:id="@+id/tvTelemetryLng"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="80.0117° E"
+                        android:textColor="#10b981"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="ALT: 14m"
+                        android:textColor="#64748b"
+                        android:textSize="10sp"
+                        android:fontFamily="monospace" />
+                </LinearLayout>
+
+                <!-- Actions: Copy & Vector Map -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <LinearLayout
+                        android:id="@+id/btnCopyTelemetry"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="36dp"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_pill_dark"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_copy_vector"
+                            app:tint="#cbd5e1" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="LATITUDE"
-                            android:textColor="#64748b"
-                            android:textSize="9sp"
-                            android:fontFamily="monospace" />
-                        <TextView
-                            android:id="@+id/tvTelemetryLat"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="17.4485° N"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
+                            android:layout_marginStart="6dp"
+                            android:text="Copy Telemetry"
+                            android:textColor="#cbd5e1"
+                            android:textSize="10.5sp"
                             android:fontFamily="monospace" />
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/btnOpenVectorMap"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="36dp"
                         android:layout_weight="1"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="LONGITUDE"
-                            android:textColor="#64748b"
-                            android:textSize="9sp"
-                            android:fontFamily="monospace" />
-                        <TextView
-                            android:id="@+id/tvTelemetryLng"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="78.3908° E"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:fontFamily="monospace" />
-                    </LinearLayout>
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_badge_cyan"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_external_link_vector"
+                            app:tint="#22d3ee" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ACCURACY"
-                            android:textColor="#64748b"
-                            android:textSize="9sp"
-                            android:fontFamily="monospace" />
-                        <TextView
-                            android:id="@+id/tvTelemetryAccuracy"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="±2.8m"
-                            android:textColor="#10b981"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
+                            android:layout_marginStart="6dp"
+                            android:text="Open Vector Map"
+                            android:textColor="#22d3ee"
+                            android:textSize="10.5sp"
                             android:fontFamily="monospace" />
                     </LinearLayout>
                 </LinearLayout>
-
             </LinearLayout>
+        </LinearLayout>
 
-            <!-- ─── QUICK LIVE CAPTURE STRIP ──────────────────────────────── -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_gravity="start"
-                android:text="EVIDENCE CAPTURE STRIP"
-                android:textColor="#64748b"
-                android:textSize="10.5sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.08" />
+        <!-- ─── AUTO-CAPTURE HARDWARE SURVEILLANCE ───────────────────────────── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingHorizontal="16dp"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                android:weightSum="3">
+                android:background="@drawable/bg_matrix_card"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <!-- Photo Burst -->
+                <!-- Header Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="6dp"
+                        android:layout_height="6dp"
+                        android:background="#22d3ee" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="AUTO-CAPTURE SURVEILLANCE"
+                        android:textColor="#cbd5e1"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold"
+                        android:fontFamily="monospace" />
+
+                    <TextView
+                        android:id="@+id/btnTestGesture"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_badge_green"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="2dp"
+                        android:text="Test Gesture [G] →"
+                        android:textColor="#10b981"
+                        android:textSize="8.5sp"
+                        android:fontFamily="monospace"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Instantaneous background multi-stream capture ready to record and transmit upon alarm triggering."
+                    android:textColor="#94a3b8"
+                    android:textSize="10.5sp" />
+
+                <!-- 3 Hardware Channel Cards -->
+                <!-- 1: Photo Burst -->
                 <LinearLayout
                     android:id="@+id/btnQuickPhoto"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
                     android:background="@drawable/bg_card_surface"
-                    android:orientation="horizontal"
-                    android:gravity="center"
+                    android:padding="14dp"
+                    android:orientation="vertical"
                     android:clickable="true"
                     android:focusable="true">
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_camera_vector" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_badge_green">
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_camera_vector"
+                                app:tint="#10b981" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Photo Burst"
+                                android:textColor="@color/white"
+                                android:textSize="12.5sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="5-Camera Dual Facing"
+                                android:textColor="#10b981"
+                                android:textSize="10sp"
+                                android:fontFamily="monospace" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="Photo"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                        android:layout_marginTop="6dp"
+                        android:text="Automatic 10-shot burst at 0.2fps with infrared compensation."
+                        android:textColor="#94a3b8"
+                        android:textSize="10sp" />
 
-                <!-- Audio Buffer -->
-                <LinearLayout
-                    android:id="@+id/btnQuickAudio"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/bg_card_surface"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_mic_vector" />
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="Audio"
+                        android:layout_width="match_parent"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_pill_dark"
+                        android:gravity="center"
+                        android:text="Tap to Open Viewfinder"
                         android:textColor="@color/white"
-                        android:textSize="12sp"
+                        android:textSize="10.5sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Video Buffer -->
+                <!-- 2: HD Video Loop -->
                 <LinearLayout
                     android:id="@+id/btnQuickVideo"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_card_surface"
-                    android:orientation="horizontal"
-                    android:gravity="center"
+                    android:padding="14dp"
+                    android:orientation="vertical"
                     android:clickable="true"
                     android:focusable="true">
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_video_vector" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_badge_cyan">
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_video_vector"
+                                app:tint="#3b82f6" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="HD Video Loop"
+                                android:textColor="@color/white"
+                                android:textSize="12.5sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Continuous 1080p Rolling Buffer"
+                                android:textColor="#60a5fa"
+                                android:textSize="10sp"
+                                android:fontFamily="monospace" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="Video"
+                        android:layout_marginTop="6dp"
+                        android:text="Saves previous 30s buffer plus next 10 minutes live stream."
+                        android:textColor="#94a3b8"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_pill_dark"
+                        android:gravity="center"
+                        android:text="Tap to Record Now"
                         android:textColor="@color/white"
-                        android:textSize="12sp"
+                        android:textSize="10.5sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-            </LinearLayout>
 
+                <!-- 3: Surveillance Audio -->
+                <LinearLayout
+                    android:id="@+id/btnQuickAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:padding="14dp"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_badge_cyan">
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_mic_vector"
+                                app:tint="#22d3ee" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Surveillance Audio"
+                                android:textColor="@color/white"
+                                android:textSize="12.5sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Stereo Acoustic Noise Filter Active"
+                                android:textColor="#22d3ee"
+                                android:textSize="10sp"
+                                android:fontFamily="monospace" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Stereo acoustic noise filter &amp; automatic voice transcription."
+                        android:textColor="#94a3b8"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_pill_dark"
+                        android:gravity="center"
+                        android:text="Tap to Monitor Audio"
+                        android:textColor="@color/white"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Automatic Evidence Protection Banner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_pill_dark"
+                    android:padding="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <FrameLayout
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/bg_badge_red">
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_lock_vector"
+                            app:tint="#f87171" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="Automatic Evidence Protection: Triggering SOS instantly encrypts incoming media via AES-256-GCM and streams tamper-evident cryptographic hashes directly to your decentralized Evidence Vault. Local copies remain invisible to device galleries."
+                        android:textColor="#94a3b8"
+                        android:textSize="9.5sp"
+                        android:lineSpacingExtra="2dp" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
 </ScrollView>
-

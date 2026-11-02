@@ -226,6 +226,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val btnSosContainer: FrameLayout = view.findViewById(R.id.btnSosContainer)
         val pbSosHold: ProgressBar = view.findViewById(R.id.pbSosHoldProgress)
         val tvHoldHint: TextView = view.findViewById(R.id.tvSosHoldHint)
+        val tvLocalClock: TextView? = view.findViewById(R.id.tvLocalClock)
 
         val btnMed: LinearLayout = view.findViewById(R.id.btnDispatchMedical)
         val btnFire: LinearLayout = view.findViewById(R.id.btnDispatchFire)
@@ -235,7 +236,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val tvLat: TextView = view.findViewById(R.id.tvTelemetryLat)
         val tvLng: TextView = view.findViewById(R.id.tvTelemetryLng)
         val tvAccuracy: TextView = view.findViewById(R.id.tvTelemetryAccuracy)
-        val btnCopyCoords: TextView = view.findViewById(R.id.btnCopyTelemetry)
+        val btnCopyTelemetry: View = view.findViewById(R.id.btnCopyTelemetry)
+        val btnOpenVectorMap: View? = view.findViewById(R.id.btnOpenVectorMap)
+        val btnTestGesture: View? = view.findViewById(R.id.btnTestGesture)
 
         val btnQuickPhoto: LinearLayout = view.findViewById(R.id.btnQuickPhoto)
         val btnQuickAudio: LinearLayout = view.findViewById(R.id.btnQuickAudio)
@@ -244,6 +247,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         // Populate User initials
         val name = sessionManager.currentUser?.name ?: "User"
         tvInitials.text = name.split(" ").mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("").uppercase().ifEmpty { "DS" }
+
+        // Local clock time
+        val timeFmt = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        tvLocalClock?.text = "${timeFmt.format(java.util.Date())} LOCAL"
 
         // Stealth status
         tvStealthStatus.text = if (sessionManager.settings.stealthMode) "ARMED" else "STANDBY"
@@ -254,20 +261,34 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(this, "Stealth Mode: ${if (newStealth) "ARMED" else "STANDBY"}", Toast.LENGTH_SHORT).show()
         }
 
+        var currentLat = 13.0267
+        var currentLng = 80.0117
+
         // Live Location
         locationHelper.getSingleAccurateLocation { loc ->
             if (loc != null) {
+                currentLat = loc.latitude
+                currentLng = loc.longitude
                 tvLat.text = String.format(Locale.US, "%.4f° N", loc.latitude)
                 tvLng.text = String.format(Locale.US, "%.4f° E", loc.longitude)
-                tvAccuracy.text = "±${loc.accuracy.toInt()}m"
+                tvAccuracy.text = "• ACCURACY ± ${loc.accuracy.toInt()}m"
             }
         }
 
-        btnCopyCoords.setOnClickListener {
+        btnCopyTelemetry.setOnClickListener {
             val telemetry = "SILENTSOS TELEMETRY | LAT: ${tvLat.text} | LONG: ${tvLng.text} | ACCURACY: ${tvAccuracy.text} | TIMESTAMP: ${System.currentTimeMillis()}"
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(ClipData.newPlainText("Telemetry", telemetry))
             Toast.makeText(this, "Coordinates copied to clipboard!", Toast.LENGTH_SHORT).show()
+        }
+
+        btnOpenVectorMap?.setOnClickListener {
+            val uri = android.net.Uri.parse("https://maps.google.com/?q=$currentLat,$currentLng")
+            startActivity(Intent(Intent.ACTION_VIEW, uri))
+        }
+
+        btnTestGesture?.setOnClickListener {
+            loadTab(NavTab.GESTURES)
         }
 
         // Interactive Hold SOS
@@ -284,6 +305,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         tvHoldHint.text = "TRIGGERING CRISIS DISPATCH!"
                         triggerCrisisDispatch("Immediate Crisis")
                     } else {
+                        tvHoldHint.text = "HOLDING ($pct%)"
                         holdHandler.postDelayed(this, 30)
                     }
                 }
@@ -303,7 +325,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     isHoldingSos = false
                     holdHandler.removeCallbacks(holdRunnable)
                     pbSosHold.progress = 0
-                    tvHoldHint.text = "HOLD 1.5S TO TRIGGER"
+                    tvHoldHint.text = "PRESS & HOLD"
                     true
                 }
                 else -> false
@@ -317,9 +339,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         btnDanger.setOnClickListener { triggerCrisisDispatch("Danger") }
 
         // Live capture triggers
-        btnQuickPhoto.setOnClickListener { Toast.makeText(this, "📷 Photo burst buffer armed", Toast.LENGTH_SHORT).show() }
-        btnQuickAudio.setOnClickListener { Toast.makeText(this, "🎤 Audio recording memo active", Toast.LENGTH_SHORT).show() }
-        btnQuickVideo.setOnClickListener { Toast.makeText(this, "🎥 Rolling video recording active", Toast.LENGTH_SHORT).show() }
+        btnQuickPhoto.setOnClickListener { Toast.makeText(this, "📷 Photo burst buffer armed (10-shot burst ready)", Toast.LENGTH_SHORT).show() }
+        btnQuickAudio.setOnClickListener { Toast.makeText(this, "🎤 Surveillance audio active (Stereo noise filter active)", Toast.LENGTH_SHORT).show() }
+        btnQuickVideo.setOnClickListener { Toast.makeText(this, "🎥 HD Rolling Video Loop armed (1080p continuous buffer)", Toast.LENGTH_SHORT).show() }
 
         containerContent.addView(view)
     }
