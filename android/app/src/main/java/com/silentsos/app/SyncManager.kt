@@ -168,3 +168,4 @@ class SyncManager private constructor(private val context: Context) {
         isConnecting = false
     }
 }
+
