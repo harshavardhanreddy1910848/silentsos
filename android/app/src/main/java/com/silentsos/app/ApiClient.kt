@@ -269,7 +269,7 @@ class ApiClient(private val context: Context) {
      * and updates the local storage.
      */
     suspend fun fetchState(): Result<Unit> = withContext(Dispatchers.IO) {
-        val token = sessionManager.authToken ?: return@withContext Result.failure(Exception("Not authenticated"))
+        if (sessionManager.authToken == null) return@withContext Result.failure(Exception("Not authenticated"))
         try {
             val base = getBaseUrl()
             val request = Request.Builder()

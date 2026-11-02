@@ -542,7 +542,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
     }
 
     private fun showAddContactDialog(onComplete: () -> Unit) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.layout_tab_contacts, null, false)
         val inputName = EditText(this).apply { hint = "Full Name"; setTextColor(Color.WHITE); setHintTextColor(Color.GRAY) }
         val inputPhone = EditText(this).apply { hint = "Phone (+91...)"; setTextColor(Color.WHITE); setHintTextColor(Color.GRAY) }
         val inputEmail = EditText(this).apply { hint = "Email Address"; setTextColor(Color.WHITE); setHintTextColor(Color.GRAY) }
