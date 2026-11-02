@@ -17,6 +17,14 @@ if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder('ipv4first');
 }
 
+// Graceful process handlers to prevent server crashes on remote database/network hiccups
+process.on('unhandledRejection', (reason, promise) => {
+  console.warn('⚠️ Handled asynchronous Promise rejection safely:', reason?.message || reason);
+});
+process.on('uncaughtException', (err) => {
+  console.warn('⚠️ Handled uncaught exception safely:', err?.message || err);
+});
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -1532,49 +1540,58 @@ app.post('/api/alerts/:id/evidence', upload.fields([
   { name: 'video', maxCount: 1 },
   { name: 'audio', maxCount: 1 }
 ]), async (req, res) => {
-  const alertId = req.params.id;
+  try {
+    const alertId = req.params.id;
 
-  // Always prefer the live activeAlert reference so in-memory mutations stick
-  const isActive = activeAlert && activeAlert.id === alertId;
-  let alert = isActive ? activeAlert : null;
+    // Always prefer the live activeAlert reference so in-memory mutations stick
+    const isActive = activeAlert && activeAlert.id === alertId;
+    let alert = isActive ? activeAlert : null;
 
-  if (!alert) {
-    const allHistory = await db.getAllHistory();
-    alert = allHistory.find(e => e.id === alertId) || null;
-  }
+    if (!alert) {
+      const allHistory = await db.getAllHistory();
+      alert = allHistory.find(e => e.id === alertId) || null;
+    }
 
-  if (!alert) {
-    return res.status(404).json({ error: 'Alert not found' });
-  }
+    if (!alert) {
+      return res.status(404).json({ error: 'Alert not found' });
+    }
 
-  if (!alert.evidence) alert.evidence = { photos: 0, videos: 0, audio: 0, files: [] };
-  if (!alert.evidence.files) alert.evidence.files = [];
+    if (!alert.evidence) alert.evidence = { photos: 0, videos: 0, audio: 0, files: [] };
+    if (!alert.evidence.files) alert.evidence.files = [];
 
-  const files = req.files;
-  const fileUrls = [];
+    const files = req.files;
+    const fileUrls = [];
 
-  if (files) {
-    Object.keys(files).forEach(fieldName => {
-      files[fieldName].forEach(file => {
-        const fileUrl = `/evidence/${file.filename}`;
-        const entry = { type: fieldName, url: fileUrl, timestamp: Date.now() };
-        fileUrls.push(entry);
-        if (fieldName === 'photo') alert.evidence.photos += 1;
-        if (fieldName === 'video') alert.evidence.videos += 1;
-        if (fieldName === 'audio') alert.evidence.audio  += 1;
-        console.log(`📁 Evidence saved: ${file.filename} (${fieldName}) for alert ${alertId}`);
+    if (files) {
+      Object.keys(files).forEach(fieldName => {
+        files[fieldName].forEach(file => {
+          const fileUrl = `/evidence/${file.filename}`;
+          const entry = { type: fieldName, url: fileUrl, timestamp: Date.now() };
+          fileUrls.push(entry);
+          if (fieldName === 'photo') alert.evidence.photos += 1;
+          if (fieldName === 'video') alert.evidence.videos += 1;
+          if (fieldName === 'audio') alert.evidence.audio  += 1;
+          console.log(`📁 Evidence saved: ${file.filename} (${fieldName}) for alert ${alertId}`);
+        });
       });
-    });
+    }
+
+    alert.evidence.files.push(...fileUrls);
+    try {
+      await db.updateHistoryEvent(alertId, { evidence: alert.evidence });
+    } catch (dbErr) {
+      console.warn(`⚠️ Warning: Non-fatal evidence DB sync error (in-memory cached): ${dbErr.message}`);
+    }
+    broadcastToReceivers(alertId, { type: 'evidence_update', evidence: alert.evidence });
+
+    // Schedule email dispatch with new evidence
+    scheduleEvidenceEmail(alert.userId, alertId);
+
+    res.json({ success: true, evidence: alert.evidence });
+  } catch (err) {
+    console.error('Error handling evidence upload:', err);
+    res.status(500).json({ error: 'Failed to record evidence: ' + err.message });
   }
-
-  alert.evidence.files.push(...fileUrls);
-  await db.updateHistoryEvent(alertId, { evidence: alert.evidence });
-  broadcastToReceivers(alertId, { type: 'evidence_update', evidence: alert.evidence });
-
-  // Schedule email dispatch with new evidence
-  scheduleEvidenceEmail(alert.userId, alertId);
-
-  res.json({ success: true, evidence: alert.evidence });
 });
 
 // Feedback submission accepts both authenticated users and guests

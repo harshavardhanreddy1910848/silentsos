@@ -16,14 +16,16 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize PostgreSQL Connection Pool
+// Initialize PostgreSQL Connection Pool with serverless resilience & TCP keepAlive
 const connectionConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.DATABASE_URL.includes('sslmode=') ? undefined : { rejectUnauthorized: false },
-      connectionTimeoutMillis: 10000,
-      idleTimeoutMillis: 30000,
-      max: 20
+      connectionTimeoutMillis: 30000,
+      idleTimeoutMillis: 15000,
+      max: 20,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000
     }
   : {
       host: process.env.PGHOST || 'localhost',
@@ -32,16 +34,44 @@ const connectionConfig = process.env.DATABASE_URL
       password: process.env.PGPASSWORD || 'postgres',
       database: process.env.PGDATABASE || 'silentsos',
       ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 10000,
-      idleTimeoutMillis: 30000,
-      max: 20
+      connectionTimeoutMillis: 30000,
+      idleTimeoutMillis: 15000,
+      max: 20,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000
     };
 
 export const pool = new pg.Pool(connectionConfig);
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle PostgreSQL client:', err);
+  console.warn('⚠️ Idle PostgreSQL client encountered transient disconnect (will auto-reconnect on next query):', err.message);
 });
+
+// Resilient query runner with automatic retry on serverless / network disconnects
+async function executeQuery(fn, retries = 2) {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err) {
+      attempt++;
+      const isConnectionError =
+        err.message?.includes('Connection terminated') ||
+        err.message?.includes('timeout') ||
+        err.message?.includes('ECONNRESET') ||
+        err.code === '57P01' ||
+        err.code === '08006' ||
+        err.code === '08001';
+
+      if (attempt <= retries && isConnectionError) {
+        console.warn(`⚠️ PostgreSQL connection timeout/drop: ${err.message}. Retrying query (${attempt}/${retries})...`);
+        await new Promise(r => setTimeout(r, 1000 * attempt));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
 
 // Helper to convert camelCase to snake_case for dynamic update properties
 function camelToSnake(str) {
@@ -54,23 +84,29 @@ function convertPlaceholders(sql) {
   return sql.replace(/\?/g, () => `$${index++}`);
 }
 
-// PG Wrapper queries mimicking standard SQLite methods
+// PG Wrapper queries mimicking standard SQLite methods with auto-retry
 async function run(sql, params = []) {
   const pgSql = convertPlaceholders(sql);
-  const result = await pool.query(pgSql, params);
-  return { changes: result.rowCount };
+  return executeQuery(async () => {
+    const result = await pool.query(pgSql, params);
+    return { changes: result.rowCount };
+  });
 }
 
 async function get(sql, params = []) {
   const pgSql = convertPlaceholders(sql);
-  const result = await pool.query(pgSql, params);
-  return result.rows[0] || null;
+  return executeQuery(async () => {
+    const result = await pool.query(pgSql, params);
+    return result.rows[0] || null;
+  });
 }
 
 async function all(sql, params = []) {
   const pgSql = convertPlaceholders(sql);
-  const result = await pool.query(pgSql, params);
-  return result.rows;
+  return executeQuery(async () => {
+    const result = await pool.query(pgSql, params);
+    return result.rows;
+  });
 }
 
 // AES-256-CBC encryption key (32 bytes)
