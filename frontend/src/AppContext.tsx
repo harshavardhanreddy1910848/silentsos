@@ -139,6 +139,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [token]);
 
+  // Real-time two-way synchronization via WebSocket (Web <-> Android)
+  useEffect(() => {
+    if (!token || !WS_BASE) return;
+
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: any = null;
+    let isDisposed = false;
+
+    const connectWs = () => {
+      try {
+        ws = new WebSocket(WS_BASE);
+
+        ws.onopen = () => {
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'auth', token }));
+          }
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (
+              data.type === 'alert_triggered' ||
+              data.type === 'alert_stopped' ||
+              data.type === 'alert_cancelled' ||
+              data.type === 'alert_deleted' ||
+              data.type === 'contacts_updated' ||
+              data.type === 'user_updated' ||
+              data.type === 'settings_updated' ||
+              data.type === 'evidence_updated'
+            ) {
+              fetchState(token);
+            }
+          } catch (err) {
+            console.error('WS message handling error:', err);
+          }
+        };
+
+        ws.onclose = () => {
+          if (!isDisposed) {
+            reconnectTimeout = setTimeout(connectWs, 3000);
+          }
+        };
+
+        ws.onerror = () => {
+          if (ws) ws.close();
+        };
+      } catch (e) {
+        if (!isDisposed) {
+          reconnectTimeout = setTimeout(connectWs, 5000);
+        }
+      }
+    };
+
+    connectWs();
+
+    return () => {
+      isDisposed = true;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (ws) ws.close();
+    };
+  }, [token]);
+
   const refreshHistory = async () => {
     if (!token) return;
     try {

@@ -30,10 +30,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.util.Locale
 import kotlin.math.sqrt
 
-class MainActivity : AppCompatActivity(), SensorEventListener {
+class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncEventListener {
 
     private lateinit var sessionManager: SessionManager
     private lateinit var locationHelper: LocationHelper
@@ -99,13 +100,22 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         initNavViews()
         setupSensors()
 
-        // Sync initial state from backend
+        // Start real-time two-way synchronization
+        SyncManager.getInstance(this).connect()
+        SyncManager.getInstance(this).addListener(this)
+
+        // Sync initial state from PostgreSQL backend
         lifecycleScope.launch {
             apiClient.fetchState()
             loadTab(currentTab)
         }
 
         loadTab(NavTab.SOS_HUB)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SyncManager.getInstance(this).removeListener(this)
     }
 
     override fun onResume() {
@@ -115,6 +125,28 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
             SensorManager.SENSOR_DELAY_UI
         )
+        // Auto-refresh state when returning to the application
+        lifecycleScope.launch {
+            apiClient.fetchState()
+            loadTab(currentTab)
+        }
+    }
+
+    override fun onSyncEvent(event: String, payload: JSONObject?) {
+        runOnUiThread {
+            loadTab(currentTab)
+            when (event) {
+                "alert_triggered" -> {
+                    Toast.makeText(this, "🚨 Active SOS distress synchronized across devices", Toast.LENGTH_LONG).show()
+                }
+                "contacts_updated" -> {
+                    Toast.makeText(this, "👥 Emergency contacts synced from cloud", Toast.LENGTH_SHORT).show()
+                }
+                "user_updated" -> {
+                    Toast.makeText(this, "👤 Profile data synced from cloud", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     override fun onPause() {
@@ -247,6 +279,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         // Populate User initials
         val name = sessionManager.currentUser?.name ?: "User"
         tvInitials.text = name.split(" ").mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("").uppercase().ifEmpty { "DS" }
+        tvInitials.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
 
         // Local clock time
         val timeFmt = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault())
@@ -422,8 +457,26 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         layoutEmpty.visibility = if (historyList.isEmpty()) View.VISIBLE else View.GONE
         rvEvidence.layoutManager = LinearLayoutManager(this)
-        rvEvidence.adapter = EvidenceAdapter(historyList) { event ->
+        val adapter = EvidenceAdapter(historyList) { event ->
             Toast.makeText(this, "Evidence from ${event.type} session (${event.evidence.files.size} items stored securely in cloud)", Toast.LENGTH_SHORT).show()
+        }
+        rvEvidence.adapter = adapter
+
+        // Sync fresh evidence counts and files from PostgreSQL backend
+        lifecycleScope.launch {
+            val res = apiClient.fetchAlertsHistory()
+            res.onSuccess { freshList ->
+                val p = freshList.sumOf { it.evidence.photos.coerceAtLeast(it.evidence.files.count { f -> f.type == "photo" }) }
+                val v = freshList.sumOf { it.evidence.videos.coerceAtLeast(it.evidence.files.count { f -> f.type == "video" }) }
+                val a = freshList.sumOf { it.evidence.audio.coerceAtLeast(it.evidence.files.count { f -> f.type == "audio" }) }
+                val g = freshList.sumOf { it.gpsPath.size }
+                tvPhotos.text = p.toString()
+                tvVideos.text = v.toString()
+                tvAudio.text = a.toString()
+                tvGps.text = g.toString()
+                layoutEmpty.visibility = if (freshList.isEmpty()) View.VISIBLE else View.GONE
+                adapter.updateData(freshList)
+            }
         }
 
         containerContent.addView(view)
@@ -457,6 +510,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         rvContacts.layoutManager = LinearLayoutManager(this)
         rvContacts.adapter = adapter
+
+        // Fetch latest authoritative contacts from PostgreSQL backend
+        lifecycleScope.launch {
+            val res = apiClient.getContacts()
+            res.onSuccess { freshList ->
+                contacts = freshList
+                adapter.updateData(freshList)
+            }
+        }
 
         btnAdd.setOnClickListener {
             showAddContactDialog {
@@ -542,6 +604,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
         rvHistory.adapter = adapter
         layoutEmpty.visibility = if (allEvents.isEmpty()) View.VISIBLE else View.GONE
+
+        // Fetch fresh alerts history from PostgreSQL backend
+        lifecycleScope.launch {
+            val res = apiClient.fetchAlertsHistory()
+            res.onSuccess { freshList ->
+                allEvents = freshList
+                adapter.updateData(freshList)
+                layoutEmpty.visibility = if (freshList.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
 
         fun applyFilter(status: String) {
             val filtered = if (status == "ALL") allEvents else allEvents.filter { it.status.equals(status, ignoreCase = true) }

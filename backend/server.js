@@ -1093,6 +1093,24 @@ wss.on('connection', (ws) => {
         }
       }
 
+      // User-level cross-platform synchronization (Web <-> Android)
+      if (data.type === 'auth' || data.type === 'register_user') {
+        let userId = data.userId;
+        if (data.token) {
+          try {
+            const decoded = JSON.parse(Buffer.from(data.token, 'base64').toString('utf8'));
+            if (decoded && decoded.userId) {
+              userId = decoded.userId;
+            }
+          } catch (e) {}
+        }
+        if (userId) {
+          wsClients.set(ws, { role: 'user_sync', userId });
+          console.log(`📡 Registered WS real-time sync client for User ID: ${userId}`);
+          ws.send(JSON.stringify({ type: 'authenticated', userId }));
+        }
+      }
+
       if (data.type === 'gps_update') {
         const clientInfo = wsClients.get(ws);
         if (clientInfo && clientInfo.role === 'sender') {
@@ -1136,6 +1154,20 @@ function broadcastToReceivers(alertId, messageObj) {
   for (const [ws, info] of wsClients.entries()) {
     if (info.role === 'receiver' && info.alertId === alertId && ws.readyState === WebSocket.OPEN) {
       ws.send(messageStr);
+    }
+  }
+}
+
+export function broadcastToUser(userId, messageObj) {
+  if (!userId) return;
+  const messageStr = JSON.stringify(messageObj);
+  for (const [ws, info] of wsClients.entries()) {
+    if (info.userId === userId && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(messageStr);
+      } catch (err) {
+        console.error('Failed to send to user WS client:', err);
+      }
     }
   }
 }
@@ -1583,6 +1615,9 @@ app.post('/api/alerts/:id/evidence', upload.fields([
       console.warn(`⚠️ Warning: Non-fatal evidence DB sync error (in-memory cached): ${dbErr.message}`);
     }
     broadcastToReceivers(alertId, { type: 'evidence_update', evidence: alert.evidence });
+    if (alert.userId) {
+      broadcastToUser(alert.userId, { type: 'evidence_updated', alertId, evidence: alert.evidence });
+    }
 
     // Schedule email dispatch with new evidence
     scheduleEvidenceEmail(alert.userId, alertId);
@@ -1701,8 +1736,19 @@ app.get('/api/state', async (req, res) => {
   });
 });
 
+app.get('/api/user', async (req, res) => {
+  try {
+    const user = await db.getUser(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/user/setup-complete', async (req, res) => {
   const user = await db.updateUserProfile(req.userId, { isSetupComplete: true });
+  broadcastToUser(req.userId, { type: 'user_updated', user });
   res.json(user);
 });
 
@@ -1722,6 +1768,7 @@ app.post('/api/user', async (req, res) => {
       updates.password = password;
     }
     const user = await db.updateUserProfile(req.userId, updates);
+    broadcastToUser(req.userId, { type: 'user_updated', user });
     res.json(user);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -1744,6 +1791,7 @@ app.put('/api/user', async (req, res) => {
       updates.password = password;
     }
     const user = await db.updateUserProfile(req.userId, updates);
+    broadcastToUser(req.userId, { type: 'user_updated', user });
     res.json(user);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -1756,16 +1804,19 @@ app.get('/api/contacts', async (req, res) => {
 
 app.post('/api/contacts', async (req, res) => {
   const contacts = await db.addContact(req.userId, req.body);
+  broadcastToUser(req.userId, { type: 'contacts_updated', contacts });
   res.json(contacts);
 });
 
 app.put('/api/contacts/:id', async (req, res) => {
   const contacts = await db.updateContact(req.userId, req.params.id, req.body);
+  broadcastToUser(req.userId, { type: 'contacts_updated', contacts });
   res.json(contacts);
 });
 
 app.delete('/api/contacts/:id', async (req, res) => {
   const contacts = await db.removeContact(req.userId, req.params.id);
+  broadcastToUser(req.userId, { type: 'contacts_updated', contacts });
   res.json(contacts);
 });
 
@@ -1775,7 +1826,36 @@ app.get('/api/settings', async (req, res) => {
 
 app.put('/api/settings', async (req, res) => {
   const settings = await db.updateSettings(req.userId, req.body);
+  broadcastToUser(req.userId, { type: 'settings_updated', settings });
   res.json(settings);
+});
+
+// Notifications endpoint: Retrieve all dispatched alert logs and delivery statuses
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const history = await db.getHistory(req.userId);
+    const notifications = [];
+    for (const h of history) {
+      if (h.contactsNotified && Array.isArray(h.contactsNotified)) {
+        for (const n of h.contactsNotified) {
+          notifications.push({
+            id: `${h.id}-${n.contactId || n.name}`,
+            alertId: h.id,
+            alertType: h.type || 'General',
+            timestamp: h.timestamp,
+            recipient: n.name,
+            phone: n.phone,
+            email: n.email,
+            status: n.status,
+            channels: n.channels || {}
+          });
+        }
+      }
+    }
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Feedback user history route
@@ -1845,6 +1925,9 @@ app.post('/api/alerts', async (req, res) => {
   
   // Save event
   await db.addHistoryEvent(userId, newAlert);
+
+  // Broadcast real-time cross-platform SOS alert to user's devices
+  broadcastToUser(userId, { type: 'alert_triggered', alert: newAlert, alertId: id });
 
   console.log(`SOS active for user ${user.name}. Alert ID: ${id}`);
   
@@ -1970,6 +2053,9 @@ app.post('/api/alerts/:id/evidence', upload.fields([
     type: 'evidence_update',
     evidence: alert.evidence
   });
+  if (alert.userId) {
+    broadcastToUser(alert.userId, { type: 'evidence_updated', alertId, evidence: alert.evidence });
+  }
 
   // Schedule email dispatch with new evidence
   scheduleEvidenceEmail(alert.userId, alertId);
@@ -2050,6 +2136,13 @@ app.post('/api/alerts/:id/stop', async (req, res) => {
 
     broadcastToReceivers(alertId, {
       type: 'status_update',
+      status: 'Sent',
+      durationSeconds
+    });
+
+    broadcastToUser(alert.userId || req.userId, {
+      type: 'alert_stopped',
+      alertId,
       status: 'Sent',
       durationSeconds
     });
@@ -2149,6 +2242,11 @@ app.delete('/api/alerts/:id', async (req, res) => {
       type: 'status_update',
       status: 'Deleted',
       durationSeconds: 0
+    });
+
+    broadcastToUser(userId, {
+      type: 'alert_deleted',
+      alertId
     });
 
     res.json(history);
@@ -2294,6 +2392,13 @@ app.post('/api/admin/alerts/:id/resolve', async (req, res) => {
       durationSeconds
     });
 
+    broadcastToUser(alert.userId || req.userId, {
+      type: 'alert_stopped',
+      alertId,
+      status: 'Sent',
+      durationSeconds
+    });
+
     // Send immediate resolution email to emergency contacts and responders
     try {
       const user = await db.getUser(alert.userId);
@@ -2331,6 +2436,11 @@ app.delete('/api/admin/alerts/:id', async (req, res) => {
       type: 'status_update',
       status: 'Deleted',
       durationSeconds: 0
+    });
+
+    broadcastToUser(userId, {
+      type: 'alert_deleted',
+      alertId
     });
     res.json({ success: true, message: 'Alert record deleted successfully' });
   } catch (err) {

@@ -62,6 +62,20 @@ class ProfileActivity : AppCompatActivity() {
         etProfAddress.setText(p.address)
         etProfMother.setText(p.motherName)
         etProfFather.setText(p.fatherName)
+
+        // Asynchronously pull latest authoritative profile from PostgreSQL
+        lifecycleScope.launch {
+            val res = apiClient.getUserProfile()
+            res.onSuccess { fresh ->
+                etProfName.setText(fresh.name)
+                etProfEmail.setText(fresh.email)
+                etProfPhone.setText(fresh.phone)
+                etProfBlood.setText(fresh.bloodGroup)
+                etProfAddress.setText(fresh.address)
+                etProfMother.setText(fresh.motherName)
+                etProfFather.setText(fresh.fatherName)
+            }
+        }
     }
 
     private fun handleSave() {
@@ -82,11 +96,20 @@ class ProfileActivity : AppCompatActivity() {
         )
 
         sessionManager.userProfile = updated
+        btnSaveProfile.isEnabled = false
+        btnSaveProfile.text = "Saving to Cloud..."
+
         lifecycleScope.launch {
-            apiClient.updateUserProfile(updated)
-            Toast.makeText(this@ProfileActivity, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
-            finish()
+            val res = apiClient.updateUserProfile(updated)
+            btnSaveProfile.isEnabled = true
+            btnSaveProfile.text = "Save Profile Changes"
+
+            res.onSuccess {
+                Toast.makeText(this@ProfileActivity, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+                finish()
+            }.onFailure { err ->
+                Toast.makeText(this@ProfileActivity, "Update failed: ${err.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
-

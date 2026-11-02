@@ -321,55 +321,45 @@ class AuthActivity : AppCompatActivity() {
             when (currentMode) {
                 AuthMode.PASSWORD -> {
                     val result = apiClient.login(email, password)
-                    setLoading(false)
-                    result.onSuccess {
-                        Toast.makeText(this@AuthActivity, "Welcome back, ${it.name}!", Toast.LENGTH_SHORT).show()
+                    if (result.isSuccess) {
+                        val user = result.getOrThrow()
+                        // Ensure complete user state (Profile, Contacts, History, Settings) is synced from PostgreSQL
                         apiClient.fetchState()
+                        setLoading(false)
+                        Toast.makeText(this@AuthActivity, "Welcome back, ${user.name}!", Toast.LENGTH_SHORT).show()
                         navigateNext()
-                    }.onFailure { err ->
-                        if (email.contains("@")) {
-                            sessionManager.authToken = "jwt_${System.currentTimeMillis()}"
-                            sessionManager.currentUser = User("usr_${System.currentTimeMillis()}", email.substringBefore("@").replaceFirstChar { it.uppercase() }, email)
-                            sessionManager.userProfile = UserProfile(
-                                id = "usr_${System.currentTimeMillis()}",
-                                name = email.substringBefore("@").replaceFirstChar { it.uppercase() },
-                                email = email
-                            )
-                            Toast.makeText(this@AuthActivity, "Signed in autonomously", Toast.LENGTH_SHORT).show()
-                            navigateNext()
-                        } else {
-                            showError(err.message ?: "Authentication failed")
-                        }
+                    } else {
+                        setLoading(false)
+                        val errMsg = result.exceptionOrNull()?.message ?: "Invalid email or password"
+                        showError(errMsg)
                     }
                 }
                 AuthMode.REGISTER -> {
                     val result = apiClient.register(name, email, password)
-                    setLoading(false)
-                    result.onSuccess {
-                        Toast.makeText(this@AuthActivity, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                    if (result.isSuccess) {
+                        val user = result.getOrThrow()
                         apiClient.fetchState()
+                        setLoading(false)
+                        Toast.makeText(this@AuthActivity, "Account created successfully! Welcome, ${user.name}", Toast.LENGTH_SHORT).show()
                         navigateNext()
-                    }.onFailure { _ ->
-                        sessionManager.authToken = "jwt_${System.currentTimeMillis()}"
-                        sessionManager.currentUser = User("usr_${System.currentTimeMillis()}", name, email)
-                        sessionManager.userProfile = UserProfile(
-                            id = "usr_${System.currentTimeMillis()}",
-                            name = name,
-                            email = email
-                        )
-                        Toast.makeText(this@AuthActivity, "Account ready", Toast.LENGTH_SHORT).show()
-                        navigateNext()
+                    } else {
+                        setLoading(false)
+                        val errMsg = result.exceptionOrNull()?.message ?: "Registration failed"
+                        showError(errMsg)
                     }
                 }
                 AuthMode.OTP -> {
                     val result = apiClient.verifyTokenOtp(email, otp)
-                    setLoading(false)
-                    result.onSuccess {
-                        Toast.makeText(this@AuthActivity, "Token verified! Welcome ${it.name}", Toast.LENGTH_SHORT).show()
+                    if (result.isSuccess) {
+                        val user = result.getOrThrow()
                         apiClient.fetchState()
+                        setLoading(false)
+                        Toast.makeText(this@AuthActivity, "Token verified! Welcome ${user.name}", Toast.LENGTH_SHORT).show()
                         navigateNext()
-                    }.onFailure { err ->
-                        showError(err.message ?: "Token verification failed")
+                    } else {
+                        setLoading(false)
+                        val errMsg = result.exceptionOrNull()?.message ?: "Token verification failed"
+                        showError(errMsg)
                     }
                 }
             }

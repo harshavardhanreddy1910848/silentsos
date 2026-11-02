@@ -2,15 +2,32 @@ package com.silentsos.app
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import org.json.JSONArray
 import org.json.JSONObject
 
 class SessionManager(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+    private val prefs: SharedPreferences = try {
+        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        EncryptedSharedPreferences.create(
+            PREF_NAME_ENCRYPTED,
+            masterKeyAlias,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    } catch (e: Exception) {
+        // Fallback for emulators or testing environments where keystore may be restricted
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    }
 
     companion object {
+        private const val PREF_NAME_ENCRYPTED = "silentsos_secure_prefs"
         private const val PREF_NAME = "silentsos_native_prefs"
         private const val KEY_AUTH_TOKEN = "auth_token"
+        private const val KEY_CUSTOM_API_BASE = "custom_api_base"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_USER_EMAIL = "user_email"
@@ -20,10 +37,15 @@ class SessionManager(context: Context) {
         private const val KEY_SETTINGS_JSON = "settings_json"
         private const val KEY_CONTACTS_JSON = "contacts_json"
         private const val KEY_HISTORY_JSON = "history_json"
+        private const val KEY_NOTIFICATIONS_JSON = "notifications_json"
         private const val KEY_ACTIVE_ALERT_ID = "active_alert_id"
 
         const val DEFAULT_PIN = "1234"
     }
+
+    var customApiBase: String?
+        get() = prefs.getString(KEY_CUSTOM_API_BASE, null)
+        set(value) = prefs.edit().putString(KEY_CUSTOM_API_BASE, value).apply()
 
     var authToken: String?
         get() = prefs.getString(KEY_AUTH_TOKEN, null)
