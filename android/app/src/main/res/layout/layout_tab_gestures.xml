@@ -101,6 +101,23 @@
                 android:textStyle="bold"
                 android:clickable="true"
                 android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btnCancelGestureAlert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_badge_red"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="5dp"
+                android:text="✕ CANCEL EMERGENCY DISPATCH (3s)"
+                android:textColor="@color/white"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true" />
         </FrameLayout>
 
         <!-- Gesture Mode Selector -->

@@ -1213,6 +1213,7 @@
                         android:textSize="10sp" />
 
                     <TextView
+                        android:id="@+id/tvActionQuickPhoto"
                         android:layout_width="match_parent"
                         android:layout_height="32dp"
                         android:layout_marginTop="8dp"
@@ -1288,6 +1289,7 @@
                         android:textSize="10sp" />
 
                     <TextView
+                        android:id="@+id/tvActionQuickVideo"
                         android:layout_width="match_parent"
                         android:layout_height="32dp"
                         android:layout_marginTop="8dp"
@@ -1363,6 +1365,7 @@
                         android:textSize="10sp" />
 
                     <TextView
+                        android:id="@+id/tvActionQuickAudio"
                         android:layout_width="match_parent"
                         android:layout_height="32dp"
                         android:layout_marginTop="8dp"
