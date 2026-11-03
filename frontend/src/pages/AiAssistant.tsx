@@ -1,17 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../AppContext';
 import {
   ArrowLeft,
   Bot,
   Send,
   Trash2,
   Sparkles,
-  ShieldCheck,
-  HelpCircle,
-  ExternalLink,
-  ChevronRight,
-  RefreshCw
+  HelpCircle
 } from 'lucide-react';
 
 interface AiMessage {
@@ -25,7 +20,6 @@ interface AiMessage {
 
 export function AiAssistant() {
   const navigate = useNavigate();
-  const { state } = useApp();
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
 
   const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
@@ -103,11 +97,12 @@ export function AiAssistant() {
     setAiLoading(true);
 
     try {
+      const token = localStorage.getItem('silentsos_token') || sessionStorage.getItem('silentsos_token');
       const res = await fetch(`${API_BASE}/ai/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(state.authToken ? { Authorization: `Bearer ${state.authToken}` } : {})
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           message: text,
@@ -348,3 +343,4 @@ export function AiAssistant() {
     </div>
   );
 }
+

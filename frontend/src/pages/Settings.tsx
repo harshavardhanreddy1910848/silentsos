@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp, API_BASE } from '../AppContext';
+import { useApp } from '../AppContext';
 import {
   EyeOff,
   PhoneCall,
@@ -22,10 +22,7 @@ import {
   Radio,
   Check,
   HelpCircle,
-  Bot,
-  MessageSquare,
-  ShieldAlert,
-  CornerDownLeft
+  Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
