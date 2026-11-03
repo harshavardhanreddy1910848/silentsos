@@ -759,6 +759,43 @@ class ApiClient(private val context: Context) {
         }
     }
 
+    data class AiAssistantResponse(
+        val reply: String,
+        val suggestions: List<String>
+    )
+
+    suspend fun askAiAssistant(message: String): Result<AiAssistantResponse> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val json = JSONObject().apply {
+                put("message", message)
+            }
+            val request = Request.Builder()
+                .url("$base/api/ai/chat")
+                .post(json.toString().toRequestBody(jsonMediaType))
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                val jsonRes = JSONObject(body)
+                val reply = jsonRes.optString("reply", "I am here to guide your personal safety and emergency settings.")
+                val suggestionsArr = jsonRes.optJSONArray("suggestions")
+                val suggestions = mutableListOf<String>()
+                if (suggestionsArr != null) {
+                    for (i in 0 until suggestionsArr.length()) {
+                        suggestions.add(suggestionsArr.getString(i))
+                    }
+                }
+                Result.success(AiAssistantResponse(reply, suggestions))
+            } else {
+                Result.failure(Exception("AI Assistant query failed (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun clearData(): Result<Boolean> = withContext(Dispatchers.IO) {
         sessionManager.logout()
         SyncManager.getInstance(context).disconnect()

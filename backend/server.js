@@ -11,6 +11,7 @@ import { db, initDb, pool } from './db.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import { generateAiAssistantReply } from './aiAssistant.js';
 
 // Prefer IPv4 on Windows to prevent ENOTFOUND on dual-stack networks
 if (dns.setDefaultResultOrder) {
@@ -1708,6 +1709,38 @@ app.post('/api/feedback', optionalAuthenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error recording feedback:', err);
     res.status(500).json({ error: 'Failed to record feedback: ' + err.message });
+  }
+});
+
+// AI Safety Assistant Endpoint for Settings Screen (Web & Mobile)
+app.post('/api/ai/chat', optionalAuthenticateToken, async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'Message cannot be empty' });
+    }
+
+    const userId = req.userId;
+    const user = userId ? await db.getUser(userId) : null;
+    const settings = userId ? await db.getSettings(userId) : null;
+    const contacts = userId ? await db.getContacts(userId) : [];
+
+    const result = generateAiAssistantReply({
+      message: message.trim(),
+      user,
+      settings,
+      contacts,
+      history
+    });
+
+    res.json({
+      success: true,
+      reply: result.reply,
+      suggestions: result.suggestions
+    });
+  } catch (err) {
+    console.error('AI Assistant error:', err);
+    res.status(500).json({ error: 'Failed to process AI assistant message: ' + err.message });
   }
 });
 

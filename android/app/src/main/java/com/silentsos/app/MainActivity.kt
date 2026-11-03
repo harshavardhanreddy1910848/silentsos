@@ -870,6 +870,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             startActivity(Intent(this, ProfileActivity::class.java))
         }
 
+        // AI Defense Assistant -> showAiAssistantDialog()
+        view.findViewById<LinearLayout>(R.id.cardAiAssistant).setOnClickListener {
+            showAiAssistantDialog()
+        }
+
         // Capture settings -> CaptureSettingsActivity
         view.findViewById<LinearLayout>(R.id.cardCaptureSettings).setOnClickListener {
             startActivity(Intent(this, CaptureSettingsActivity::class.java))
@@ -960,5 +965,113 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showAiAssistantDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_ai_assistant, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val btnClose = dialogView.findViewById<android.widget.ImageButton>(R.id.btnAiClose)
+        val scrollMessages = dialogView.findViewById<android.widget.ScrollView>(R.id.scrollAiMessages)
+        val containerMessages = dialogView.findViewById<LinearLayout>(R.id.llAiMessageContainer)
+        val tvThinking = dialogView.findViewById<TextView>(R.id.tvAiThinking)
+        val llSuggestions = dialogView.findViewById<LinearLayout>(R.id.llAiSuggestions)
+        val etQuery = dialogView.findViewById<EditText>(R.id.etAiQuery)
+        val btnSend = dialogView.findViewById<AppCompatButton>(R.id.btnAiSend)
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+
+        fun addBubble(text: String, isUser: Boolean) {
+            val tv = TextView(this).apply {
+                this.text = text
+                textSize = 12.5f
+                if (isUser) {
+                    setTextColor(Color.parseColor("#0284c7"))
+                    setBackgroundResource(R.drawable.bg_badge_cyan)
+                } else {
+                    setTextColor(Color.parseColor("#e2e8f0"))
+                    setBackgroundResource(R.drawable.bg_card_surface)
+                }
+                setPadding(28, 20, 28, 20)
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = 12
+                    bottomMargin = 4
+                    gravity = if (isUser) android.view.Gravity.END else android.view.Gravity.START
+                }
+                layoutParams = params
+            }
+            containerMessages.addView(tv)
+            scrollMessages.post {
+                scrollMessages.fullScroll(View.FOCUS_DOWN)
+            }
+        }
+
+        fun populateSuggestions(list: List<String>) {
+            llSuggestions.removeAllViews()
+            list.forEach { query ->
+                val btnChip = AppCompatButton(this).apply {
+                    text = query
+                    textSize = 10.5f
+                    setTextColor(Color.parseColor("#38bdf8"))
+                    setBackgroundResource(R.drawable.bg_pill_dark)
+                    isAllCaps = false
+                    val params = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        marginEnd = 12
+                    }
+                    layoutParams = params
+                    setPadding(24, 10, 24, 10)
+                    setOnClickListener {
+                        etQuery.setText(query)
+                        btnSend.performClick()
+                    }
+                }
+                llSuggestions.addView(btnChip)
+            }
+        }
+
+        // Add greeting
+        addBubble("Hello! I am your 24/7 SilentSOS AI Defense Assistant. Ask me how to use stealth mode, change your safety PIN, or crisis situational advice.", false)
+
+        // Initial default suggestion chips
+        populateSuggestions(listOf(
+            "How does Stealth Mode work?",
+            "How to change Safety PIN?",
+            "What happens during SOS alert?",
+            "Advice if followed"
+        ))
+
+        btnSend.setOnClickListener {
+            val text = etQuery.text.toString().trim()
+            if (text.isEmpty()) return@setOnClickListener
+
+            addBubble(text, true)
+            etQuery.setText("")
+            tvThinking.visibility = View.VISIBLE
+
+            lifecycleScope.launch {
+                val res = apiClient.askAiAssistant(text)
+                tvThinking.visibility = View.GONE
+                res.onSuccess { aiRes ->
+                    addBubble(aiRes.reply, false)
+                    if (aiRes.suggestions.isNotEmpty()) {
+                        populateSuggestions(aiRes.suggestions)
+                    }
+                }.onFailure {
+                    addBubble("Defense Server Notice: For immediate emergencies, hold the SOS button for 3 seconds or trigger your safety gesture.", false)
+                }
+            }
+        }
+
+        dialog.show()
     }
 }
