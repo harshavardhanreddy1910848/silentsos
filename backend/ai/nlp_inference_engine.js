@@ -59,10 +59,325 @@ function extractBigrams(tokens) {
 }
 
 // ============================================================================
-// 1. MATHEMATICAL REASONING & ARITHMETIC ENGINE
+// 🧠 CONVERSATION CONTEXT & TOPIC MEMORY RESOLUTION
+// ============================================================================
+function resolveConversationContext(history = [], currentQuery = '') {
+  if (!history || history.length === 0) {
+    return { lastTopic: null, isFollowUp: false, mergedQuery: currentQuery };
+  }
+
+  // Look back through the last 4 exchanges
+  const recentExchanges = history.slice(-6);
+  let detectedTopic = null;
+
+  for (let i = recentExchanges.length - 1; i >= 0; i--) {
+    const text = (recentExchanges[i].text || recentExchanges[i].content || '').toLowerCase();
+    if (text.includes('travel') || text.includes('trip') || text.includes('hotel') || text.includes('solo')) {
+      detectedTopic = 'travelling_safety';
+      break;
+    }
+    if (text.includes('follow') || text.includes('stalk') || text.includes('pursuit') || text.includes('behind me')) {
+      detectedTopic = 'stalking_evasion';
+      break;
+    }
+    if (text.includes('unsafe') || text.includes('danger') || text.includes('scared') || text.includes('panic') || text.includes('threat')) {
+      detectedTopic = 'immediate_danger';
+      break;
+    }
+    if (text.includes('cpr') || text.includes('heart') || text.includes('chok') || text.includes('burn') || text.includes('bleed') || text.includes('first aid')) {
+      detectedTopic = 'medical_first_aid';
+      break;
+    }
+    if (text.includes('python') || text.includes('code') || text.includes('asyncio') || text.includes('kotlin') || text.includes('javascript') || text.includes('react')) {
+      detectedTopic = 'programming_technology';
+      break;
+    }
+    if (text.includes('fir') || text.includes('police') || text.includes('legal') || text.includes('rights') || text.includes('law')) {
+      detectedTopic = 'legal_rights';
+      break;
+    }
+    if (text.includes('stealth') || text.includes('pin') || text.includes('gesture') || text.includes('fake call')) {
+      detectedTopic = 'silentsos_controls';
+      break;
+    }
+    if (text.includes('harass') || text.includes('abuse') || text.includes('domestic') || text.includes('violence') || text.includes('women')) {
+      detectedTopic = 'harassment_women_safety';
+      break;
+    }
+    if (text.includes('cyber') || text.includes('hack') || text.includes('scam') || text.includes('blackmail')) {
+      detectedTopic = 'cyber_security';
+      break;
+    }
+  }
+
+  const lowerQ = currentQuery.toLowerCase().trim();
+  const isFollowUpPattern = /^(what about|how about|and|what if|what should i avoid|can you explain more|tell me more|how do i do that|is that legal|what are the tips|how to handle that|why|how|what else|any examples|how to do it)\b/i.test(lowerQ)
+    || (lowerQ.length < 35 && (lowerQ.includes('at night') || lowerQ.includes('in a cab') || lowerQ.includes('taxi') || lowerQ.includes('alone') || lowerQ.includes('for women') || lowerQ.includes('if they don') || lowerQ.includes('they don\'t stop') || lowerQ.includes('don\'t stop')));
+
+  let mergedQuery = currentQuery;
+  if (isFollowUpPattern && detectedTopic) {
+    if (detectedTopic === 'travelling_safety' && (lowerQ.includes('night') || lowerQ.includes('dark'))) {
+      mergedQuery = `travel safety at night ${currentQuery}`;
+    } else if (detectedTopic === 'travelling_safety' && (lowerQ.includes('cab') || lowerQ.includes('taxi') || lowerQ.includes('uber') || lowerQ.includes('ola'))) {
+      mergedQuery = `travel cab taxi safety ${currentQuery}`;
+    } else if (detectedTopic === 'stalking_evasion' && (lowerQ.includes('stop') || lowerQ.includes('confront') || lowerQ.includes('approach'))) {
+      mergedQuery = `stalker will not stop following me ${currentQuery}`;
+    } else {
+      mergedQuery = `${detectedTopic.replace(/_/g, ' ')} ${currentQuery}`;
+    }
+  }
+
+  return {
+    lastTopic: detectedTopic,
+    isFollowUp: isFollowUpPattern && !!detectedTopic,
+    mergedQuery
+  };
+}
+
+// ============================================================================
+// 1. TACTICAL PERSONAL DEFENSE & CRISIS INTELLIGENCE
+// ============================================================================
+function handleTacticalSafety(lowerQuery, rawQuery, context, userName, settings) {
+  const isNightTravel = lowerQuery.includes('travelling at night') || lowerQuery.includes('traveling at night') || lowerQuery.includes('travel at night') || (context.lastTopic === 'travelling_safety' && (lowerQuery.includes('night') || lowerQuery.includes('dark')));
+  const isSoloTravel = !isNightTravel && (lowerQuery.includes('travel') || lowerQuery.includes('travelling') || lowerQuery.includes('traveling') || lowerQuery.includes('trip') || lowerQuery.includes('solo travel') || lowerQuery.includes('hotel'));
+  const isFollowing = lowerQuery.includes('following me') || lowerQuery.includes('someone following') || lowerQuery.includes('being followed') || lowerQuery.includes('stalk') || lowerQuery.includes('tailing me') || lowerQuery.includes('pursued') || (context.lastTopic === 'stalking_evasion' && (lowerQuery.includes('they don') || lowerQuery.includes('won\'t stop') || lowerQuery.includes('close')));
+  const isUnsafeImmediate = lowerQuery.includes('feel unsafe') || lowerQuery.includes('feeling unsafe') || lowerQuery.includes('in danger') || lowerQuery.includes('someone is outside') || lowerQuery.includes('help me right now') || lowerQuery.includes('scared right now') || lowerQuery.includes('threatened right now');
+  const isHarassment = lowerQuery.includes('harass') || lowerQuery.includes('eve teasing') || lowerQuery.includes('catcall') || lowerQuery.includes('inappropriate touch') || lowerQuery.includes('molest') || lowerQuery.includes('grope');
+  const isDomesticViolence = lowerQuery.includes('domestic violence') || lowerQuery.includes('abusive partner') || lowerQuery.includes('abused at home') || lowerQuery.includes('hit me') || lowerQuery.includes('toxic relationship');
+  const isCyberbullying = lowerQuery.includes('cyberbully') || lowerQuery.includes('blackmail') || lowerQuery.includes('nude') || lowerQuery.includes('leaked photos') || lowerQuery.includes('extortion') || lowerQuery.includes('threaten to post');
+  const isChildSafety = lowerQuery.includes('child safety') || lowerQuery.includes('missing child') || lowerQuery.includes('child abuse') || lowerQuery.includes('pocso') || lowerQuery.includes('protect child');
+
+  // A. Stalker / Foot Pursuit
+  if (isFollowing) {
+    if (context.isFollowUp && (lowerQuery.includes('stop') || lowerQuery.includes('run') || lowerQuery.includes('confront'))) {
+      return {
+        matched: true,
+        intent: 'stalker_followup_escalation',
+        category: 'Personal Safety & Evasion',
+        reply: `🚨 **If the person following you does not stop or begins closing the distance:**\n\n` +
+          `1. **DO NOT Confront or Turn to Fight:** Unless physically attacked, confrontation can escalate danger. Maintain forward momentum toward safety.\n` +
+          `2. **Create Immediate Noise and Public Attention:** Walk directly up to a staff member, shop cashier, or security guard. Speak firmly: *"Excuse me, I am being followed by that person behind me. Please keep me inside and call security."*\n` +
+          `3. **Trigger Emergency SOS (112):** Call 112 immediately. If unable to speak, trigger SilentSOS Stealth Mode or shake your phone to transmit your live GPS coordinates and audio telemetry.\n` +
+          `4. **If You Must Escape:** Run towards an illuminated, crowded area. Shout *"FIRE!"* or *"POLICE!"* rather than "help"—psychological studies confirm this attracts immediate public intervention.\n\n` +
+          `Are you currently in a public venue or still outside?`,
+        suggestions: [
+          'How does Stealth Mode work in SilentSOS?',
+          'What is a Zero FIR in India?',
+          'What are the official emergency numbers?'
+        ]
+      };
+    }
+
+    return {
+      matched: true,
+      intent: 'stalker_evasion_protocol',
+      category: 'Personal Safety & Evasion',
+      reply: `If you think someone is following you, **prioritize your immediate physical safety above everything else**. Follow this proven tactical protocol:\n\n` +
+        `1. **Confirm Without Alerting Them:** Do not panic or constantly look back over your shoulder. Cross the street deliberately or make 3–4 consecutive turns around a block. If the individual matches your turns, pursuit is confirmed.\n` +
+        `2. **Move Towards a Crowded, Illuminated Venue:** Head directly into an open commercial space—a supermarket, hotel lobby, restaurant, 24-hour convenience store, or fuel station with staff and CCTV cameras.\n` +
+        `3. **DO NOT Go Directly Home:** Never lead a follower to your apartment, dark residential lanes, parking garages, or isolated alleyways.\n` +
+        `4. **Contact Trusted Persons & Share Live Location:** Call someone you trust, state your exact street intersection calmly, and keep them on speaker. In SilentSOS, your live GPS coordinates can be shared instantly.\n` +
+        `5. **Contact Emergency Services (112):** If you feel threatened or the person closes distance, dial **112** (Universal Emergency in India/EU) or **911** (US). State your location and physical description of the individual clearly.`,
+      suggestions: [
+        'What should I do if they don\'t stop?',
+        'How does Stealth Mode work in SilentSOS?',
+        'What about travelling at night?'
+      ]
+    };
+  }
+
+  // B. Immediate Danger / Unsafe Right Now
+  if (isUnsafeImmediate) {
+    return {
+      matched: true,
+      intent: 'immediate_acute_danger',
+      category: 'Emergency Triage & Personal Safety',
+      reply: `💙 **I am here with you. Take a steady breath. Your immediate safety is the number one priority.**\n\n` +
+        `Please assess your current surroundings right now:\n\n` +
+        `1. **Are you in immediate physical danger?**\n` +
+        `   • If **YES**, do not hesitate: move immediately towards people, a lit shop, or security personnel, and dial **112** (Universal Emergency Helpline) or your local police immediately.\n` +
+        `   • If speaking out loud is dangerous, activate **SilentSOS Stealth Mode** (hold volume rocker or tap Stealth in SOS Hub) to transmit your coordinates silently without an active screen display.\n\n` +
+        `2. **If You Are in a Public Space:**\n` +
+        `   • Stay in well-lit areas with active bystanders or security cameras.\n` +
+        `   • Call a trusted friend, family member, or colleague and stay on the line until you reach a secure destination.\n\n` +
+        `3. **If You Are Indoors or at Home:**\n` +
+        `   • Ensure all doors and deadbolts are locked. Turn off lights that silhouette your movements from outside.\n` +
+        `   • Keep your phone charged, stay in an interior room with an exit path, and call local authorities if someone unauthorized is outside.\n\n` +
+        `*Tell me: are you currently outdoors or indoors? I will guide you through your exact next steps.*`,
+      suggestions: [
+        'What should I do if someone is following me?',
+        'How does Stealth Mode work in SilentSOS?',
+        'What are the official emergency numbers?'
+      ]
+    };
+  }
+
+  // C. Night Travel Safety
+  if (isNightTravel) {
+    return {
+      matched: true,
+      intent: 'night_travel_transit_safety',
+      category: 'Travel & Transit Safety',
+      reply: `Travelling at night requires heightened awareness because visibility is reduced and fewer people or open businesses are available. Here is how to stay safe at night:\n\n` +
+        `1. **Stick to Illuminated Arterial Roads:** Never take dark shortcuts, unlit park trails, or deserted service lanes—even if it saves travel time. Stick to main, well-lit roads with passing vehicle traffic.\n` +
+        `2. **Cab & Rideshare Safety Checklist (Uber / Ola / Taxis):**\n` +
+        `   • **Match the Plate and Driver:** Always verify the vehicle's registration number, make, and driver photo *before* entering.\n` +
+        `   • **Ask 'Who are you picking up?':** Never say *"Are you for [My Name]?"* Let the driver state your name first.\n` +
+        `   • **Sit in the Back Seat:** Sitting in the rear diagonal seat gives you visibility of the driver, access to both doors, and safe exit options.\n` +
+        `   • **Verify Child Locks:** Check that the rear door handle opens freely from the inside before departing.\n` +
+        `   • **Share Trip & Live GPS:** Share your ride status with trusted contacts and monitor the GPS route on your own phone.\n` +
+        `3. **Sensory Awareness (Headphone Rule):** Avoid wearing two earbuds with noise-cancellation turned on. Keep at least one ear free and head up so you can hear approaching vehicles or footsteps.\n` +
+        `4. **Battery & Power Reserve:** Keep phone battery above 30% before heading out at night. Carry a portable power bank.\n` +
+        `5. **Public Transit Caution:** If taking a night train or bus, sit near the driver, conductor, or in carriages with other families and commuters. Avoid isolated end compartments.`,
+      suggestions: [
+        'What should I do if my cab driver changes route?',
+        'What should I do if someone is following me?',
+        'How does Stealth Mode work in SilentSOS?'
+      ]
+    };
+  }
+
+  // D. Solo Travel General Safety
+  if (isSoloTravel) {
+    return {
+      matched: true,
+      intent: 'solo_travel_safety',
+      category: 'Travel & Transit Safety',
+      reply: `Solo travel is an empowering and rewarding experience when paired with practical situational awareness. Here are essential safety recommendations for travelling alone:\n\n` +
+        `1. **Pre-Trip Preparation & Digital Itinerary:**\n` +
+        `   • Research the neighborhood safety reputation of your destination before booking.\n` +
+        `   • Save digital copies of your passport, ID, and travel insurance in encrypted cloud storage.\n` +
+        `   • Share your complete itinerary and hotel bookings with at least one trusted emergency contact.\n\n` +
+        `2. **Accommodation & Room Security:**\n` +
+        `   • Request a room located between the 2nd and 4th floors (high enough to discourage street-level break-ins, low enough for fire rescue ladders).\n` +
+        `   • Verify that windows and secondary door deadbolts latch securely upon checking in.\n` +
+        `   • Carry an inexpensive portable rubber door stop or portable door alarm for extra nighttime security.\n\n` +
+        `3. **Street Smartness & Blending In:**\n` +
+        `   • Walk with confidence and purpose. If you need to check maps, step into a shop or cafe rather than stopping on an open street corner with luggage.\n` +
+        `   • Avoid flashing high-value jewelry, open luxury cameras, or large stacks of cash in crowded tourist hubs.\n\n` +
+        `4. **Communication & Check-Ins:**\n` +
+        `   • Establish a daily check-in routine with a family member or friend (e.g., a quick text every evening).\n` +
+        `   • In SilentSOS, your trusted emergency circle can view your coordinates whenever you arm the journey tracker.\n\n` +
+        `5. **Local Emergency Numbers:**\n` +
+        `   • Memorize local dispatch numbers: **112** in India & European Union, **911** in the USA & Canada, **999** in the UK, **000** in Australia.`,
+      suggestions: [
+        'What about travelling at night?',
+        'What should I do if someone is following me?',
+        'What are the official emergency numbers in India?'
+      ]
+    };
+  }
+
+  // E. Harassment & Eve Teasing
+  if (isHarassment) {
+    return {
+      matched: true,
+      intent: 'harassment_eve_teasing_defense',
+      category: 'Legal Defense & Women\'s Safety',
+      reply: `Street harassment and unwanted sexual advances are unacceptable and strictly punishable offenses under the law. Here is how to handle harassment effectively:\n\n` +
+        `1. **Project Assertiveness:** Make firm eye contact, use a commanding, clear voice, and say loudly: *"Back off. Leave me alone."* Public exposure often deters cowards who rely on silent intimidation.\n` +
+        `2. **Document & Gather Evidence:** Take note of the individual's clothing, physical features, vehicle registration number, and exact time. In SilentSOS, you can discretely capture photo bursts or audio recordings.\n` +
+        `3. **Enlist Bystander Help:** Approach nearby commuters or security personnel directly: *"This person is following/harassing me. Please stand with me."*\n` +
+        `4. **Legal Recourse in India:**\n` +
+        `   • **Section 74–79 of Bharatiya Nyaya Sanhita (BNS)** (formerly IPC 354A/354D) penalizes sexual harassment, assault, and stalking with rigorous imprisonment.\n` +
+        `   • You have the right to register a **Zero FIR** at ANY police station nationwide without jurisdictional refusal.\n` +
+        `5. **Emergency Helplines:**\n` +
+        `   • **112:** Universal Emergency Dispatch (Police / Ambulance).\n` +
+        `   • **1091:** Women Helpline (Domestic and Public Harassment).\n` +
+        `   • **181:** Women in Distress Helpline.\n` +
+        `   • **7827170170:** National Commission for Women (NCW) WhatsApp helpline.`,
+      suggestions: [
+        'What is a Zero FIR in India?',
+        'What should I do if someone is following me?',
+        'How does Stealth Mode work in SilentSOS?'
+      ]
+    };
+  }
+
+  // F. Domestic Violence & Intimate Partner Abuse
+  if (isDomesticViolence) {
+    return {
+      matched: true,
+      intent: 'domestic_violence_support',
+      category: 'Crisis Intervention & Legal Protection',
+      reply: `💙 **You deserve to be safe, respected, and free from abuse in your own home. Abuse is never your fault.**\n\n` +
+        `If you are experiencing domestic violence or coercive control, prioritize a safe exit strategy:\n\n` +
+        `1. **Create an Emergency Escape Plan:**\n` +
+        `   • Identify safe rooms with exterior doors and windows; avoid kitchens or bathrooms where weapons or enclosed spaces increase risk.\n` +
+        `   • Pack a discreet "go-bag" stored with a trusted neighbor or friend containing duplicate keys, essential ID documents, bank cards, medication, and emergency cash.\n\n` +
+        `2. **Establish a Safe Word:**\n` +
+        `   • Agree on a code word with trusted friends or family (e.g., *"Did you find the recipe?"*) that means *"Call the police to my home immediately."*\n\n` +
+        `3. **Confidential Support & Legal Aid in India:**\n` +
+        `   • **181:** 24/7 Women Helpline providing confidential counseling, shelter referrals, and police intervention.\n` +
+        `   • **112:** Immediate police dispatch during an active violent altercation.\n` +
+        `   • **Protection of Women from Domestic Violence Act (PWDVA 2005):** Grants protection orders, residence rights (cannot be evicted by in-laws), and monetary relief through Protection Officers.\n` +
+        `   • **NCW 24/7 Helpline:** Dial **7827170170** or register complaints at **ncw.nic.in**.\n\n` +
+        `If you are using SilentSOS, you can record timestamped audio and photos into the encrypted Evidence Vault to preserve legal proof of abuse.`,
+      suggestions: [
+        'How to document evidence safely in SilentSOS?',
+        'What is a Zero FIR in India?',
+        'What are the official emergency numbers?'
+      ]
+    };
+  }
+
+  // G. Cyberbullying & Online Extortion
+  if (isCyberbullying) {
+    return {
+      matched: true,
+      intent: 'cyberbullying_extortion_defense',
+      category: 'Cybersecurity & Legal Defense',
+      reply: `Online harassment, blackmail, and unauthorized sharing of intimate media are serious cybercrimes under the IT Act and Bharatiya Nyaya Sanhita. Follow this critical defense protocol:\n\n` +
+        `1. **DO NOT PAY OR NEGOTIATE:** Blackmailers never stop after the first payment. Paying proves you can be extorted and invites higher demands.\n` +
+        `2. **Preserve Complete Digital Evidence:**\n` +
+        `   • Take full screenshots showing usernames, phone numbers, email headers, payment QR codes, and chat timestamps.\n` +
+        `   • Do not delete the chat history or block immediately until evidence is preserved.\n` +
+        `3. **Report to StopNCII.org (Non-Consensual Images):**\n` +
+        `   • If someone threatens to leak intimate pictures, submit digital hashes directly at **StopNCII.org** (Stop Non-Consensual Intimate Image Abuse). Participating tech platforms (Instagram, Facebook, Reddit, TikTok) block the images from being uploaded anywhere on their servers.\n` +
+        `4. **Official Law Enforcement in India:**\n` +
+        `   • **National Cyber Crime Helpline:** Dial **1930** immediately.\n` +
+        `   • **Online Portal:** Register a confidential report at **cybercrime.gov.in** under the *"Report Crime Related to Women/Children"* section.\n` +
+        `   • Perpetrators face severe prison sentences under **Section 66E, 67, and 67A of the Information Technology Act** and extortion statutes.`,
+      suggestions: [
+        'What is the 1930 Cyber helpline?',
+        'What is a Zero FIR in India?',
+        'How to stay safe on social media?'
+      ]
+    };
+  }
+
+  // H. Child Safety & POCSO
+  if (isChildSafety) {
+    return {
+      matched: true,
+      intent: 'child_safety_pocso',
+      category: 'Child Protection & Legal Support',
+      reply: `Child protection is governed by zero-tolerance legal safeguards under the **POCSO Act (Protection of Children from Sexual Offences Act)** and the Juvenile Justice Act:\n\n` +
+        `1. **Immediate Helplines in India:**\n` +
+        `   • **1098 (Childline):** Dedicated, 24/7 national emergency toll-free service for children in need of care, safety, and protection.\n` +
+        `   • **112:** Emergency police dispatch for child abduction, physical danger, or missing emergencies.\n` +
+        `2. **POCSO e-Box (NCPCR):**\n` +
+        `   • Parents, teachers, and guardians can report complaints directly to the National Commission for Protection of Child Rights through **ncpcr.gov.in**.\n` +
+        `3. **Mandatory Reporting:**\n` +
+        `   • Any individual, medical professional, or institution with knowledge of a child experiencing abuse is legally mandated to report it. Failure to report is punishable under Section 21 of POCSO.\n` +
+        `4. **Safety Education for Children:**\n` +
+        `   • Teach children the **Safe Touch vs. Unsafe Touch** rule early.\n` +
+        `   • Empower children that their body belongs to them and they will never be blamed for speaking up about uncomfortable adult behavior.`,
+      suggestions: [
+        'What is the 1098 Childline?',
+        'What is a Zero FIR in India?',
+        'Emergency phone numbers in India'
+      ]
+    };
+  }
+
+  return { matched: false };
+}
+
+// ============================================================================
+// 2. MATHEMATICAL REASONING & ARITHMETIC ENGINE
 // ============================================================================
 function handleMathematicalReasoning(lowerQuery, rawQuery) {
-  // 1. Arithmetic calculation (e.g. "calculate 25 * 40", "500 / 4", "12 + 88 - 5")
   const mathMatch = rawQuery.match(/(?:what\s+is|calculate|evaluate|solve)?\s*([0-9]+(?:\.[0-9]+)?\s*[\+\-\*\/\^%]\s*[0-9]+(?:\.[0-9]+)?(?:\s*[\+\-\*\/\^%]\s*[0-9]+(?:\.[0-9]+)?)*)/i);
   if (mathMatch && mathMatch[1] && /[\+\-\*\/\^%]/.test(mathMatch[1])) {
     const expr = mathMatch[1].trim();
@@ -93,62 +408,39 @@ function handleMathematicalReasoning(lowerQuery, rawQuery) {
     } catch (_) {}
   }
 
-  // 2. Percentage calculation
   const pctMatch = rawQuery.match(/([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:of)\s*([0-9]+(?:\.[0-9]+)?)/i);
   if (pctMatch) {
     const pct = parseFloat(pctMatch[1]);
     const total = parseFloat(pctMatch[2]);
-    const value = (pct / 100) * total;
+    const val = (pct / 100) * total;
     return {
       matched: true,
-      intent: 'math_percentage_solution',
-      category: 'Mathematics & Calculation',
-      reply: `📊 **Percentage Computation:**\n\n` +
-        `$$${pct}\\% \\text{ of } ${total} = \\frac{${pct}}{100} \\times ${total} = ${value}$$\n\n` +
-        `• **Computed Answer:** **${value}**\n` +
-        `• **Decimal Fraction:** ${(pct / 100).toFixed(4)}`,
-      suggestions: ['Explain Bayes Theorem', 'Explain Compound Interest', 'How does Stealth Mode work?']
+      intent: 'math_percentage',
+      category: 'Mathematics',
+      reply: `📐 **Percentage Calculation:**\n\n` +
+        `• **Formula:** $\\frac{${pct}}{100} \\times ${total} = ${val}$\n` +
+        `• **Answer:** **${pct}% of ${total} is ${val}**`,
+      suggestions: ['Calculate 15% tip on 85', 'Explain Bayes Theorem', 'Explain Calculus']
     };
   }
 
-  // 3. Bayes' Theorem
-  if (lowerQuery.includes('bayes') || (lowerQuery.includes('conditional') && lowerQuery.includes('probability'))) {
+  if (lowerQuery.includes('bayes') || lowerQuery.includes('bayesian')) {
     return {
       matched: true,
       intent: 'math_bayes_theorem',
-      category: 'Mathematics & Probability',
-      reply: `📐 **Bayes' Theorem & Probabilistic Inference:**\n\n` +
-        `Bayes' Theorem provides a rigorous mathematical framework for updating beliefs based on incoming observed evidence:\n\n` +
+      category: 'Probability & Statistics',
+      reply: `📐 **Bayes' Theorem (Conditional Probability):**\n\n` +
         `$$P(A|B) = \\frac{P(B|A) \\cdot P(A)}{P(B)}$$\n\n` +
-        `### Structural Breakdown:\n` +
-        `1. **$P(A|B)$ (Posterior Probability):** Probability of hypothesis $A$ given evidence $B$.\n` +
-        `2. **$P(B|A)$ (Likelihood):** Probability of observing evidence $B$ if hypothesis $A$ is true.\n` +
-        `3. **$P(A)$ (Prior Probability):** Initial baseline probability of hypothesis $A$.\n` +
-        `4. **$P(B)$ (Marginal Evidence):** Total probability of observing evidence $B$ across all hypotheses: $\\sum P(B|A_i)P(A_i)$.\n\n` +
-        `### Practical Application in Sensor Fusion:\n` +
-        `When the device accelerometer detects a sharp shock ($B$), Bayes' Theorem computes the true probability of a real distress event ($A$) versus accidental drop, eliminating false positives.\n\n` +
-        `📚 **Reference:** MIT OpenCourseWare & Khan Academy Probability`,
-      suggestions: ['Explain Calculus & Derivatives', 'Explain Big-O Complexity', 'How does Stealth Mode work?']
-    };
-  }
-
-  // 4. Calculus (Derivatives & Integrals)
-  if (lowerQuery.includes('calculus') || lowerQuery.includes('derivative') || lowerQuery.includes('integral')) {
-    return {
-      matched: true,
-      intent: 'math_calculus',
-      category: 'Mathematics & Analysis',
-      reply: `📐 **Calculus: Foundations of Rates of Change & Accumulation:**\n\n` +
-        `### 1. Differential Calculus (Instantaneous Rate of Change):\n` +
-        `$$f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$$\n\n` +
-        `• **Power Rule:** $\\frac{d}{dx} [x^n] = n x^{n-1}$\n` +
-        `• **Product Rule:** $(uv)' = u'v + uv'$\n` +
-        `• **Chain Rule:** $\\frac{d}{dx} [f(g(x))] = f'(g(x)) \\cdot g'(x)$\n\n` +
-        `### 2. Integral Calculus & The Fundamental Theorem:\n` +
-        `$$\\int_a^b f(x)\\,dx = F(b) - F(a) \\quad \\text{where } F'(x) = f(x)$$\n\n` +
-        `This proves that differentiation and integration are mathematical inverses.\n\n` +
-        `📚 **Reference:** Gilbert Strang Calculus, MIT Mathematics`,
-      suggestions: ['Explain Bayes Theorem', 'Explain Big-O notation', 'Explain Newton Laws of Motion']
+        `### Components:\n` +
+        `• **$P(A|B)$ (Posterior):** Probability of hypothesis $A$ given evidence $B$.\n` +
+        `• **$P(B|A)$ (Likelihood):** Probability of evidence $B$ if hypothesis $A$ is true.\n` +
+        `• **$P(A)$ (Prior):** Initial baseline probability of hypothesis $A$.\n` +
+        `• **$P(B)$ (Marginal Evidence):** Total probability of observing evidence $B$.\n\n` +
+        `### Real-World Example (Medical Diagnostics):\n` +
+        `If a disease has a 1% prior occurrence, a test has a 99% true-positive rate, and a 5% false-positive rate:\n` +
+        `$$P(\\text{Disease}|+) = \\frac{0.99 \\times 0.01}{(0.99 \\times 0.01) + (0.05 \\times 0.99)} = \\frac{0.0099}{0.0099 + 0.0495} \\approx 16.67\\%$$\n` +
+        `Even with a 99% accurate test, an individual testing positive only has a ~16.7% chance of possessing the rare disease because the prior is low!`,
+      suggestions: ['Explain Calculus', 'Explain Big-O Complexity', 'What is Central Limit Theorem?']
     };
   }
 
@@ -156,89 +448,63 @@ function handleMathematicalReasoning(lowerQuery, rawQuery) {
 }
 
 // ============================================================================
-// 2. SOFTWARE ENGINEERING, PROGRAMMING & CODING
+// 3. SOFTWARE ENGINEERING & CODING INTELLIGENCE
 // ============================================================================
 function handleSoftwareEngineering(lowerQuery, rawQuery) {
-  // 1. Python Asyncio & Non-Blocking Event Loops
-  if (lowerQuery.includes('asyncio') || (lowerQuery.includes('async') && lowerQuery.includes('python'))) {
+  if (lowerQuery.includes('asyncio') || lowerQuery.includes('python async')) {
     return {
       matched: true,
-      intent: 'programming_python_asyncio',
-      category: 'Software Engineering & Python',
-      reply: `💻 **Asynchronous Programming in Python with Asyncio:**\n\n` +
-        `Python's \`asyncio\` library powers high-concurrency event loops on a single thread:\n\n` +
-        `\`\`\`python\nimport asyncio\nimport time\n\nasync def poll_telemetry_beacon(beacon_id: str, delay: float):\n    \"\"\"Simulates non-blocking asynchronous sensor polling.\"\"\"\n    print(f"[{time.strftime('%X')}] Beacon {beacon_id}: Polling initiated...")\n    await asyncio.sleep(delay)  # Yields control back to event loop\n    print(f"[{time.strftime('%X')}] Beacon {beacon_id}: GPS verified [13.0267, 80.0107]")\n    return {"beacon": beacon_id, "status": "SECURE"}\n\nasync def main():\n    # Run concurrent coroutines simultaneously\n    tasks = [\n        poll_telemetry_beacon("BEACON-ALPHA", 0.5),\n        poll_telemetry_beacon("BEACON-BETA", 0.3),\n        poll_telemetry_beacon("BEACON-GAMMA", 0.8)\n    ]\n    results = await asyncio.gather(*tasks)\n    print("All beacons verified:", results)\n\nif __name__ == "__main__":\n    asyncio.run(main())\n\`\`\`\n\n` +
-        `### Key Engineering Principles:\n` +
-        `• **Cooperative Multitasking:** \`await\` relinquishes thread control so other tasks execute during I/O wait.\n` +
-        `• **Event Loop:** Manages task queues and scheduling without thread context-switching overhead.\n` +
-        `• **Zero Blocking:** Never use \`time.sleep()\` inside async code; always use \`await asyncio.sleep()\`.`,
-      suggestions: ['Explain Binary Search in Python', 'Explain Big-O Complexity', 'How does Stealth Mode work?']
+      intent: 'code_python_asyncio',
+      category: 'Software Engineering & Systems',
+      reply: `🐍 **Mastering Python \`asyncio\` & Event Loops:**\n\n` +
+        `Python's \`asyncio\` provides cooperative single-threaded concurrency using coroutines, futures, and an asynchronous event loop.\n\n` +
+        `\`\`\`python\n` +
+        `import asyncio\n` +
+        `import time\n\n` +
+        `async def fetch_telemetry_stream(sensor_id: str, delay_sec: float):\n` +
+        `    print(f"📡 [Sensor {sensor_id}] Connecting...")\n` +
+        `    await asyncio.sleep(delay_sec)  # Non-blocking I/O simulation\n` +
+        `    print(f"✅ [Sensor {sensor_id}] Telemetry broadcast received.")\n` +
+        `    return {"sensor": sensor_id, "status": "nominal"}\n\n` +
+        `async def main():\n` +
+        `    start = time.perf_counter()\n` +
+        `    # Gather schedules all coroutines concurrently across the event loop\n` +
+        `    results = await asyncio.gather(\n` +
+        `        fetch_telemetry_stream("GPS-Beacon", 1.0),\n` +
+        `        fetch_telemetry_stream("Camera-Loop", 1.5),\n` +
+        `        fetch_telemetry_stream("Acoustic-Filter", 0.5),\n` +
+        `    )\n` +
+        `    duration = time.perf_counter() - start\n` +
+        `    print(f"⏱️ Concurrently processed {len(results)} tasks in {duration:.2f}s")\n\n` +
+        `if __name__ == "__main__":\n` +
+        `    asyncio.run(main())\n` +
+        `\`\`\`\n\n` +
+        `### Key Rules:\n` +
+        `1. **Never use \`time.sleep()\`:** It blocks the entire event loop thread. Always use \`await asyncio.sleep()\`. \n` +
+        `2. **CPU-Bound Tasks:** For heavy mathematical computations, offload to \`asyncio.to_thread()\` or \`ProcessPoolExecutor\`.`,
+      suggestions: ['Explain Kotlin Coroutines', 'Explain Big-O Time Complexity', 'How to handle concurrency in React?']
     };
   }
 
-  // 2. Binary Search
-  if (lowerQuery.includes('binary search') || (lowerQuery.includes('search') && lowerQuery.includes('sorted'))) {
+  if (lowerQuery.includes('big o') || lowerQuery.includes('time complexity') || lowerQuery.includes('space complexity')) {
     return {
       matched: true,
-      intent: 'programming_binary_search',
-      category: 'Algorithms & Data Structures',
-      reply: `💻 **Binary Search Algorithm ($O(\\log n)$ Time):**\n\n` +
-        `Binary Search repeatedly divides a sorted search interval in half:\n\n` +
-        `\`\`\`python\ndef binary_search(arr: list, target: int) -> int:\n    left, right = 0, len(arr) - 1\n    \n    while left <= right:\n        mid = left + (right - left) // 2  # Prevents integer overflow\n        \n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n            \n    return -1  # Target not found\n\n# Verification:\ndata = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]\nidx = binary_search(data, 23)\nprint(f"Found 23 at index: {idx}")  # Output: 5\n\`\`\`\n\n` +
-        `• **Time Complexity:** $O(\\log n)$\n` +
-        `• **Space Complexity:** $O(1)$ iterative`,
-      suggestions: ['Explain Big-O Complexity', 'Explain QuickSort vs MergeSort', 'Explain Python asyncio']
-    };
-  }
-
-  // 3. Reverse String / Palindrome
-  if (lowerQuery.includes('reverse') || lowerQuery.includes('palindrome')) {
-    return {
-      matched: true,
-      intent: 'programming_string_manipulation',
-      category: 'Algorithms & String Processing',
-      reply: `💻 **String Reversal & Palindrome Verification in Multiple Languages:**\n\n` +
-        `### 1. Python:\n` +
-        `\`\`\`python\ndef reverse_string(s: str) -> str:\n    return s[::-1]\n\ndef is_palindrome(s: str) -> bool:\n    cleaned = "".join(c.lower() for c in s if c.isalnum())\n    return cleaned == cleaned[::-1]\n\nprint(is_palindrome("A man, a plan, a canal: Panama"))  # True\n\`\`\`\n\n` +
-        `### 2. JavaScript / TypeScript:\n` +
-        `\`\`\`javascript\nconst reverseString = (str) => str.split('').reverse().join('');\nconst isPalindrome = (str) => {\n  const clean = str.toLowerCase().replace(/[^a-z0-9]/g, '');\n  return clean === clean.split('').reverse().join('');\n};\nconsole.log(isPalindrome("radar")); // true\n\`\`\`\n\n` +
-        `• **Time Complexity:** $O(n)$ where $n$ is string length.\n` +
-        `• **Space Complexity:** $O(n)$ for storing characters.`,
-      suggestions: ['Explain Binary Search', 'Explain Big-O Complexity', 'Explain React Hooks']
-    };
-  }
-
-  // 4. SQL vs NoSQL
-  if (lowerQuery.includes('sql') && (lowerQuery.includes('nosql') || lowerQuery.includes('database') || lowerQuery.includes('difference'))) {
-    return {
-      matched: true,
-      intent: 'programming_sql_vs_nosql',
-      category: 'Database Architecture & System Design',
-      reply: `💻 **SQL vs NoSQL Database Architecture Comparison:**\n\n` +
-        `| Dimension | Relational (SQL - PostgreSQL, MySQL) | Non-Relational (NoSQL - MongoDB, Redis) |\n` +
+      intent: 'code_big_o_complexity',
+      category: 'Computer Science & Algorithms',
+      reply: `⚡ **Big-O Algorithm Complexity Cheat Sheet:**\n\n` +
+        `Big-O ($O$) describes the limiting behavior of an algorithm as the input size $N$ grows toward infinity.\n\n` +
+        `| Complexity | Classification | Classic Example Algorithm |\n` +
         `| :--- | :--- | :--- |\n` +
-        `| **Data Schema** | Rigid, normalized tables with fixed columns | Flexible documents, key-value, or graphs |\n` +
-        `| **ACID Compliance** | Strict Atomicity, Consistency, Isolation, Durability | Eventual consistency (BASE framework) |\n` +
-        `| **Scaling** | Vertical scaling (Scale-up CPU/RAM) | Horizontal scaling (Scale-out sharding) |\n` +
-        `| **Best Use Case** | Financial transactions, crisis audit trails, relational schemas | High-speed telemetry caching, dynamic document catalogs |\n\n` +
-        `### Implementation in SilentSOS:\n` +
-        `SilentSOS leverages **PostgreSQL 16 (Neon Serverless)** for strict transactional integrity across emergency alerts, encrypted audit vaults, and user credentials.`,
-      suggestions: ['Explain REST vs GraphQL', 'Explain Big-O Complexity', 'Explain Python asyncio']
-    };
-  }
-
-  // 5. React Hooks & State Management
-  if (lowerQuery.includes('react') || lowerQuery.includes('useeffect') || lowerQuery.includes('usestate')) {
-    return {
-      matched: true,
-      intent: 'programming_react_hooks',
-      category: 'Frontend Development & React',
-      reply: `💻 **Modern React Hooks Architecture (\`useState\` & \`useEffect\`):**\n\n` +
-        `\`\`\`tsx\nimport React, { useState, useEffect } from 'react';\n\ninterface TelemetryCardProps {\n  sensorName: string;\n}\n\nexport const TelemetryCard: React.FC<TelemetryCardProps> = ({ sensorName }) => {\n  const [batteryLevel, setBatteryLevel] = useState<number>(100);\n  const [isActive, setIsActive] = useState<boolean>(true);\n\n  useEffect(() => {\n    // Setup interval subscriber\n    const timer = setInterval(() => {\n      setBatteryLevel(prev => Math.max(0, prev - 1));\n    }, 5000);\n\n    // Cleanup function executed on component unmount\n    return () => clearInterval(timer);\n  }, []); // Empty dependency array = runs once on mount\n\n  return (\n    <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">\n      <h3 className="text-white font-bold">{sensorName}</h3>\n      <p className="text-emerald-400 font-mono">Battery: {batteryLevel}%</p>\n    </div>\n  );\n};\n\`\`\`\n\n` +
-        `### Core Rules of Hooks:\n` +
-        `1. Call hooks only at the top level of React functions (never inside loops or conditions).\n` +
-        `2. Always clean up subscriptions or timers in \`useEffect\` return callback to prevent memory leaks.`,
-      suggestions: ['Explain REST vs GraphQL', 'Explain SQL vs NoSQL', 'Explain Python asyncio']
+        `| **$O(1)$** | Constant | Hash map lookup, array index access |\n` +
+        `| **$O(\\log N)$** | Logarithmic | Binary Search across sorted array |\n` +
+        `| **$O(N)$** | Linear | Single loop scan, find max element |\n` +
+        `| **$O(N \\log N)$** | Linearithmic | MergeSort, QuickSort (avg), HeapSort |\n` +
+        `| **$O(N^2)$** | Quadratic | Nested loops, BubbleSort, SelectionSort |\n` +
+        `| **$O(2^N)$** | Exponential | Naive recursive Fibonacci, subset generation |\n` +
+        `| **$O(N!)$** | Factorial | Traveling Salesperson via brute force |\n\n` +
+        `### Golden Engineering Rule:\n` +
+        `Always target $O(1)$ or $O(\\log N)$ for search/retrieval operations in high-throughput production backends!`,
+      suggestions: ['Explain Python asyncio', 'How does Binary Search work?', 'Explain Hash Table collisions']
     };
   }
 
@@ -246,358 +512,185 @@ function handleSoftwareEngineering(lowerQuery, rawQuery) {
 }
 
 // ============================================================================
-// 3. SCIENCE, ASTRONOMY & NATURAL PHENOMENA
-// ============================================================================
-function handleScienceAndKnowledge(lowerQuery, rawQuery) {
-  // 1. Why is the sky blue?
-  if (lowerQuery.includes('sky') && lowerQuery.includes('blue')) {
-    return {
-      matched: true,
-      intent: 'science_rayleigh_scattering',
-      category: 'Atmospheric Physics & Optics',
-      reply: `🔬 **Why the Sky Appears Blue (Rayleigh Scattering):**\n\n` +
-        `The sky is blue due to a physical phenomenon called **Rayleigh Scattering**, discovered by Lord Rayleigh in 1871:\n\n` +
-        `### 1. The Physics Mechanism:\n` +
-        `• Sunlight appears white, but contains all colors of the visible electromagnetic spectrum.\n` +
-        `• The intensity of scattered light ($I$) is inversely proportional to the **fourth power of its wavelength**:\n` +
-        `  $$I \\propto \\frac{1}{\\lambda^4}$$\n` +
-        `• Blue light has a significantly shorter wavelength ($\\approx 450\\text{ nm}$) than red light ($\\approx 700\\text{ nm}$).\n` +
-        `• As sunlight enters Earth's atmosphere, atmospheric gases (Nitrogen and Oxygen) scatter blue wavelengths approximately **10 times more intensely** in every direction than red wavelengths.\n\n` +
-        `### 2. Why Sunsets are Red:\n` +
-        `At sunset, sunlight travels through a much thicker layer of atmosphere. Most blue light scatters away before reaching your eyes, leaving the longer red and orange wavelengths visible.\n\n` +
-        `📚 **Reference:** Encyclopaedia Britannica & NASA Space Place`,
-      suggestions: ['How do airplanes fly?', 'Explain Black Holes', 'Explain Theory of Relativity']
-    };
-  }
-
-  // 2. How do airplanes fly?
-  if (lowerQuery.includes('airplane') || lowerQuery.includes('plane') || lowerQuery.includes('fly') || lowerQuery.includes('aerodynamics')) {
-    return {
-      matched: true,
-      intent: 'science_aerodynamics_flight',
-      category: 'Fluid Dynamics & Aeronautics',
-      reply: `✈️ **How Airplanes Fly: The Four Forces of Flight:**\n\n` +
-        `An aircraft sustains controlled flight through the dynamic equilibrium of **Four Physical Forces**:\n\n` +
-        `1. **Lift (Upward Force):**\n` +
-        `   • **Airfoil Geometry:** Airplane wings are curved on top and flatter on the bottom.\n` +
-        `   • **Bernoulli's Principle:** Faster-moving air over the curved upper surface creates lower pressure, while slower air beneath creates higher pressure, generating upward suction.\n` +
-        `   • **Newton's Third Law:** The wing deflects mass of air downward; the reaction force propels the wing upward: $F_{\\text{lift}} = \\frac{1}{2} C_L \\rho v^2 S$.\n\n` +
-        `2. **Weight / Gravity (Downward Force):** Mass of the airplane pulled toward Earth ($W = mg$).\n` +
-        `3. **Thrust (Forward Force):** Produced by jet engines or propellers pushing air backward to overcome drag.\n` +
-        `4. **Drag (Backward Resistance):** Aerodynamic air resistance opposing forward motion.\n\n` +
-        `*When Lift > Weight, the plane ascends. When Thrust > Drag, the plane accelerates.*\n\n` +
-        `📚 **Reference:** NASA Glenn Research Center & MIT Aeronautics`,
-      suggestions: ['Why is the sky blue?', 'Explain Newton Laws of Motion', 'Explain Theory of Relativity']
-    };
-  }
-
-  // 3. Quantum Computing
-  if (lowerQuery.includes('quantum') || lowerQuery.includes('qubit')) {
-    return {
-      matched: true,
-      intent: 'science_quantum_computing',
-      category: 'Quantum Mechanics & Advanced Computing',
-      reply: `⚛️ **Foundations of Quantum Computing:**\n\n` +
-        `Traditional computers represent information in binary bits ($0$ or $1$). Quantum computers leverage subatomic principles to achieve exponential processing power:\n\n` +
-        `### Three Core Quantum Principles:\n` +
-        `1. **Superposition:**\n` +
-        `   A quantum bit (**Qubit**) can exist simultaneously in a linear combination of states $|0\\rangle$ and $|1\\rangle$ until measured:\n` +
-        `   $$|\\psi\\rangle = \\alpha|0\\rangle + \\beta|1\\rangle \\quad \\text{where } |\\alpha|^2 + |\\beta|^2 = 1$$\n\n` +
-        `2. **Entanglement (Einstein's "Spooky Action"):**\n` +
-        `   Two qubits become correlated such that measuring one instantly dictates the state of the other, regardless of physical separation.\n\n` +
-        `3. **Quantum Interference:**\n` +
-        `   Quantum algorithms amplify the probability amplitudes of correct solutions while canceling erroneous paths.\n\n` +
-        `### Key Applications:\n` +
-        `Shor's Algorithm (factoring large prime cryptography), Grover's Algorithm ($O(\\sqrt{N})$ database search), molecular drug modeling, and climate simulation.\n\n` +
-        `📚 **Reference:** IBM Quantum & Caltech Quantum Institute`,
-      suggestions: ['Explain Theory of Relativity', 'Explain Black Holes', 'Why is the sky blue?']
-    };
-  }
-
-  // 4. Theory of Relativity
-  if (lowerQuery.includes('relativity') || lowerQuery.includes('einstein') || lowerQuery.includes('time dilation')) {
-    return {
-      matched: true,
-      intent: 'science_einstein_relativity',
-      category: 'Theoretical Physics & Astrophysics',
-      reply: `🌌 **Albert Einstein's Theory of Relativity:**\n\n` +
-        `Relativity revolutionized our understanding of space, time, gravity, and energy:\n\n` +
-        `### 1. Special Relativity (1905):\n` +
-        `• **Postulate 1:** The laws of physics are identical in all inertial reference frames.\n` +
-        `• **Postulate 2:** The speed of light in a vacuum ($c = 299,792,458\\text{ m/s}$) is constant for all observers.\n` +
-        `• **Time Dilation:** Time ticks slower for an object moving relative to a stationary observer:\n` +
-        `  $$t' = \\frac{t}{\\sqrt{1 - \\frac{v^2}{c^2}}}$$\n` +
-        `• **Mass-Energy Equivalence:** $E = mc^2$\n\n` +
-        `### 2. General Relativity (1915):\n` +
-        `Gravity is not a mysterious invisible pulling force; it is the **curvature of spacetime** caused by mass and energy. Massive bodies (like stars and black holes) warp the fabric of spacetime, causing objects to travel along curved geodesics.\n\n` +
-        `📚 **Reference:** Max Planck Institute for Gravitational Physics`,
-      suggestions: ['Explain Black Holes', 'Explain Quantum Computing', 'How do airplanes fly?']
-    };
-  }
-
-  // 5. Black Holes
-  if (lowerQuery.includes('black hole') || lowerQuery.includes('singularity') || lowerQuery.includes('event horizon')) {
-    return {
-      matched: true,
-      intent: 'science_astronomy_black_holes',
-      category: 'Astrophysics & General Relativity',
-      reply: `🕳️ **The Anatomy of Black Holes:**\n\n` +
-        `A black hole is a region of spacetime where gravitational acceleration is so intense that nothing—not even light—has enough energy to escape:\n\n` +
-        `### Structural Anatomy:\n` +
-        `1. **Event Horizon:** The absolute "point of no return." The radius is defined by the **Schwarzschild Radius**:\n` +
-        `   $$r_s = \\frac{2GM}{c^2}$$\n` +
-        `2. **Singularity:** The zero-volume, infinite-density center where classical general relativity breaks down and quantum gravity must take over.\n` +
-        `3. **Accretion Disk:** Superheated gas and matter swirling near the speed of light, emitting intense X-rays.\n` +
-        `4. **Hawking Radiation:** Quantum fluctuation near the horizon allowing black holes to very slowly evaporate over trillions of years.\n\n` +
-        `📚 **Reference:** Event Horizon Telescope Collaboration & NASA Astrophysics`,
-      suggestions: ['Explain Theory of Relativity', 'Explain Quantum Computing', 'Why is the sky blue?']
-    };
-  }
-
-  // 6. Photosynthesis & Cellular Respiration
-  if (lowerQuery.includes('photosynthesis') || lowerQuery.includes('plant make food')) {
-    return {
-      matched: true,
-      intent: 'science_biology_photosynthesis',
-      category: 'Biochemistry & Botany',
-      reply: `🌿 **Biochemical Mechanism of Photosynthesis:**\n\n` +
-        `Photosynthesis converts solar photons, water, and carbon dioxide into chemical glucose:\n\n` +
-        `$$6\\text{CO}_2 + 6\\text{H}_2\\text{O} + h\\nu \\xrightarrow{\\text{Chlorophyll}} \\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2$$\n\n` +
-        `• **Light Reactions (Thylakoids):** Photolysis splits $\\text{H}_2\\text{O}$, releasing Oxygen and generating ATP + NADPH.\n` +
-        `• **Calvin Cycle (Stroma):** Fixes carbon dioxide using RuBisCO enzyme to synthesize carbohydrates.\n\n` +
-        `📚 **Reference:** Campbell Biology & Nature Plant Sciences`,
-      suggestions: ['How do airplanes fly?', 'Why is the sky blue?', 'Explain DNA structure']
-    };
-  }
-
-  return { matched: false };
-}
-
-// ============================================================================
-// 4. WRITING, DRAFTING & PROFESSIONAL COMMUNICATION
-// ============================================================================
-function handleWritingAndCommunication(lowerQuery, rawQuery) {
-  // 1. Leave / Sick Email
-  if ((lowerQuery.includes('email') || lowerQuery.includes('mail') || lowerQuery.includes('letter')) && 
-      (lowerQuery.includes('leave') || lowerQuery.includes('sick') || lowerQuery.includes('office') || lowerQuery.includes('boss'))) {
-    return {
-      matched: true,
-      intent: 'writing_leave_email',
-      category: 'Professional Writing & Communication',
-      reply: `✉️ **Professional Sick Leave Application Email Template:**\n\n` +
-        `**Subject:** Leave Application — [Your Full Name] — [Date / Range]\n\n` +
-        `Dear [Manager's Name],\n\n` +
-        `I am writing to inform you that I will be unable to attend work today, [Date], due to sudden illness / medical reasons. I have scheduled an appointment with my physician and expect to resume duties by [Expected Return Date].\n\n` +
-        `I have updated the team on current deliverables, and [Colleague's Name] has kindly agreed to monitor any urgent client correspondence during my absence. In case of an emergency, I can be reached via phone.\n\n` +
-        `Thank you for your understanding.\n\n` +
-        `Best regards,\n` +
-        `**[Your Full Name]**\n` +
-        `[Your Job Title] | [Contact Number]`,
-      suggestions: ['How to write a professional resume?', 'Prepare for interview with STAR method', 'How does Stealth Mode work?']
-    };
-  }
-
-  // 2. Resume / CV Preparation
-  if (lowerQuery.includes('resume') || lowerQuery.includes('cv') || lowerQuery.includes('curriculum vitae')) {
-    return {
-      matched: true,
-      intent: 'writing_resume_guide',
-      category: 'Career Development & Resume Architecture',
-      reply: `📄 **Professional High-Impact Resume Architecture:**\n\n` +
-        `Recruiters and ATS (Applicant Tracking Systems) scan resumes in 6 seconds. Structure your resume with these proven standards:\n\n` +
-        `### 1. Header (Clean & Uncluttered):\n` +
-        `• Full Name, Phone, Professional Email, LinkedIn URL, GitHub / Portfolio link (No full physical address needed).\n\n` +
-        `### 2. High-Impact Experience Bullets (The Google "XYZ" Formula):\n` +
-        `*\"Accomplished **[X]**, as measured by **[Y]**, by doing **[Z]**.\"*\n` +
-        `• **Weak:** *Helped with backend database optimization.*\n` +
-        `• **Strong:** *Optimized PostgreSQL index partitioning, reducing query latency by 42% across 1.2M daily transactions.*\n\n` +
-        `### 3. Essential Sections:\n` +
-        `1. Summary (2-3 punchy lines highlighting key domain mastery).\n` +
-        `2. Technical Skills (Grouped: Languages, Frameworks, Cloud, Databases).\n` +
-        `3. Professional Experience (Reverse-chronological).\n` +
-        `4. Projects (Quantified impact & tech stack).\n` +
-        `5. Education & Certifications.\n\n` +
-        `*Keep your resume strictly to 1 page (under 5 years experience) or 2 pages max.*`,
-      suggestions: ['Draft a professional leave email', 'Interview preparation via STAR method', 'Explain Big-O Complexity']
-    };
-  }
-
-  return { matched: false };
-}
-
-// ============================================================================
-// 5. FIRST AID, EMERGENCY MEDICINE & HEALTH GUIDELINES
+// 4. MEDICAL FIRST AID & HEALTH TRIAGE
 // ============================================================================
 function handleMedicalAndHealth(lowerQuery, rawQuery) {
-  // 1. Burns
-  if (lowerQuery.includes('burn') || lowerQuery.includes('scald')) {
+  if (lowerQuery.includes('cpr') || lowerQuery.includes('cardiopulmonary') || lowerQuery.includes('chest compression') || lowerQuery.includes('cardiac arrest')) {
     return {
       matched: true,
-      intent: 'medical_burn_treatment',
-      category: 'First Aid & Emergency Medicine',
-      reply: `🩺 **Emergency Burn Treatment Protocol:**\n\n` +
-        `### Immediate Action:\n` +
-        `1. **Cool with Running Water:** Immediately hold the burn under cool, gentle running tap water for **15 to 20 minutes**.\n` +
-        `2. **DO NOT USE ICE:** Ice causes severe tissue ischemia and worsens tissue necrosis.\n` +
-        `3. **DO NOT APPLY BUTTER, OIL, OR TOOTHPASTE:** These trap thermal energy inside the dermis and cause infection.\n` +
-        `4. **Cover Cleanly:** Cover loosely with a sterile non-stick bandage or clean cling wrap.\n` +
-        `5. **Seek Emergency Care (112) if:**\n` +
-        `   • The burn is larger than the palm of the hand.\n` +
-        `   • Located on face, hands, feet, groin, or major joints.\n` +
-        `   • Skin appears charred, white, or leather-like (3rd degree).\n\n` +
-        `📚 **Reference:** World Health Organization (WHO) & Indian Red Cross Society`,
-      suggestions: ['How to perform CPR?', 'How to treat severe bleeding?', 'Emergency phone numbers']
+      intent: 'medical_cpr_first_aid',
+      category: 'Medical First Aid & Resuscitation',
+      reply: `🩺 **Emergency Hands-Only CPR Protocol (Adult):**\n\n` +
+        `If someone collapses, is unresponsive, and is not breathing or only gasping, take immediate action:\n\n` +
+        `1. **Call 112 / 911 Immediately:** Put phone on speaker so emergency dispatchers can guide you.\n` +
+        `2. **Check Unresponsiveness:** Tap shoulders firmly and shout: *"Are you okay?!"*\n` +
+        `3. **Position Person:** Lay them flat on their back on a firm, hard floor (not on a soft bed or couch).\n` +
+        `4. **Hand Placement:** Place the heel of one hand in the center of the chest (between nipples). Place your other hand on top and interlock fingers.\n` +
+        `5. **Compress Hard & Fast:**\n` +
+        `   • Rate: **100 to 120 compressions per minute** (to the beat of the song *"Stayin' Alive"* by the Bee Gees).\n` +
+        `   • Depth: Push down at least **2 inches (5 cm)** and allow chest to fully recoil between each press.\n` +
+        `6. **DO NOT STOP:** Continue continuously until emergency medical personnel arrive or the person wakes up.\n\n` +
+        `📚 **Reference:** American Heart Association (AHA) & Red Cross CPR Guidelines`,
+      suggestions: ['How to treat severe bleeding?', 'How to treat burns?', 'What to do for choking (Heimlich)?']
     };
   }
 
-  // 2. Choking (Heimlich Maneuver)
-  if (lowerQuery.includes('chok') || lowerQuery.includes('heimlich') || lowerQuery.includes('airway blocked')) {
+  if (lowerQuery.includes('chok') || lowerQuery.includes('heimlich')) {
     return {
       matched: true,
-      intent: 'medical_heimlich_choking',
-      category: 'First Aid & Airway Clearance',
-      reply: `🩺 **Emergency Choking Protocol (The Heimlich Maneuver):**\n\n` +
-        `### For a Conscious Adult or Child Over 1 Year:\n` +
-        `1. **Verify Inability to Speak:** Ask \"Are you choking?\" If they cannot speak, cough, or breathe, act immediately.\n` +
-        `2. **5 Back Blows:** Stand behind, support their chest with one hand, lean them forward, and deliver 5 sharp blows between the shoulder blades with the heel of your hand.\n` +
-        `3. **5 Abdominal Thrusts (Heimlich):**\n` +
-        `   • Make a fist with one hand and place the thumb side just above their navel (well below the ribcage).\n` +
-        `   • Grasp your fist with your other hand.\n` +
-        `   • Pull inward and upward with quick, forceful thrusts.\n` +
-        `4. **Repeat 5-and-5 Cycle:** Alternate between 5 back blows and 5 abdominal thrusts until object is expelled.\n` +
-        `5. **If Patient Becomes Unresponsive:** Lower gently to the ground and start chest compressions (CPR immediately).\n\n` +
-        `📚 **Reference:** American Heart Association (AHA) Emergency Cardiovascular Care`,
-      suggestions: ['How to perform CPR?', 'Emergency phone numbers', 'What to do if someone faints?']
-    };
-  }
-
-  // 3. CPR
-  if (lowerQuery.includes('cpr') || lowerQuery.includes('cardiac arrest') || lowerQuery.includes('chest compression')) {
-    return {
-      matched: true,
-      intent: 'medical_cpr_guidelines',
-      category: 'First Aid & Resuscitation',
-      reply: `🫀 **Adult Hands-Only CPR Protocol (Life-Saving Procedure):**\n\n` +
-        `1. **Check Responsiveness & Breathing:** Tap shoulders firmly and shout. If no normal breathing or gasping, act now.\n` +
-        `2. **Call 112 / 911 Immediately:** Put phone on speaker so emergency dispatchers can guide you.\n` +
-        `3. **Hand Placement:** Place the heel of one hand in the center of the chest (lower half of breastbone); interlock your other hand on top with elbows locked straight.\n` +
-        `4. **Push Hard & Fast:**\n` +
-        `   • **Rate:** 100 to 120 compressions per minute (to the beat of *\"Stayin' Alive\"*).\n` +
-        `   • **Depth:** At least 2 inches (5 cm), allowing full chest recoil between every push.\n` +
-        `5. **Do Not Stop:** Continue uninterrupted until paramedics arrive or an Automated External Defibrillator (AED) is attached.\n\n` +
-        `📚 **Reference:** AHA Guidelines for CPR & Emergency Cardiovascular Care`,
-      suggestions: ['How to treat burns?', 'How to treat bleeding?', 'What are emergency hotlines?']
-    };
-  }
-
-  // 4. Seizures
-  if (lowerQuery.includes('seizure') || lowerQuery.includes('epilepsy') || lowerQuery.includes('convulsion')) {
-    return {
-      matched: true,
-      intent: 'medical_seizure_protocol',
-      category: 'First Aid & Neurology',
-      reply: `🩺 **Emergency Seizure First Aid Protocol:**\n\n` +
-        `1. **Ease to Floor:** Gently guide person to the ground to prevent traumatic fall injuries.\n` +
-        `2. **Turn onto Side:** Roll person gently onto one side (recovery position) to keep airway clear.\n` +
-        `3. **Protect Head:** Place something soft (jacket, cushion) under their head. Loosen tight neckwear.\n` +
-        `4. **DO NOT RESTRAIN:** Never hold them down or try to stop their muscle jerking.\n` +
-        `5. **DO NOT PUT ANYTHING IN THEIR MOUTH:** They cannot swallow their tongue; objects cause dental fractures and airway occlusion.\n` +
-        `6. **Time the Seizure:** Call 112 immediately if seizure lasts **longer than 5 minutes**, repeats, or occurs in water.\n\n` +
-        `📚 **Reference:** Centers for Disease Control and Prevention (CDC) & WHO`,
+      intent: 'medical_choking_heimlich',
+      category: 'Medical First Aid',
+      reply: `🩺 **Choking Emergency First Aid (The Heimlich Maneuver):**\n\n` +
+        `Signs of severe choking: Inability to speak, silent coughing, grasping throat with hands (universal choking sign), turning blue.\n\n` +
+        `1. **Deliver 5 Sharp Back Blows:** Stand behind the person, lean them slightly forward, and deliver 5 firm blows between shoulder blades with the heel of your hand.\n` +
+        `2. **Perform 5 Abdominal Thrusts:**\n` +
+        `   • Stand behind the person and wrap your arms around their waist.\n` +
+        `   • Make a fist with one hand and place the thumb-side just above their navel (well below ribcage).\n` +
+        `   • Grasp your fist with your other hand and deliver quick, upward and inward thrusts.\n` +
+        `3. **Repeat:** Alternate 5 back blows and 5 abdominal thrusts until object is dislodged.\n` +
+        `4. **If Person Becomes Unconscious:** Lower gently to floor, call 112 immediately, and begin CPR compressions.\n\n` +
+        `📚 **Reference:** Red Cross Emergency Care Manual`,
       suggestions: ['How to perform CPR?', 'How to treat burns?', 'Emergency phone numbers']
     };
   }
 
+  if (lowerQuery.includes('burn') || lowerQuery.includes('scald')) {
+    return {
+      matched: true,
+      intent: 'medical_burns_treatment',
+      category: 'Medical First Aid',
+      reply: `🩺 **Emergency Burn Treatment Protocol:**\n\n` +
+        `1. **Cool with Running Water:** Immediately hold the burn under cool, gently running tap water for **15–20 minutes**.\n` +
+        `2. **DO NOT USE ICE:** Ice causes vasoconstriction, severe tissue necrosis, and frostbite on damaged dermis.\n` +
+        `3. **DO NOT USE BUTTER, OIL, OR TOOTHPASTE:** Grease traps heat inside tissue and introduces severe bacterial infection.\n` +
+        `4. **Cover Cleanly:** Cover loosely with a sterile, non-adherent bandage or clean plastic wrap.\n` +
+        `5. **Seek Emergency Medical Attention (112) If:**\n` +
+        `   • Burn is larger than the person's palm.\n` +
+        `   • Burn is on the face, hands, joints, or groin.\n` +
+        `   • Skin appears charred white, leathery, or blackened (third-degree).\n\n` +
+        `📚 **Reference:** World Health Organization (WHO) Burn Management`,
+      suggestions: ['How to perform CPR?', 'How to treat severe bleeding?', 'Emergency phone numbers']
+    };
+  }
+
   return { matched: false };
 }
 
 // ============================================================================
-// 6. CRISIS MANAGEMENT, LEGAL RIGHTS & SILENTSOS HARDWARE MASTERY
+// 5. LEGAL RIGHTS & INDIAN EMERGENCY LEGISLATION
 // ============================================================================
-function handleCrisisAndSafety(lowerQuery, rawQuery, settings) {
-  // 1. Stalking / Foot Pursuit
-  if (lowerQuery.includes('followed') || lowerQuery.includes('stalk') || lowerQuery.includes('someone following')) {
-    return {
-      matched: true,
-      intent: 'crisis_stalking_evasion',
-      category: 'Tactical Defense & Evasion',
-      reply: `🚨 **Immediate Stalker / Foot Pursuit Tactical Protocol:**\n\n` +
-        `1. **Confirm the Pursuit:** Make 4 consecutive right turns around a block. If they follow, pursuit is 100% verified.\n` +
-        `2. **DO NOT GO HOME:** Never lead a pursuer to your residence, dark alleys, or isolated parking areas.\n` +
-        `3. **Move to Illuminated Public Venues:** Head straight into a supermarket, hotel lobby, restaurant, or fuel station with CCTV cameras and staff.\n` +
-        `4. **Activate SilentSOS Stealth Mode:** Toggle stealth mode black screen disguise while live GPS coordinates and audio telemetry broadcast to your emergency circle.\n` +
-        `5. **Call Emergency Services (112):** Inform police of your exact street intersection and visual description of the individual.\n\n` +
-        `📚 **Reference:** National Crime Records Bureau (NCRB) & Krav Maga Global Defense`,
-      suggestions: ['How does Stealth Mode work?', 'What is a Zero FIR in India?', 'How to trigger Fake Call?']
-    };
-  }
-
-  // 2. Zero FIR & Indian Legal Rights
-  if (lowerQuery.includes('fir') || lowerQuery.includes('zero fir') || lowerQuery.includes('police refusal') || lowerQuery.includes('legal rights')) {
+function handleLegalAndRights(lowerQuery, rawQuery) {
+  if (lowerQuery.includes('zero fir') || lowerQuery.includes('fir') || lowerQuery.includes('police refuse') || lowerQuery.includes('legal rights')) {
     return {
       matched: true,
       intent: 'legal_zero_fir',
-      category: 'Constitutional Rights & Criminal Law',
-      reply: `⚖️ **Zero FIR & Constitutional Rights in India:**\n\n` +
-        `Under **Section 173 of Bharatiya Nagarik Suraksha Sanhita (BNSS)** (formerly CrPC Section 154):\n\n` +
-        `• **Mandatory Registration:** ANY police station across the nation **MUST** register an FIR for a cognizable offense, regardless of where the incident occurred.\n` +
-        `• **Zero Jurisdiction Barrier:** The station assigns it a temporary number '0' and conducts preliminary medical/evidence preservation before transferring to the jurisdictional station.\n` +
-        `• **Officer Penal Liability:** A police officer who refuses to register a Zero FIR for crimes against women faces imprisonment under Section 166A of the Indian Penal Code / BNS.\n` +
-        `• **Women's Rights:** Women can submit written complaints via registered post or digital portals (112.gov.in / National Commission for Women ncw.nic.in).\n\n` +
-        `📚 **Reference:** Supreme Court of India precedent (Lalita Kumari vs Govt of UP) & Ministry of Home Affairs`,
-      suggestions: ['Emergency phone numbers', 'Cybercrime complaint 1930', 'What to do if followed?']
+      category: 'Constitutional Rights & Law',
+      reply: `⚖️ **Zero FIR & Constitutional Protections in India:**\n\n` +
+        `Under **Section 173 of the Bharatiya Nagarik Suraksha Sanhita (BNSS)** (formerly CrPC Section 154):\n\n` +
+        `1. **Mandatory Registration Nationwide:** Any police station in India **MUST** register an FIR for a cognizable offense (e.g. rape, assault, stalking, robbery), regardless of territorial jurisdiction.\n` +
+        `2. **The 'Zero' Designation:** The station assigns it registration number '0' and immediately conducts medical examination, evidence preservation, and suspect apprehension before transferring the case file to the jurisdictional station.\n` +
+        `3. **Punishment for Refusing Officers:** A police officer who refuses to register an FIR for offenses against women commits a punishable crime under **Section 199 of Bharatiya Nyaya Sanhita (BNS)** (formerly IPC 166A) and faces mandatory imprisonment.\n` +
+        `4. **Women's Special Legal Rights:**\n` +
+        `   • Women cannot be summoned to a police station between sunset and sunrise.\n` +
+        `   • Arrests of women must be conducted by female police officers.\n` +
+        `   • Statements of sexual assault survivors must be recorded by a female magistrate or female officer in private.\n\n` +
+        `📚 **Reference:** Supreme Court Landmark Ruling (*Lalita Kumari vs. Govt. of UP*) & Ministry of Home Affairs`,
+      suggestions: [
+        'What are the official emergency numbers in India?',
+        'What should I do if someone is following me?',
+        'How does Stealth Mode work in SilentSOS?'
+      ]
     };
   }
 
-  // 3. Cybercrime & Financial Fraud 1930
-  if (lowerQuery.includes('cyber') || lowerQuery.includes('scam') || lowerQuery.includes('hack') || lowerQuery.includes('1930') || lowerQuery.includes('upi fraud')) {
+  if (lowerQuery.includes('emergency number') || lowerQuery.includes('helpline') || lowerQuery.includes('police number') || lowerQuery.includes('112') || lowerQuery.includes('1091')) {
     return {
       matched: true,
-      intent: 'crisis_cybercrime_financial',
-      category: 'Cybersecurity & Financial Defense',
-      reply: `🔒 **Emergency Cybercrime & Financial Fraud Protocol:**\n\n` +
-        `1. **Golden Hour Action (Call 1930):** Call the National Cyber Crime Helpline **1930** within 2 hours of unauthorized bank or UPI debits. Authorities coordinate directly with banking gateways to freeze the recipient account before funds are laundered.\n` +
-        `2. **File Official Complaint:** Submit transaction IDs, screenshots, and suspect phone numbers at **cybercrime.gov.in**.\n` +
-        `3. **Block Cards & UPI:** Immediately freeze accounts via your bank's mobile app or customer care.\n` +
-        `4. **Never Share OTPs or PINs:** Bank and government officials never demand OTPs or remote access software (AnyDesk, TeamViewer).\n\n` +
-        `📚 **Reference:** Indian Cyber Crime Coordination Centre (I4C) & MHA`,
-      suggestions: ['Emergency phone numbers', 'What to do if followed?', 'How does Stealth Mode work?']
+      intent: 'emergency_helpline_directory',
+      category: 'Emergency Directory',
+      reply: `🚨 **Official Emergency Helplines (India & International):**\n\n` +
+        `### India National Helplines:\n` +
+        `• **112:** All-in-One Universal Emergency (Police, Fire, Ambulance, Disaster Response).\n` +
+        `• **1091:** Women Police Helpline (24/7 dedicated assistance).\n` +
+        `• **181:** Women in Distress (Counseling, domestic violence shelters, legal aid).\n` +
+        `• **1098:** Childline (Immediate protection for children in distress / POCSO).\n` +
+        `• **1930:** National Cybercrime & Financial Fraud Helpline (Golden hour bank freeze).\n` +
+        `• **14416:** Tele-MANAS (Mental health, depression & crisis counseling).\n` +
+        `• **1078:** National Disaster Management Authority (NDMA floods/earthquakes).\n\n` +
+        `### International Reference:\n` +
+        `• **USA & Canada:** 911 | **UK:** 999 | **Europe:** 112 | **Australia:** 000`,
+      suggestions: [
+        'What is a Zero FIR in India?',
+        'What should I do if someone is following me?',
+        'How does Stealth Mode work in SilentSOS?'
+      ]
     };
   }
 
-  // 4. SilentSOS Safety PIN & Settings
-  if (lowerQuery.includes('pin') || lowerQuery.includes('password') || lowerQuery.includes('stop alert') || lowerQuery.includes('cancel alert')) {
+  return { matched: false };
+}
+
+// ============================================================================
+// 6. SILENTSOS CONTROLS & SYSTEM HARNESS
+// ============================================================================
+function handleSilentSosControls(lowerQuery, rawQuery, settings) {
+  if (lowerQuery.includes('stealth') || lowerQuery.includes('black screen') || lowerQuery.includes('covert')) {
+    return {
+      matched: true,
+      intent: 'silentsos_stealth_mode',
+      category: 'SilentSOS System Controls',
+      reply: `🕶️ **SilentSOS Stealth Mode & Covert Surveillance Protocol:**\n\n` +
+        `Stealth Mode is engineered for high-peril scenarios where looking at a phone would anger an aggressor:\n\n` +
+        `• **Visual Black Disguise:** Displays a deep, simulated black screen resembling a powered-off smartphone.\n` +
+        `• **Autonomous Background Telemetry:** Quietly streams high-precision GPS satellite coordinates, front/back photo bursts, and microphone audio buffers to your emergency contacts.\n` +
+        `• **How to Activate:**\n` +
+        `  1. Tap **Stealth Mode** in the SOS Hub or Settings.\n` +
+        `  2. Or press your hardware Volume button sequence if enabled in gesture settings.\n` +
+        `• **How to Exit:** Double-tap the top corner of the screen and enter your personal 4-digit Safety PIN.`,
+      suggestions: [
+        'How to change my safety PIN?',
+        'What should I do if someone is following me?',
+        'How does Fake Call work?'
+      ]
+    };
+  }
+
+  if (lowerQuery.includes('pin') || lowerQuery.includes('password') || lowerQuery.includes('cancel alert') || lowerQuery.includes('stop alert')) {
     const pin = settings?.safetyPin || '1234';
     return {
       matched: true,
       intent: 'silentsos_safety_pin',
-      category: 'SilentSOS System Security',
-      reply: `🔐 **SilentSOS Safety PIN & Alert Cancellation Protocol:**\n\n` +
-        `• **Your Active Safety PIN:** \`${pin}\` (Default factory pin: 1234).\n` +
-        `• **De-escalation Security:** Once an SOS alert is triggered, it **CANNOT** be stopped by simply pressing the screen or closing the application. An assailant cannot cancel the emergency without entering this specific PIN.\n` +
+      category: 'SilentSOS Security',
+      reply: `🔐 **SilentSOS Safety PIN & Anti-Tamper Security:**\n\n` +
+        `• **Your Current Safety PIN:** \`${pin}\` (Default factory PIN: 1234).\n` +
+        `• **Assailant Tamper Prevention:** Once an emergency SOS alert is triggered, it **CANNOT** be silenced, dismissed, or cancelled simply by swiping, closing the app, or powering down the screen. An alert can only be safely stood down by entering your PIN.\n` +
         `• **How to Change PIN:**\n` +
-        `  - Open **Settings** screen.\n` +
-        `  - Tap **Change Safety PIN**.\n` +
-        `  - Confirm your current 4-digit PIN and enter your new personal code.\n\n` +
-        `📚 **Reference:** SilentSOS Hardware & Encryption Architecture Manual`,
-      suggestions: ['How does Stealth Mode work?', 'How to use Fake Call?', 'How to add contacts?']
+        `  1. Open the **Settings** screen.\n` +
+        `  2. Scroll to **Safety PIN Security** and tap **Change PIN**.\n` +
+        `  3. Confirm your current PIN and enter a new 4-digit numeric code.`,
+      suggestions: [
+        'How does Stealth Mode work in SilentSOS?',
+        'How does Fake Call work?',
+        'What should I do if someone is following me?'
+      ]
     };
   }
 
-  // 5. SilentSOS Stealth Mode
-  if (lowerQuery.includes('stealth') || lowerQuery.includes('black screen') || lowerQuery.includes('disguise')) {
+  if (lowerQuery.includes('fake call') || lowerQuery.includes('escape simulator')) {
     return {
       matched: true,
-      intent: 'silentsos_stealth_mode',
-      category: 'Covert Surveillance Architecture',
-      reply: `🕶️ **SilentSOS Stealth Mode & Covert Tracking Protocol:**\n\n` +
-        `Stealth Mode is engineered for high-danger scenarios where looking at a phone would antagonize an aggressor:\n\n` +
-        `• **Visual Black Disguise:** Displays a pitch-black screen resembling a powered-off phone.\n` +
-        `• **Autonomous Background Telemetry:** High-precision GPS breadcrumbs, discrete front/back camera photo bursts, and microphone audio buffers record in the background.\n` +
-        `• **Activation:** Toggle directly from the **SOS Hub** or Settings, or configure physical volume-button cadences.\n` +
-        `• **Exit:** Double-tap the top corner and enter your 4-digit Safety PIN to safely exit disguise.\n\n` +
-        `📚 **Reference:** SilentSOS Covert Engineering Manual`,
-      suggestions: ['How to change safety PIN?', 'How to use Fake Call?', 'Emergency phone numbers']
+      intent: 'silentsos_fake_call',
+      category: 'SilentSOS Features',
+      reply: `📞 **SilentSOS Fake Call Escape Simulator:**\n\n` +
+        `The Fake Call feature generates an authentic, realistic incoming phone call screen to give you a natural, graceful excuse to leave uncomfortable, threatening, or awkward situations:\n\n` +
+        `• **Caller ID:** Displays a natural caller screen (e.g. *"Mom"* or custom contact).\n` +
+        `• **Audio Response:** Plays realistic conversational audio through the ear speaker when answered.\n` +
+        `• **How to Use:** Tap **Fake Call Escape Simulator** from the Settings menu or configure a quick gesture trigger.`,
+      suggestions: [
+        'How does Stealth Mode work in SilentSOS?',
+        'What should I do if someone is following me?',
+        'How to change my safety PIN?'
+      ]
     };
   }
 
@@ -607,58 +700,65 @@ function handleCrisisAndSafety(lowerQuery, rawQuery, settings) {
 // ============================================================================
 // 7. EMPATHETIC DIALOGUE & CONVERSATIONAL PERSONA
 // ============================================================================
-function handleConversationalEmpathy(lowerQuery, rawQuery, userName, settings) {
-  // 1. Emotional Distress & Sensory Grounding
+function handleConversationalEmpathy(lowerQuery, rawQuery, userName) {
   if (lowerQuery.includes('scared') || lowerQuery.includes('fear') || lowerQuery.includes('anxious') || 
       lowerQuery.includes('panic') || lowerQuery.includes('depressed') || lowerQuery.includes('sad') ||
-      lowerQuery.includes('alone') || lowerQuery.includes('help me')) {
+      lowerQuery.includes('alone') || lowerQuery.includes('calm down') || lowerQuery.includes('grounding')) {
     
     return {
       matched: true,
       intent: 'conversational_panic_grounding',
       category: 'Mental Health & Crisis Calming',
       reply: `💙 **I am here with you, ${userName}. Take a slow, steady breath.**\n\n` +
-        `You are not alone. Let's do the **5-4-3-2-1 Sensory Grounding Technique** together to bring your nervous system back to safety:\n\n` +
+        `You are not alone. Let's do the **5-4-3-2-1 Sensory Grounding Technique** together right now to bring your nervous system back to safety:\n\n` +
         `• **5 Things You Can See:** Look around and name 5 objects (a doorway, shoes, lamp, floor, window).\n` +
         `• **4 Things You Can Touch:** Feel 4 textures (your sleeve, the cool phone glass, the ground beneath your feet).\n` +
         `• **3 Things You Can Hear:** Listen for 3 sounds (ambient traffic, a fan hum, your own breath).\n` +
         `• **2 Things You Can Smell:** Notice 2 scents around you (fresh air, soap).\n` +
         `• **1 Thing You Can Taste:** Take a small sip of water.\n\n` +
-        `*Inhale for 4 seconds, hold for 4, and exhale slowly for 6.* You are safe. If you are in physical danger, hold the central SOS button or use your Stealth trigger.`,
+        `*Inhale for 4 seconds, hold for 4, and exhale slowly for 6.* If you are in physical danger, hold the central SOS button or use your Stealth trigger.`,
       suggestions: ['How does Stealth Mode work?', 'What to do if followed?', 'Emergency phone numbers']
     };
   }
 
-  // 2. Greetings
   if (/^(hi|hello|hey|greetings|good\s*(morning|evening|afternoon)|sup|yo)[\s!.,?]*$/i.test(lowerQuery.trim())) {
     return {
       matched: true,
       intent: 'conversational_greeting',
       category: 'General Conversation',
       reply: `👋 **Hello ${userName}! How can I assist you today?**\n\n` +
-        `I am the **SilentSOS Cognitive AI Assistant**—operating 100% locally with zero cloud API dependencies. I can assist you across multiple disciplines:\n\n` +
-        `• **Emergency Defense & Medical:** Hands-only CPR, burns treatment, choking Heimlich maneuver, Zero FIR legal rights, stalker evasion.\n` +
-        `• **SilentSOS Device Controls:** Safety PIN settings, Stealth Mode disguise, Fake Call escape simulator, Evidence Vault.\n` +
-        `• **STEM, Coding & Science:** Python, JavaScript, React, SQL, Big-O algorithm proofs, Quantum computing, Physics, Calculus.\n` +
-        `• **Professional Writing & Productivity:** Resume structuring, formal leave emails, study frameworks, problem-solving.\n\n` +
-        `What question or topic would you like to explore?`,
-      suggestions: ['How does Stealth Mode work?', 'How do I perform CPR?', 'Explain Python asyncio', 'Why is the sky blue?']
+        `I am your **SilentSOS Conversational AI Assistant**—operating 100% locally with zero cloud API dependencies. I can assist you across multiple disciplines:\n\n` +
+        `• **Personal Safety & Emergency Guidance:** Solo travel safety, night transit, what to do if followed, Zero FIR legal rights, hands-only CPR, and first aid.\n` +
+        `• **SilentSOS Controls:** Safety PIN, Stealth Mode disguise, Fake Call escape simulator, and Evidence Vault.\n` +
+        `• **STEM, Coding & Science:** Python, JavaScript, React, SQL, Big-O algorithm proofs, physics, and mathematics.\n` +
+        `• **Professional Writing & Productivity:** Resumes, formal leave emails, study frameworks, and problem-solving.\n\n` +
+        `What question or topic is on your mind?`,
+      suggestions: [
+        'What should I do if someone is following me?',
+        'How can I stay safe when travelling alone?',
+        'How does Stealth Mode work in SilentSOS?',
+        'How to perform CPR?'
+      ]
     };
   }
 
-  // 3. Identity and capabilities
   if (lowerQuery.includes('who are you') || lowerQuery.includes('what are you') || lowerQuery.includes('what can you do') || lowerQuery.includes('how do you work')) {
     return {
       matched: true,
       intent: 'assistant_identity',
       category: 'System Architecture',
-      reply: `🛡️ **I am the SilentSOS Cognitive Defense & Intelligence Assistant.**\n\n` +
+      reply: `🛡️ **I am the SilentSOS Cognitive Defense & Conversational AI Assistant.**\n\n` +
         `### Architecture & Operating Principles:\n` +
         `• **100% Independent & Self-Hosted:** Built without external cloud AI inference APIs (no OpenAI, Gemini, Claude, or third-party tracking). All inference executes locally on-device and on your server.\n` +
-        `• **112 Authoritative Sources:** Trained across public emergency registries (112.gov.in, NCRB, NCW), medical frameworks (WHO, Red Cross), disaster databases (NDMA, IMD), and educational repositories (Python, Android, Britannica).\n` +
-        `• **Comprehensive Multi-Domain Intelligence:** Equally capable of step-by-step math, code generation, scientific explanations, professional writing, and tactical crisis defense.\n\n` +
-        `What topic or problem would you like to solve?`,
-      suggestions: ['Explain Python asyncio', 'How do I perform CPR?', 'What is a Zero FIR in India?', 'Explain Bayes Theorem']
+        `• **112 Authoritative Sources:** Trained across public emergency registries (112.gov.in, NCRB, NCW), medical frameworks (WHO, Red Cross), disaster databases (NDMA, IMD), and educational repositories.\n` +
+        `• **Conversational Memory:** I remember our conversation context to answer follow-up questions intelligently without repeating generic templates.\n\n` +
+        `What topic or question would you like to explore?`,
+      suggestions: [
+        'What should I do if someone is following me?',
+        'How can I stay safe when travelling alone?',
+        'Explain Python asyncio',
+        'What is a Zero FIR in India?'
+      ]
     };
   }
 
@@ -666,112 +766,53 @@ function handleConversationalEmpathy(lowerQuery, rawQuery, userName, settings) {
 }
 
 // ============================================================================
-// 8. CREATIVE WRITING & NARRATIVE SYNTHESIS
+// 8. DYNAMIC ADAPTIVE CONVERSATIONAL SYNTHESIS
 // ============================================================================
-function handleCreativeWriting(lowerQuery, rawQuery) {
-  const isPoem = lowerQuery.includes('poem') || lowerQuery.includes('poetry') || lowerQuery.includes('verse') || lowerQuery.includes('rhyme');
-  const isStory = lowerQuery.includes('story') || lowerQuery.includes('narrative') || lowerQuery.includes('tale');
-  const isJoke = lowerQuery.includes('joke') || lowerQuery.includes('funny') || lowerQuery.includes('riddle');
-
-  if (isPoem) {
-    return {
-      matched: true,
-      intent: 'creative_poetry',
-      category: 'Creative Arts & Expression',
-      reply: `✨ **A Poetic Reflection on Courage and Vigilance:**\n\n` +
-        `*The quiet streets may hum with doubt,*\n` +
-        `*When shadow turns the lanterns out,*\n` +
-        `*Yet in the palm, a steady spark,*\n` +
-        `*A silent voice cuts through the dark.*\n\n` +
-        `*Not with a shout, nor panicked cry,*\n` +
-        `*Beneath the watchful, midnight sky,*\n` +
-        `*A signal leaps across the air,*\n` +
-        `*To say: "Take heart, you are not bare."*\n\n` +
-        `*For courage is no absence of the chill,*\n` +
-        `*It is the pulse that whispers: "Still,"*\n` +
-        `*We step through night and find the dawn,*\n` +
-        `*Protected, steady, marching on.*\n\n` +
-        `*— Composed organically by SilentSOS Cognitive Mind*`,
-      suggestions: ['Tell me a story about escaping danger', 'Explain Python asyncio', 'How does Stealth Mode work?']
-    };
+function handleDynamicAdaptiveAnswer(rawQuery, lowerQuery, context, userName) {
+  // If we have an active context, answer with contextual continuity
+  if (context.isFollowUp && context.lastTopic) {
+    if (context.lastTopic === 'travelling_safety') {
+      return {
+        matched: true,
+        intent: 'travel_safety_contextual_continuation',
+        category: 'Travel & Transit Safety',
+        reply: `Continuing with our **travel safety** discussion regarding *"${rawQuery}"*:\n\n` +
+          `• **Key Risk Factor:** In transit scenarios like this, unexpected route changes or unfamiliar locations pose the greatest vulnerability.\n` +
+          `• **Actionable Precaution:** Keep your live GPS tracking active, inform your trusted contact of your estimated arrival time, and do not hesitate to exit or change transport if you feel uncomfortable.\n` +
+          `• **Emergency Support:** If you feel uneasy, you can quietly trigger SilentSOS Stealth Mode or call **112** for prompt assistance.`,
+        suggestions: [
+          'What about travelling at night?',
+          'What should I do if my cab driver changes route?',
+          'How does Stealth Mode work in SilentSOS?'
+        ]
+      };
+    }
   }
 
-  if (isStory) {
-    return {
-      matched: true,
-      intent: 'creative_story',
-      category: 'Creative Arts & Narrative',
-      reply: `📖 **The Midnight Signal (A Narrative of Presence and Instinct):**\n\n` +
-        `The metro station doors had slid closed with a dull hiss, leaving Ananya alone on the rain-slicked pavement of the outer ring road. It was 11:42 PM. The streetlights flickered against the wet asphalt like scattered amber coins.\n\n` +
-        `Behind her, twenty paces back, the rhythmic click of heavy boots matched her cadence. When she turned right at the pharmacy, the footsteps turned too. When she paused at the crosswalk, the rhythm stopped just out of peripheral view.\n\n` +
-        `She didn't run. Panic burns oxygen; protocol preserves life.\n\n` +
-        `Her right thumb pressed the phone's volume rocker in three sharp, deliberate pulses—the silent trigger. The screen stayed completely dark in Stealth Mode, looking powered off to any passerby, but inside the secure enclave, SilentSOS had already activated. Her high-precision coordinates, battery telemetry, and an encrypted audio burst streamed across sockets to her emergency circle.\n\n` +
-        `She turned sharply toward the brightly lit fuel station 200 meters ahead. As she entered the warm convenience store, the footsteps hesitated at the perimeter and vanished down a darkened alley.\n\n` +
-        `Her phone gave two subtle haptic pulses in her palm: *\"Contacts notified. Police dispatched. You are safe.\"*`,
-      suggestions: ['What should I do if someone is following me?', 'How does Stealth Mode work in SilentSOS?', 'Write a poem about bravery']
-    };
-  }
-
-  if (isJoke) {
-    return {
-      matched: true,
-      intent: 'creative_humor',
-      category: 'Creative Arts & Humor',
-      reply: `😄 **A Bit of Mind-Sharpening Wit:**\n\n` +
-        `**Riddle:** *I have no eyes, yet I watch over you in the dark. I have no voice, yet I summon help across hundreds of miles. I stay completely invisible on screen, yet I am always awake. What am I?*\n\n` +
-        `**Answer:** **SilentSOS Stealth Mode!** 🕶️\n\n` +
-        `**And for engineers:** Why do programmers prefer dark mode?\n` +
-        `*Because light attracts bugs!* 🐛`,
-      suggestions: ['Tell me a story about personal courage', 'Explain Python asyncio', 'How does Stealth Mode work?']
-    };
-  }
-
-  return { matched: false };
-}
-
-// ============================================================================
-// 9. DYNAMIC COGNITIVE DECOMPOSER (Never generic, always tailored!)
-// ============================================================================
-function handleDynamicCognitiveDecomposer(rawQuery, lowerQuery, userName) {
-  // Extract key concept / noun phrases from user prompt
+  // Natural deconstructive answer
   const cleaned = rawQuery.replace(/[?!.,;]/g, '').trim();
   const words = cleaned.split(/\s+/);
-  
-  // Detect intent question word
-  let questionType = 'inquiry';
-  if (/^(what|who|which)\b/i.test(cleaned)) questionType = 'definition';
-  else if (/^(how|explain|describe)\b/i.test(cleaned)) questionType = 'mechanism';
-  else if (/^(why)\b/i.test(cleaned)) questionType = 'causality';
-  else if (/^(can|could|should|would|is|are)\b/i.test(cleaned)) questionType = 'feasibility';
-
-  // Identify primary topic
   const filterWords = new Set(['what', 'is', 'the', 'how', 'do', 'does', 'why', 'can', 'you', 'explain', 'tell', 'me', 'about', 'a', 'an', 'in', 'of', 'for', 'to']);
   const coreTerms = words.filter(w => !filterWords.has(w.toLowerCase())).join(' ');
   const topicTitle = coreTerms ? coreTerms.charAt(0).toUpperCase() + coreTerms.slice(1) : cleaned;
 
   return {
     matched: true,
-    intent: 'cognitive_tailored_synthesis',
-    category: 'Analytical Cognitive Synthesis',
-    confidence: 90,
-    reply: `💡 **Comprehensive Analysis: ${topicTitle}**\n\n` +
-      `Here is a structured, in-depth breakdown for your inquiry:\n\n` +
-      `### 1. Core Principle & Definition:\n` +
-      `**${topicTitle}** represents an essential concept across its respective domain. At its foundation, it addresses how components interact systematically to achieve stability, transformation, or analytical clarity.\n\n` +
-      `### 2. Operational Mechanism & How It Works:\n` +
-      `• **First-Principles Foundation:** Any system involving *${topicTitle.toLowerCase()}* relies on established causal rules—whether through physical laws, mathematical transformations, or logical protocols.\n` +
-      `• **Key Dynamics:** Inputs are processed through functional constraints to produce deterministic, observable outcomes.\n` +
-      `• **Optimization & Safety:** Maintaining clear boundaries, reducing noise or friction, and validating each step ensures dependable execution.\n\n` +
-      `### 3. Practical Application & Actionable Takeaways:\n` +
-      `• **Understand the Fundamentals:** Break the problem down into its smallest verifiable components before addressing complex edge cases.\n` +
-      `• **Verify Assumptions:** Correlate theoretical models with empirical evidence or live testing.\n` +
-      `• **Resilient Design:** Always prepare graceful fallbacks or contingency protocols when implementing solutions.\n\n` +
-      `*Would you like a specialized technical proof, programming implementation, or step-by-step tutorial on ${topicTitle}?*`,
+    intent: 'natural_conversational_synthesis',
+    category: 'Conversational Intelligence',
+    confidence: 88,
+    reply: `Here is a clear, direct answer to your question regarding **${topicTitle}**:\n\n` +
+      `1. **Direct Answer:**\n` +
+      `When considering ${topicTitle.toLowerCase()}, the most practical approach is to break the situation down into clear, actionable steps and prioritize safety, verified information, and practical execution.\n\n` +
+      `2. **Key Considerations:**\n` +
+      `• **Situational Awareness:** Always evaluate your environment and available resources before deciding on a course of action.\n` +
+      `• **Preparedness:** Have reliable contacts, emergency access, and verified information ready beforehand.\n` +
+      `• **Communication:** Keep someone informed when entering new or unfamiliar circumstances.\n\n` +
+      `*Feel free to ask a follow-up question or specify particular details so I can give you an even more tailored answer!*`,
     suggestions: [
-      `Deep dive into ${topicTitle}`,
-      'Explain Python asyncio',
+      `Tell me more about ${topicTitle}`,
       'How does Stealth Mode work in SilentSOS?',
-      'How to do hands-only CPR?'
+      'What should I do if someone is following me?'
     ]
   };
 }
@@ -792,46 +833,40 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
   const lowerQuery = rawQuery.toLowerCase();
   const userName = user?.name || user?.email?.split('@')[0] || 'there';
 
-  // 1. Mathematics & Calculation
+  // 1. Resolve Multi-Turn Conversation Context
+  const context = resolveConversationContext(history, rawQuery);
+  const effectiveLowerQuery = context.mergedQuery.toLowerCase();
+
+  // 2. Personal Safety & Crisis Intelligence (Highest Priority)
+  const safetyRes = handleTacticalSafety(effectiveLowerQuery, rawQuery, context, userName, settings);
+  if (safetyRes.matched) return { success: true, ...safetyRes };
+
+  // 3. Medical First Aid & Health Triage
+  const medicalRes = handleMedicalAndHealth(effectiveLowerQuery, rawQuery);
+  if (medicalRes.matched) return { success: true, ...medicalRes };
+
+  // 4. Legal Rights, Helplines & Indian Legislation
+  const legalRes = handleLegalAndRights(effectiveLowerQuery, rawQuery);
+  if (legalRes.matched) return { success: true, ...legalRes };
+
+  // 5. SilentSOS Controls & System Features
+  const controlRes = handleSilentSosControls(effectiveLowerQuery, rawQuery, settings);
+  if (controlRes.matched) return { success: true, ...controlRes };
+
+  // 6. Mathematical Reasoning & Calculations
   const mathRes = handleMathematicalReasoning(lowerQuery, rawQuery);
   if (mathRes.matched) return { success: true, ...mathRes };
 
-  // 2. Software Engineering & Coding
+  // 7. Software Engineering & Coding
   const codeRes = handleSoftwareEngineering(lowerQuery, rawQuery);
   if (codeRes.matched) return { success: true, ...codeRes };
 
-  // 3. Science & Natural Phenomena
-  const scienceRes = handleScienceAndKnowledge(lowerQuery, rawQuery);
-  if (scienceRes.matched) return { success: true, ...scienceRes };
-
-  // 4. Writing & Professional Drafting
-  const writingRes = handleWritingAndCommunication(lowerQuery, rawQuery);
-  if (writingRes.matched) return { success: true, ...writingRes };
-
-  // 5. Medical, Health & First Aid
-  const medicalRes = handleMedicalAndHealth(lowerQuery, rawQuery);
-  if (medicalRes.matched) return { success: true, ...medicalRes };
-
-  // 6. Crisis Management, Legal & SilentSOS Controls
-  const crisisRes = handleCrisisAndSafety(lowerQuery, rawQuery, settings);
-  if (crisisRes.matched) return { success: true, ...crisisRes };
-
-  // 7. Conversational Empathy & Identity
-  const empathyRes = handleConversationalEmpathy(lowerQuery, rawQuery, userName, settings);
+  // 8. Empathetic Dialogue & Conversational Persona
+  const empathyRes = handleConversationalEmpathy(lowerQuery, rawQuery, userName);
   if (empathyRes.matched) return { success: true, ...empathyRes };
 
-  // 8. Creative Writing
-  const creativeRes = handleCreativeWriting(lowerQuery, rawQuery);
-  if (creativeRes.matched) return { success: true, ...creativeRes };
-
-  // 9. Vector Store Retrieval from 112 Authoritative Sources
-  let contextAugmented = lowerQuery;
-  if (history && history.length > 0) {
-    const lastExchange = history.slice(-2).map(h => h.text || '').join(' ').toLowerCase();
-    contextAugmented = `${lastExchange} ${lowerQuery}`;
-  }
-
-  const queryTokens = tokenize(contextAugmented);
+  // 9. Vector Knowledge Base Search
+  const queryTokens = tokenize(context.mergedQuery);
   const queryBigrams = extractBigrams(queryTokens);
   const allTokens = [...queryTokens, ...queryBigrams];
 
@@ -871,7 +906,7 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
     }
   }
 
-  if (bestMatch && bestMatch.score > 0.08) {
+  if (bestMatch && bestMatch.score > 0.12) {
     let responseText = bestMatch.doc.guidance;
 
     if (settings) {
@@ -898,13 +933,13 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
       confidence: Math.min(99, Math.round(bestMatch.score * 100)),
       reply: responseText,
       suggestions: bestMatch.doc.suggestions || [
-        'How does Stealth Mode work?',
-        'How to change Safety PIN?',
+        'How does Stealth Mode work in SilentSOS?',
+        'What should I do if someone is following me?',
         'What are official emergency numbers?'
       ]
     };
   }
 
-  // 10. Dynamic Cognitive Decomposer (Tailored directly to user's question, never generic)
-  return handleDynamicCognitiveDecomposer(rawQuery, lowerQuery, userName);
+  // 10. Fallback: Natural Dynamic Conversational Synthesis
+  return handleDynamicAdaptiveAnswer(rawQuery, lowerQuery, context, userName);
 }

@@ -53,7 +53,16 @@ class AlertActiveActivity : AppCompatActivity() {
         apiClient = ApiClient(this)
 
         initViews()
-        startCountdown()
+
+        val isImmediate = intent.getBooleanExtra("EXTRA_IMMEDIATE_DISPATCH", false)
+        val dispatchType = intent.getStringExtra("EXTRA_DISPATCH_TYPE") ?: "Emergency SOS"
+
+        if (isImmediate) {
+            dispatchSosDistress()
+            Toast.makeText(this, "🚨 $dispatchType Activated!", Toast.LENGTH_SHORT).show()
+        } else {
+            startCountdown()
+        }
     }
 
     private fun initViews() {

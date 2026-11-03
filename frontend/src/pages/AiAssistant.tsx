@@ -27,11 +27,12 @@ export function AiAssistant() {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([
-    'How does Stealth Mode work?',
     'What should I do if someone is following me?',
+    'How can I stay safe when travelling alone?',
+    'I feel unsafe right now.',
+    'How does Stealth Mode work in SilentSOS?',
     'How do I perform CPR?',
-    'What is a Zero FIR in India?',
-    'Explain Python asyncio'
+    'What is a Zero FIR in India?'
   ]);
 
   const [messages, setMessages] = useState<AiMessage[]>(() => {
@@ -47,11 +48,14 @@ export function AiAssistant() {
     return [
       {
         role: 'assistant',
-        text: `👋 Hello! I am your **SilentSOS AI Defense Assistant**.\n\n` +
-          `I am an independent, self-hosted cognitive intelligence companion trained locally on **112 authoritative sources** spanning emergency tactical defense, CPR first aid, disaster management, software engineering, and personal safety.\n\n` +
-          `• **100% Offline Capable & Private:** Zero third-party cloud APIs (No OpenAI, Gemini, or Claude cloud endpoints).\n` +
-          `• **Integrated System Awareness:** I understand your active safety PIN, stealth triggers, and emergency contacts.\n\n` +
-          `How can I assist you right now?`,
+        text: `👋 Hello! I am your 24/7 **SilentSOS AI Assistant**.\n\n` +
+          `I operate **100% locally with zero external APIs**, ready to converse and assist you with:\n\n` +
+          `• **Personal Safety & Evasion:** What to do if followed, solo travel, night transit safety\n` +
+          `• **Emergency First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n` +
+          `• **Legal Rights in India:** Zero FIR under BNSS, women's rights, emergency helplines\n` +
+          `• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Fake Call escape simulator\n` +
+          `• **STEM & Problem Solving:** Python, algorithms, math calculations, and science\n\n` +
+          `What question or situation can I help you with today?`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         category: 'Personal Safety & Defense',
         confidence: 100
@@ -75,10 +79,12 @@ export function AiAssistant() {
     setMessages([initialMsg]);
     localStorage.removeItem('silentsos_ai_chat_history');
     setAiSuggestions([
-      'How does Stealth Mode work?',
-      'How to change my safety PIN?',
-      'What to do if followed?',
-      'How do I perform CPR?'
+      'What should I do if someone is following me?',
+      'How can I stay safe when travelling alone?',
+      'I feel unsafe right now.',
+      'How does Stealth Mode work in SilentSOS?',
+      'How do I perform CPR?',
+      'What is a Zero FIR in India?'
     ]);
   };
 

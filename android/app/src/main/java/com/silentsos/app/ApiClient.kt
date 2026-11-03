@@ -764,11 +764,24 @@ class ApiClient(private val context: Context) {
         val suggestions: List<String>
     )
 
-    suspend fun askAiAssistant(message: String): Result<AiAssistantResponse> = withContext(Dispatchers.IO) {
+    suspend fun askAiAssistant(
+        message: String,
+        history: List<Pair<String, String>> = emptyList()
+    ): Result<AiAssistantResponse> = withContext(Dispatchers.IO) {
         try {
             val base = getBaseUrl()
             val json = JSONObject().apply {
                 put("message", message)
+                if (history.isNotEmpty()) {
+                    val arr = JSONArray()
+                    for ((role, text) in history) {
+                        arr.put(JSONObject().apply {
+                            put("role", role)
+                            put("text", text)
+                        })
+                    }
+                    put("history", arr)
+                }
             }
             val request = Request.Builder()
                 .url("$base/api/ai/chat")

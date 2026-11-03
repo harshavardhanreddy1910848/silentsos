@@ -7,6 +7,14 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CaptureRequest
+import android.view.Surface
+import android.view.TextureView
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -399,15 +407,21 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                 // Live surveillance & gesture triggers
         btnTestGesture?.setOnClickListener { loadTab(NavTab.GESTURES) }
         btnQuickPhoto.setOnClickListener { showSurveillanceDialog("photo", tvActionQuickPhoto) }
+        tvActionQuickPhoto?.setOnClickListener { showSurveillanceDialog("photo", tvActionQuickPhoto) }
         btnQuickAudio.setOnClickListener { showSurveillanceDialog("audio", tvActionQuickAudio) }
+        tvActionQuickAudio?.setOnClickListener { showSurveillanceDialog("audio", tvActionQuickAudio) }
         btnQuickVideo.setOnClickListener { showSurveillanceDialog("video", tvActionQuickVideo) }
+        tvActionQuickVideo?.setOnClickListener { showSurveillanceDialog("video", tvActionQuickVideo) }
 
         containerContent.addView(view)
     }
 
-    private fun triggerCrisisDispatch(type: String) {
+    private fun triggerCrisisDispatch(type: String, immediate: Boolean = false) {
         val intent = Intent(this, AlertActiveActivity::class.java).apply {
             putExtra("EXTRA_DISPATCH_TYPE", type)
+            if (immediate) {
+                putExtra("EXTRA_IMMEDIATE_DISPATCH", true)
+            }
         }
         startActivity(intent)
     }
@@ -474,7 +488,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                 override fun onFinish() {
                     btnCancel.visibility = View.GONE
                     tvDetectStatus.text = "🚨 DISPATCHING EMERGENCY SOS..."
-                    triggerCrisisDispatch("Optical Gesture ($gestureName)")
+                    triggerCrisisDispatch("Optical Gesture ($gestureName)", immediate = true)
                     resetScanner()
                 }
             }.start()
@@ -578,6 +592,79 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         var recordRunnable: Runnable? = null
         var isFrontLens = true
 
+        val textureViewFinder: TextureView = dialogView.findViewById(R.id.textureViewFinder)
+        var cameraDevice: CameraDevice? = null
+        var captureSession: CameraCaptureSession? = null
+
+        fun stopCameraPreview() {
+            try {
+                captureSession?.stopRepeating()
+                captureSession?.close()
+                captureSession = null
+            } catch (e: Exception) {}
+            try {
+                cameraDevice?.close()
+                cameraDevice = null
+            } catch (e: Exception) {}
+        }
+
+        fun startCameraPreview(front: Boolean) {
+            if (checkSelfPermission(android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.CAMERA), 101)
+                return
+            }
+            try {
+                stopCameraPreview()
+                val cm = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                val targetFacing = if (front) CameraCharacteristics.LENS_FACING_FRONT else CameraCharacteristics.LENS_FACING_BACK
+                var targetId: String? = null
+                for (id in cm.cameraIdList) {
+                    val characteristics = cm.getCameraCharacteristics(id)
+                    if (characteristics.get(CameraCharacteristics.LENS_FACING) == targetFacing) {
+                        targetId = id
+                        break
+                    }
+                }
+                val camId = targetId ?: cm.cameraIdList.firstOrNull() ?: return
+                cm.openCamera(camId, object : CameraDevice.StateCallback() {
+                    override fun onOpened(camera: CameraDevice) {
+                        cameraDevice = camera
+                        val st = textureViewFinder.surfaceTexture ?: return
+                        val surface = Surface(st)
+                        try {
+                            val builder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
+                                addTarget(surface)
+                                set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+                            }
+                            camera.createCaptureSession(listOf(surface), object : CameraCaptureSession.StateCallback() {
+                                override fun onConfigured(session: CameraCaptureSession) {
+                                    captureSession = session
+                                    try {
+                                        session.setRepeatingRequest(builder.build(), null, null)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
+                                override fun onConfigureFailed(session: CameraCaptureSession) {}
+                            }, null)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    override fun onDisconnected(camera: CameraDevice) {
+                        camera.close()
+                        cameraDevice = null
+                    }
+                    override fun onError(camera: CameraDevice, error: Int) {
+                        camera.close()
+                        cameraDevice = null
+                    }
+                }, null)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         // Configure initial mode UI
         when (initialMode) {
             "photo" -> {
@@ -612,7 +699,27 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         btnFlipLens.setOnClickListener {
             isFrontLens = !isFrontLens
             tvLensFacing.text = if (isFrontLens) "FRONT SENSOR • 1080p" else "REAR SENSOR • 1080p 60FPS"
+            startCameraPreview(isFrontLens)
             Toast.makeText(this, "Switched to ${if (isFrontLens) "Front" else "Rear"} Lens", Toast.LENGTH_SHORT).show()
+        }
+
+        // Live camera viewfinder preview activation
+        if (initialMode == "photo" || initialMode == "video") {
+            if (textureViewFinder.isAvailable) {
+                startCameraPreview(isFrontLens)
+            } else {
+                textureViewFinder.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+                        startCameraPreview(isFrontLens)
+                    }
+                    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
+                    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+                        stopCameraPreview()
+                        return true
+                    }
+                    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
+                }
+            }
         }
 
         // Action handler
@@ -820,6 +927,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         btnClose.setOnClickListener {
+            stopCameraPreview()
             if (isRecording) {
                 recordRunnable?.let { recordHandler.removeCallbacks(it) }
                 if (initialMode == "audio") {
@@ -830,6 +938,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         dialog.setOnDismissListener {
+            stopCameraPreview()
             if (isRecording) {
                 recordRunnable?.let { recordHandler.removeCallbacks(it) }
                 if (initialMode == "audio") {

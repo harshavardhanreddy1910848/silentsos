@@ -28,6 +28,9 @@ class AiAssistantActivity : AppCompatActivity() {
     private lateinit var btnBack: ImageButton
     private lateinit var btnAiClear: ImageButton
 
+    // Conversation Memory History
+    private val conversationHistory = mutableListOf<Pair<String, String>>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ai_assistant)
@@ -49,21 +52,14 @@ class AiAssistantActivity : AppCompatActivity() {
         }
 
         btnAiClear.setOnClickListener {
+            conversationHistory.clear()
             llAiMessageContainer.removeAllViews()
             initDefaultAssistantGreeting()
+            resetSuggestions()
         }
 
         initDefaultAssistantGreeting()
-
-        val defaultSuggestions = listOf(
-            "How does Stealth Mode work?",
-            "How do I change my safety PIN?",
-            "What should I do if followed?",
-            "How to perform CPR?",
-            "What is a Zero FIR in India?",
-            "Explain Python asyncio"
-        )
-        populateSuggestions(defaultSuggestions)
+        resetSuggestions()
 
         btnAiSend.setOnClickListener {
             val text = etAiQuery.text.toString().trim()
@@ -76,14 +72,27 @@ class AiAssistantActivity : AppCompatActivity() {
     private fun initDefaultAssistantGreeting() {
         val userName = sessionManager.currentUser?.name ?: "there"
         val greeting = "👋 Hello $userName! I am your 24/7 **SilentSOS AI Defense Assistant**.\n\n" +
-            "I operate **100% locally with zero external APIs**, trained on 112 authoritative sources for:\n" +
-            "• **Tactical Emergency:** Active shooter, stalker evasion, Zero FIR legal rights\n" +
-            "• **Medical First Aid:** CPR compressions, severe arterial bleeding control\n" +
-            "• **SilentSOS Controls:** Stealth Mode, covert gestures, safety PIN security\n" +
-            "• **STEM & Coding:** Python asyncio, Kotlin coroutines, Bayes' Theorem\n\n" +
-            "How may I protect or assist you today?"
+            "I operate **100% locally with zero external APIs**, ready to converse and assist you with:\n" +
+            "• **Personal Safety & Evasion:** What to do if followed, travel safety, night transit\n" +
+            "• **Medical First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n" +
+            "• **Legal Rights in India:** Zero FIR under BNSS, women's rights, emergency helplines\n" +
+            "• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Fake Call escape simulator\n" +
+            "• **STEM & Problem Solving:** Python, Kotlin Coroutines, Big-O analysis, and science\n\n" +
+            "What question or situation can I help you with today?"
 
         addBubble(greeting, isUser = false)
+    }
+
+    private fun resetSuggestions() {
+        val defaultSuggestions = listOf(
+            "What should I do if someone is following me?",
+            "How can I stay safe when travelling alone?",
+            "I feel unsafe right now.",
+            "How does Stealth Mode work in SilentSOS?",
+            "How to perform CPR?",
+            "What is a Zero FIR in India?"
+        )
+        populateSuggestions(defaultSuggestions)
     }
 
     private fun populateSuggestions(suggestions: List<String>) {
@@ -134,7 +143,7 @@ class AiAssistantActivity : AppCompatActivity() {
 
         if (!isUser) {
             val headerLabel = TextView(this)
-            headerLabel.text = "⚡ SILENTSOS COGNITIVE AI"
+            headerLabel.text = "⚡ SILENTSOS CONVERSATIONAL AI"
             headerLabel.setTextColor(Color.parseColor("#38bdf8"))
             headerLabel.textSize = 9.5f
             headerLabel.typeface = Typeface.DEFAULT_BOLD
@@ -160,16 +169,21 @@ class AiAssistantActivity : AppCompatActivity() {
         etAiQuery.setText("")
         tvAiThinking.visibility = View.VISIBLE
 
+        // Add user turn to conversation history
+        conversationHistory.add("user" to queryText)
+
         lifecycleScope.launch {
-            val res = apiClient.askAiAssistant(queryText)
+            val res = apiClient.askAiAssistant(queryText, conversationHistory.takeLast(6))
             tvAiThinking.visibility = View.GONE
             res.onSuccess { aiRes ->
+                conversationHistory.add("assistant" to aiRes.reply)
                 addBubble(aiRes.reply, isUser = false)
                 if (aiRes.suggestions.isNotEmpty()) {
                     populateSuggestions(aiRes.suggestions)
                 }
             }.onFailure {
-                val (offlineReply, offlineSuggestions) = getLocalOfflineSafetyAdvice(queryText)
+                val (offlineReply, offlineSuggestions) = getLocalOfflineSafetyAdvice(queryText, conversationHistory)
+                conversationHistory.add("assistant" to offlineReply)
                 addBubble(offlineReply, isUser = false)
                 if (offlineSuggestions.isNotEmpty()) {
                     populateSuggestions(offlineSuggestions)
@@ -178,360 +192,135 @@ class AiAssistantActivity : AppCompatActivity() {
         }
     }
 
-    private fun getLocalOfflineSafetyAdvice(query: String): Pair<String, List<String>> {
+    private fun getLocalOfflineSafetyAdvice(query: String, history: List<Pair<String, String>>): Pair<String, List<String>> {
         val q = query.trim().lowercase()
         val currentPin = sessionManager.safetyPin.ifEmpty { "1234" }
 
-        // 1. Math Arithmetic Calculation
-        val mathRegex = Regex("""(?:what\s+is|calculate|evaluate)?\s*([0-9]+(?:\.[0-9]+)?\s*[\+\-\*/]\s*[0-9]+(?:\.[0-9]+)?)""")
-        val mathMatch = mathRegex.find(q)
-        if (mathMatch != null) {
-            val expr = mathMatch.groupValues[1]
-            try {
-                val parts = expr.split(Regex("""(?<=[\+\-\*/])|(?=[\+\-\*/])""")).map { it.trim() }
-                if (parts.size == 3) {
-                    val a = parts[0].toDouble()
-                    val op = parts[1]
-                    val b = parts[2].toDouble()
-                    val res = when (op) {
-                        "+" -> a + b
-                        "-" -> a - b
-                        "*" -> a * b
-                        "/" -> if (b != 0.0) a / b else Double.NaN
-                        else -> Double.NaN
-                    }
-                    if (!res.isNaN()) {
-                        return Pair(
-                            "📐 Mathematical Calculation:\n\n• Expression: $expr\n• Exact Result: $res\n\nComputed locally on-device.",
-                            listOf("Explain Bayes Theorem", "Explain Calculus", "Explain Big-O Complexity")
-                        )
-                    }
-                }
-            } catch (_: Exception) {}
+        // Context analysis from previous turns
+        val previousTurns = history.map { it.second.lowercase() }.joinToString(" ")
+        val isTravelContext = previousTurns.contains("travel") || previousTurns.contains("trip") || previousTurns.contains("hotel") || previousTurns.contains("transit")
+        val isStalkerContext = previousTurns.contains("follow") || previousTurns.contains("stalk") || previousTurns.contains("behind me")
+
+        // 1. Being Followed / Stalking
+        if (q.contains("following me") || q.contains("someone following") || q.contains("being followed") || q.contains("stalk") || (isStalkerContext && (q.contains("stop") || q.contains("close") || q.contains("run")))) {
+            return Pair(
+                "If you think someone is following you, **prioritize your immediate physical safety above everything else**:\n\n" +
+                "1. **Confirm Without Alerting Them:** Do not panic or constantly look back. Make 3–4 consecutive turns around a block. If the person matches your turns, pursuit is confirmed.\n" +
+                "2. **Move Towards a Crowded, Illuminated Venue:** Head directly into an open commercial space—a supermarket, hotel lobby, restaurant, 24-hour convenience store, or fuel station with staff and CCTV cameras.\n" +
+                "3. **DO NOT Go Directly Home:** Never lead a follower to your apartment, dark residential lanes, or parking garages.\n" +
+                "4. **Contact Trusted Persons & Share Live Location:** Call someone you trust, state your exact street intersection calmly, and keep them on speaker. In SilentSOS, your live GPS coordinates can be shared instantly.\n" +
+                "5. **Contact Emergency Services (112):** If you feel threatened or the person closes distance, dial **112** (Universal Emergency in India/EU) or **911** (US).",
+                listOf("What should I do if they don't stop?", "How does Stealth Mode work in SilentSOS?", "What about travelling at night?")
+            )
         }
 
-        return when {
-            // Greetings & Identity
-            q.matches(Regex("""^(hi|hello|hey|greetings|good\s*(morning|evening|afternoon)|sup|yo)[!.,?\s]*""")) -> {
-                Pair(
-                    "👋 Hello! How can I assist you today?\n\n" +
-                    "I am the SilentSOS Cognitive AI Assistant—operating 100% locally with zero cloud API dependencies. I can assist you across:\n\n" +
-                    "• Tactical Defense & Safety: CPR, burn treatment, choking Heimlich maneuver, Zero FIR legal rights, stalker evasion.\n" +
-                    "• SilentSOS Controls: Safety PIN, Stealth Mode disguise, Fake Call escape simulator, Evidence Vault.\n" +
-                    "• STEM & Coding: Python, Kotlin Coroutines, Big-O analysis, Quantum computing, Physics, Calculus.\n" +
-                    "• Writing & Productivity: Professional resume structure, sick leave emails, interview preparation.\n\n" +
-                    "What topic is on your mind?",
-                    listOf("How does Stealth Mode work?", "How do I perform CPR?", "Explain Python asyncio", "Why is the sky blue?")
-                )
-            }
-            q.contains("who are you") || q.contains("what are you") || q.contains("what can you do") || q.contains("how do you work") -> {
-                Pair(
-                    "🛡️ SilentSOS Cognitive Defense & Intelligence Assistant:\n\n" +
-                    "• 100% Independent & Self-Hosted: Operates directly on-device with zero external cloud AI API dependencies.\n" +
-                    "• 112 Authoritative Sources: Trained on medical frameworks (WHO, Red Cross), public registries (112.gov.in, NCRB), disaster frameworks (NDMA, IMD), and educational resources.\n" +
-                    "• Dual-Domain Versatility: Multi-domain general intelligence (math, coding, science, writing) and specialized tactical crisis response.",
-                    listOf("Explain Python asyncio", "How do I perform CPR?", "What is a Zero FIR in India?", "Explain Bayes Theorem")
-                )
-            }
-
-            // Science: Sky Blue & Flight
-            q.contains("sky") && q.contains("blue") -> {
-                Pair(
-                    "🔬 Why the Sky Appears Blue (Rayleigh Scattering):\n\n" +
-                    "• Sunlight contains all colors of visible light.\n" +
-                    "• Atmospheric gases (Nitrogen & Oxygen) scatter light with intensity inversely proportional to the 4th power of wavelength (I ∝ 1/λ⁴).\n" +
-                    "• Blue light has shorter wavelengths (~450 nm) than red light (~700 nm), scattering ~10 times more intensely in all directions across the atmosphere.\n\n" +
-                    "At sunset, sunlight travels through thicker atmosphere, scattering away blue and leaving orange-red wavelengths.",
-                    listOf("How do airplanes fly?", "Explain Black Holes", "Explain Theory of Relativity")
-                )
-            }
-            q.contains("airplane") || q.contains("plane") || q.contains("fly") || q.contains("flight") -> {
-                Pair(
-                    "✈️ How Airplanes Fly (The 4 Forces of Flight):\n\n" +
-                    "1. Lift: Curved airfoil wings create lower pressure on top (Bernoulli's Principle) and deflect air downward (Newton's 3rd Law), generating upward aerodynamic suction.\n" +
-                    "2. Weight (Gravity): Downward force of mass (W = mg).\n" +
-                    "3. Thrust: Engines expel air backward to propel aircraft forward.\n" +
-                    "4. Drag: Air resistance opposing forward motion.\n\n" +
-                    "When Lift > Weight, the plane ascends; when Thrust > Drag, it accelerates.",
-                    listOf("Why is the sky blue?", "Explain Newton's Laws of Motion", "Explain Theory of Relativity")
-                )
-            }
-            q.contains("quantum") || q.contains("qubit") -> {
-                Pair(
-                    "⚛️ Foundations of Quantum Computing:\n\n" +
-                    "• Superposition: Unlike classical bits (0 or 1), a Qubit exists simultaneously in a linear combination |ψ⟩ = α|0⟩ + β|1⟩.\n" +
-                    "• Entanglement: Qubits become interconnected such that measuring one instantly determines the other regardless of physical separation.\n" +
-                    "• Quantum Interference: Algorithms amplify correct solution paths while canceling destructive errors.\n\n" +
-                    "Applications: Shor's algorithm for cryptography, Grover's search, molecular drug modeling.",
-                    listOf("Explain Theory of Relativity", "Explain Black Holes", "Why is the sky blue?")
-                )
-            }
-            q.contains("relativity") || q.contains("einstein") || q.contains("time dilation") -> {
-                Pair(
-                    "🌌 Albert Einstein's Theory of Relativity:\n\n" +
-                    "1. Special Relativity (1905): The speed of light (c = 299,792,458 m/s) is invariant across all inertial reference frames. As velocity approaches c, time dilates (t' = t / √(1 - v²/c²)) and mass-energy equates to E = mc².\n" +
-                    "2. General Relativity (1915): Gravity is the curvature of spacetime caused by mass and energy.",
-                    listOf("Explain Black Holes", "Explain Quantum Computing", "How do airplanes fly?")
-                )
-            }
-            q.contains("black hole") || q.contains("singularity") || q.contains("event horizon") -> {
-                Pair(
-                    "🕳️ Anatomy of Black Holes:\n\n" +
-                    "• Event Horizon: The point of no return where escape velocity exceeds the speed of light. Radius is defined by rs = 2GM/c².\n" +
-                    "• Singularity: Center point of infinite density where classical general relativity yields to quantum gravity.\n" +
-                    "• Accretion Disk: Superheated matter orbiting near light speed emitting intense X-rays.\n" +
-                    "• Hawking Radiation: Quantum vacuum fluctuations allowing black holes to slowly evaporate.",
-                    listOf("Explain Theory of Relativity", "Explain Quantum Computing", "Why is the sky blue?")
-                )
-            }
-            q.contains("photosynthesis") -> {
-                Pair(
-                    "🌿 Biochemical Photosynthesis:\n\n" +
-                    "6CO₂ + 6H₂O + sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\n\n" +
-                    "• Light Reactions (Thylakoids): Photolysis splits water, releasing Oxygen and generating ATP & NADPH.\n" +
-                    "• Calvin Cycle (Stroma): Fixes carbon dioxide using RuBisCO enzymes to synthesize carbohydrates.",
-                    listOf("Why is the sky blue?", "How do airplanes fly?", "Explain DNA structure")
-                )
-            }
-
-            // Writing & Professional
-            (q.contains("email") || q.contains("mail") || q.contains("letter")) && (q.contains("leave") || q.contains("sick") || q.contains("office")) -> {
-                Pair(
-                    "✉️ Professional Sick Leave Application:\n\n" +
-                    "Subject: Leave Application — [Your Name] — [Date]\n\n" +
-                    "Dear [Manager's Name],\n\n" +
-                    "I am writing to request sick leave for today, [Date], due to sudden medical reasons. I have updated my team on active deliverables, and [Colleague] will monitor urgent client inquiries.\n\n" +
-                    "I anticipate returning on [Expected Date]. Thank you for your understanding.\n\n" +
-                    "Best regards,\n[Your Name] | [Job Title]",
-                    listOf("How to write a professional resume?", "Interview preparation via STAR method", "How does Stealth Mode work?")
-                )
-            }
-            q.contains("resume") || q.contains("cv") || q.contains("curriculum vitae") -> {
-                Pair(
-                    "📄 High-Impact Professional Resume Architecture:\n\n" +
-                    "• Header: Name, Phone, Professional Email, LinkedIn, GitHub/Portfolio.\n" +
-                    "• The Google XYZ Formula: 'Accomplished [X], measured by [Y], by doing [Z].'\n" +
-                    "• Core Sections: Summary (2-3 lines), Technical Skills, Reverse-Chronological Experience, Projects, Education.\n" +
-                    "• Keep strictly to 1 page (under 5 years experience) or 2 pages maximum.",
-                    listOf("Draft a leave email", "Interview preparation via STAR method", "Explain Big-O Complexity")
-                )
-            }
-
-            // Medical & Health
-            q.contains("burn") || q.contains("scald") -> {
-                Pair(
-                    "🩺 Emergency Burn Treatment Protocol:\n\n" +
-                    "1. Cool Immediately: Hold under cool, running water for 15-20 minutes.\n" +
-                    "2. DO NOT USE ICE: Causes severe tissue damage and frostbite necrosis.\n" +
-                    "3. DO NOT APPLY BUTTER/OIL: Traps heat inside tissue and causes infection.\n" +
-                    "4. Cover loosely with sterile non-stick bandage.\n" +
-                    "5. Seek emergency care (112) if larger than palm or located on face/hands/joints.",
-                    listOf("How to perform CPR?", "How to treat severe bleeding?", "Emergency phone numbers")
-                )
-            }
-            q.contains("chok") || q.contains("heimlich") -> {
-                Pair(
-                    "🩺 Choking Protocol (Heimlich Maneuver):\n\n" +
-                    "1. Deliver 5 sharp back blows between shoulder blades with heel of hand.\n" +
-                    "2. Position fist thumb-side just above navel; grasp with other hand and pull inward and upward with 5 quick thrusts.\n" +
-                    "3. Repeat 5 back blows and 5 abdominal thrusts until object is expelled.\n" +
-                    "4. If patient loses consciousness, lower gently to floor and begin chest compressions (CPR).",
-                    listOf("How to perform CPR?", "Emergency phone numbers", "What to do if someone faints?")
-                )
-            }
-            q.contains("seizure") || q.contains("epilepsy") || q.contains("convulsion") -> {
-                Pair(
-                    "🩺 Emergency Seizure First Aid:\n\n" +
-                    "1. Ease person gently to the floor to prevent fall injury.\n" +
-                    "2. Roll onto side (recovery position) to keep airway open.\n" +
-                    "3. Cushion head with soft folded clothing.\n" +
-                    "4. DO NOT RESTRAIN. Never put anything in their mouth.\n" +
-                    "5. Time seizure: Call 112 if it lasts > 5 minutes or repeats.",
-                    listOf("How to perform CPR?", "How to treat burns?", "Emergency phone numbers")
-                )
-            }
-            q.contains("cpr") || q.contains("cardiac") || q.contains("heart") || q.contains("breathing") -> {
-                Pair(
-                    "🫀 Hands-Only CPR Guidelines (Adult):\n\n" +
-                    "1. Call 112 / 911 immediately; put phone on speaker.\n" +
-                    "2. Place hands interlocked in center of chest (lower breastbone).\n" +
-                    "3. Push hard & fast at 100-120 bpm (to beat of 'Stayin Alive') at least 2 inches (5 cm) deep.\n" +
-                    "4. Allow full chest recoil between compressions. Do not stop until medics arrive.",
-                    listOf("How to treat bleeding?", "What are emergency hotlines?", "How to treat burns?")
-                )
-            }
-            q.contains("bleeding") || q.contains("blood") || q.contains("wound") -> {
-                Pair(
-                    "🩸 Severe Bleeding Control Protocol:\n\n" +
-                    "1. Apply continuous direct pressure with sterile clean cloth.\n" +
-                    "2. Do not remove soaked cloths; stack more on top.\n" +
-                    "3. For severe arterial limb bleeding, apply tourniquet 2-3 inches above wound.",
-                    listOf("How to do CPR?", "What are emergency hotlines?", "How to treat burns?")
-                )
-            }
-
-            // Software & Code
-            q.contains("binary search") -> {
-                Pair(
-                    "💻 Binary Search (O(log n) Time):\n\n" +
-                    "Binary Search repeatedly divides the sorted interval in half:\n" +
-                    "• Compare target with middle element.\n" +
-                    "• If match, return index.\n" +
-                    "• If target < mid, search left half.\n" +
-                    "• If target > mid, search right half.\n\n" +
-                    "Time Complexity: O(log n) | Space: O(1).",
-                    listOf("Explain Big-O Complexity", "Explain Python asyncio", "Explain Bayes Theorem")
-                )
-            }
-            q.contains("reverse") || q.contains("palindrome") -> {
-                Pair(
-                    "💻 String Reversal & Palindrome:\n\n" +
-                    "• Python: s[::-1] or clean == clean[::-1]\n" +
-                    "• JavaScript: str.split('').reverse().join('')\n" +
-                    "• Kotlin: str.reversed()\n\n" +
-                    "Time Complexity: O(n) linear scan.",
-                    listOf("Explain Binary Search", "Explain Python asyncio", "Explain Big-O Complexity")
-                )
-            }
-            q.contains("sql") && (q.contains("nosql") || q.contains("database") || q.contains("difference")) -> {
-                Pair(
-                    "💻 SQL vs NoSQL Architecture:\n\n" +
-                    "• SQL (PostgreSQL, MySQL): Relational, structured tables, strict ACID transactions, vertical scaling.\n" +
-                    "• NoSQL (MongoDB, Redis): Document/key-value, dynamic schema, eventual consistency, horizontal scale-out.\n\n" +
-                    "SilentSOS uses PostgreSQL 16 for strict transactional safety across alerts and evidence logs.",
-                    listOf("Explain REST vs GraphQL", "Explain Big-O Complexity", "Explain Python asyncio")
-                )
-            }
-            q.contains("python") || q.contains("async") || q.contains("kotlin") || q.contains("code") -> {
-                Pair(
-                    "💻 Software Engineering & Concurrency:\n\n" +
-                    "• Python Asyncio: Non-blocking single-threaded event loop with async def and await asyncio.sleep().\n" +
-                    "• Kotlin Coroutines: Structured concurrency using Dispatchers.IO for background sensor loops and Dispatchers.Main for UI.\n" +
-                    "• Big-O: Binary Search is O(log n), Quicksort average O(n log n), Hash Table lookup O(1).",
-                    listOf("Explain Binary Search in Python", "Explain Big-O Complexity", "How does Stealth Mode work?")
-                )
-            }
-
-            // Math Theorems
-            q.contains("bayes") || (q.contains("conditional") && q.contains("probability")) -> {
-                Pair(
-                    "📐 Bayes' Theorem & Inference:\n\n" +
-                    "P(A|B) = [P(B|A) · P(A)] / P(B)\n\n" +
-                    "• P(A|B): Posterior probability given evidence B.\n" +
-                    "• P(B|A): Likelihood of observing evidence B.\n" +
-                    "• P(A): Prior probability.\n" +
-                    "• P(B): Marginal evidence.\n\n" +
-                    "Used in SilentSOS sensor fusion to differentiate real physical distress from accidental phone drops.",
-                    listOf("Explain Calculus", "Explain Big-O Complexity", "How does Stealth Mode work?")
-                )
-            }
-            q.contains("calculus") || q.contains("derivative") || q.contains("integral") -> {
-                Pair(
-                    "📐 Foundations of Calculus:\n\n" +
-                    "• Derivative (Rate of Change): f'(x) = lim(h→0) [f(x+h) - f(x)] / h\n" +
-                    "• Power Rule: d/dx [xⁿ] = n·xⁿ⁻¹\n" +
-                    "• Fundamental Theorem: ∫[a..b] f(x) dx = F(b) - F(a) where F'(x) = f(x).\n\n" +
-                    "Proves differentiation and integration are inverse operations.",
-                    listOf("Explain Bayes Theorem", "Explain Big-O Complexity", "Explain Newton's Laws")
-                )
-            }
-
-            // Safety, Legal & Device Mastery
-            q.contains("pin") || q.contains("password") || q.contains("stop") || q.contains("cancel") -> {
-                Pair(
-                    "🔐 Safety PIN Security:\n\n• Active Safety PIN: $currentPin (Default: 1234).\n• To change: Settings → Change Safety PIN.\n• Security Rule: Once an alert is armed, it CANNOT be stopped without this PIN.",
-                    listOf("How does Stealth Mode work?", "How to add contacts?", "What to do if followed?")
-                )
-            }
-            q.contains("stealth") || q.contains("disguise") || q.contains("black") -> {
-                Pair(
-                    "🕶️ Stealth Mode & Covert Tracking:\n\n• Displays pitch-black screen disguise while GPS tracking, dual photo bursts & audio recording continue secretly.\n• Toggle directly in Settings or SOS Hub.\n• Double-tap corner and enter PIN to exit.",
-                    listOf("How to use Fake Call?", "How to trigger SOS on mobile?", "How to change PIN?")
-                )
-            }
-            q.contains("followed") || q.contains("stalk") || q.contains("danger") -> {
-                Pair(
-                    "⚠️ Stalker / Foot Pursuit Protocol:\n\n1. Make 4 consecutive right turns around a block to confirm.\n2. DO NOT GO HOME. Walk toward lit public venues (stores, fuel stations).\n3. Arm SilentSOS in Stealth Mode.\n4. Call 112 / 911 immediately.",
-                    listOf("How to trigger Fake Call?", "How does Stealth Mode work?", "Emergency phone numbers")
-                )
-            }
-            q.contains("fir") || q.contains("police") || q.contains("station") -> {
-                Pair(
-                    "⚖️ Zero FIR & Legal Rights in India:\n\n• Any police station MUST register a 'Zero FIR' regardless of jurisdiction under BNSS Section 173 (CrPC 154).\n• Officers who refuse face penal action under Section 166A IPC/BNS.\n• Women can lodge complaints online via NCW or national portal (112.gov.in).",
-                    listOf("Emergency phone numbers", "Cybercrime complaint 1930", "What to do if followed?")
-                )
-            }
-            q.contains("cyber") || q.contains("scam") || q.contains("hack") || q.contains("fraud") -> {
-                Pair(
-                    "🔒 Cybercrime & Financial Fraud Protocol:\n\n• Call 1930 immediately within the golden hour to freeze unauthorized bank transfers.\n• Report incidents with transaction logs at cybercrime.gov.in.\n• Preserve SMS, UPI transaction IDs, and call logs as digital evidence.",
-                    listOf("Emergency phone numbers", "How to change PIN?", "How does Stealth Mode work?")
-                )
-            }
-            q.contains("panic") || q.contains("anxiety") || q.contains("breathe") || q.contains("scared") -> {
-                Pair(
-                    "🧘 5-4-3-2-1 Sensory Grounding & Calming:\n\n• Name 5 things you can see.\n• 4 things you can physically touch.\n• 3 things you can hear.\n• 2 things you can smell.\n• 1 thing you can taste.\n• Inhale 4s, hold 4s, exhale slowly 6s. You are safe.",
-                    listOf("Emergency phone numbers", "What to do if followed?", "How to use Fake Call?")
-                )
-            }
-            q.contains("fake call") || q.contains("escape") -> {
-                Pair(
-                    "📞 Fake Call Simulator:\n\n• Tap 'Fake Call Escape Simulator' in Settings to receive an incoming call from Mom.\n• Use it as an immediate excuse to exit uncomfortable or unsafe company.",
-                    listOf("What to do if followed?", "How does Stealth Mode work?", "How to change PIN?")
-                )
-            }
-            q.contains("poem") || q.contains("poetry") || q.contains("rhyme") -> {
-                Pair(
-                    "✨ A Poetic Reflection on Courage:\n\n" +
-                    "The quiet streets may hum with doubt,\n" +
-                    "When shadow turns the lanterns out,\n" +
-                    "Yet in the palm, a steady spark,\n" +
-                    "A silent voice cuts through the dark.\n\n" +
-                    "For courage is no absence of the chill,\n" +
-                    "It is the pulse that whispers: 'Still,'\n" +
-                    "We step through night and find the dawn,\n" +
-                    "Protected, steady, marching on.\n\n" +
-                    "— SilentSOS Cognitive Mind",
-                    listOf("How does Stealth Mode work?", "What to do if followed?", "Emergency numbers")
-                )
-            }
-            q.contains("story") || q.contains("narrative") -> {
-                Pair(
-                    "📖 The Midnight Protocol:\n\nWalking late past the terminal, Ananya felt footsteps matching her pace. Remembering her training, she didn't panic. She made 4 consecutive right turns, arming SilentSOS in Stealth Mode. Her coordinates and live audio streamed silently to her circle as she entered a lit store, safe and in full control.",
-                    listOf("How does Stealth Mode work?", "What to do if followed?", "Emergency numbers")
-                )
-            }
-            q.contains("joke") || q.contains("riddle") || q.contains("funny") -> {
-                Pair(
-                    "😄 A Bit of Mind-Sharpening Wit:\n\n" +
-                    "Riddle: I have no eyes, yet I watch over you in the dark. I have no voice, yet I summon help across hundreds of miles. What am I?\n\n" +
-                    "Answer: SilentSOS Stealth Mode! 🕶️\n\n" +
-                    "And for engineers: Why do programmers prefer dark mode?\nBecause light attracts bugs! 🐛",
-                    listOf("Tell me a story about courage", "Explain Python asyncio", "How does Stealth Mode work?")
-                )
-            }
-
-            // Dynamic Tailored Synthesis for Any Query
-            else -> {
-                val cleanedWords = q.replace(Regex("""[^a-z0-9\s]"""), "").split(Regex("""\s+"""))
-                val stopWords = setOf("what", "is", "the", "how", "do", "does", "why", "can", "you", "explain", "tell", "me", "about", "a", "an", "in", "of", "for", "to")
-                val coreTopic = cleanedWords.filter { !stopWords.contains(it) }.joinToString(" ").replaceFirstChar { it.uppercase() }
-                val displayTopic = if (coreTopic.isNotEmpty()) coreTopic else query.trim()
-
-                Pair(
-                    "💡 Cognitive Synthesis & Direct Explanation: $displayTopic\n\n" +
-                    "1. Core Definition & Principle:\n" +
-                    "'$displayTopic' represents an important concept. At its core, it operates through systematic rules and functional interactions to achieve analytical clarity and observable results.\n\n" +
-                    "2. Key Operational Mechanisms:\n" +
-                    "• Foundational Rules: Operates through verified logical or empirical causality.\n" +
-                    "• Systematic Flow: Inputs are structured through functional constraints to produce reliable outcomes.\n" +
-                    "• Best Practices: Deconstruct into fundamental components and verify each step.\n\n" +
-                    "3. Practical Recommendation:\n" +
-                    "For code, math proofs, or crisis triage, specify your target framework or parameters for step-by-step resolution.\n\n" +
-                    "Emergency Services: India 112 / US 911 / UK 999.",
-                    listOf("Explain Python asyncio", "How does Stealth Mode work?", "How to do hands-only CPR?", "Why is the sky blue?")
-                )
-            }
+        // 2. Solo Travel Safety
+        if (q.contains("travelling at night") || q.contains("traveling at night") || q.contains("travel at night") || (isTravelContext && (q.contains("night") || q.contains("dark")))) {
+            return Pair(
+                "Travelling at night requires heightened awareness because visibility is reduced and fewer open businesses are available. Here is how to stay safe at night:\n\n" +
+                "1. **Stick to Illuminated Arterial Roads:** Never take dark shortcuts, unlit park trails, or deserted service lanes—even if it saves travel time. Stick to main, well-lit roads with passing vehicle traffic.\n" +
+                "2. **Cab & Rideshare Safety Checklist (Uber / Ola / Taxis):**\n" +
+                "   • **Match the Plate and Driver:** Always verify the vehicle's registration number, make, and driver photo *before* entering.\n" +
+                "   • **Ask 'Who are you picking up?':** Never say *'Are you for [My Name]?'* Let the driver state your name first.\n" +
+                "   • **Sit in the Back Seat:** Sitting in the rear diagonal seat gives you visibility of the driver, access to both doors, and safe exit options.\n" +
+                "   • **Verify Child Locks:** Check that the rear door handle opens freely from the inside before departing.\n" +
+                "   • **Share Trip & Live GPS:** Share your ride status with trusted contacts and monitor the GPS route on your own phone.\n" +
+                "3. **Sensory Awareness (Headphone Rule):** Avoid wearing two earbuds with noise-cancellation turned on. Keep at least one ear free and head up so you can hear approaching vehicles or footsteps.\n" +
+                "4. **Battery & Power Reserve:** Keep phone battery above 30% before heading out at night. Carry a portable power bank.\n" +
+                "5. **Public Transit Caution:** If taking a night train or bus, sit near the driver, conductor, or in carriages with other families and commuters. Avoid isolated end compartments.",
+                listOf("What should I do if my cab driver changes route?", "What should I do if someone is following me?", "How does Stealth Mode work in SilentSOS?")
+            )
         }
+
+        if (q.contains("travel") || q.contains("travelling") || q.contains("traveling") || q.contains("trip") || q.contains("hotel") || q.contains("solo")) {
+            return Pair(
+                "Solo travel can be empowering and rewarding when paired with practical situational awareness. Here are essential safety recommendations for travelling alone:\n\n" +
+                "1. **Pre-Trip Preparation & Digital Itinerary:**\n" +
+                "   • Research the neighborhood safety reputation of your destination before booking.\n" +
+                "   • Save digital copies of your passport, ID, and travel insurance in encrypted cloud storage.\n" +
+                "   • Share your complete itinerary and hotel bookings with at least one trusted emergency contact.\n\n" +
+                "2. **Accommodation & Room Security:**\n" +
+                "   • Request a room located between the 2nd and 4th floors (high enough to discourage street-level break-ins, low enough for fire rescue ladders).\n" +
+                "   • Verify that windows and secondary door deadbolts latch securely upon checking in.\n" +
+                "   • Carry an inexpensive portable rubber door stop or portable door alarm for extra nighttime security.\n\n" +
+                "3. **Street Smartness & Blending In:**\n" +
+                "   • Walk with confidence and purpose. If you need to check maps, step into a shop or cafe rather than stopping on an open street corner with luggage.\n" +
+                "   • Avoid flashing high-value jewelry, open luxury cameras, or large stacks of cash in crowded tourist hubs.\n\n" +
+                "4. **Communication & Check-Ins:**\n" +
+                "   • Establish a daily check-in routine with a family member or friend (e.g., a quick text every evening).\n" +
+                "   • In SilentSOS, your trusted emergency circle can view your coordinates whenever you arm the journey tracker.\n\n" +
+                "5. **Local Emergency Numbers:**\n" +
+                "   • Memorize local dispatch numbers: **112** in India & European Union, **911** in the USA & Canada, **999** in the UK, **000** in Australia.",
+                listOf("What about travelling at night?", "What should I do if someone is following me?", "What are the official emergency numbers in India?")
+            )
+        }
+
+        // 3. Immediate Danger / Unsafe Right Now
+        if (q.contains("feel unsafe") || q.contains("feeling unsafe") || q.contains("in danger") || q.contains("someone is outside") || q.contains("help me right now") || q.contains("scared right now") || q.contains("threatened")) {
+            return Pair(
+                "💙 **I am here with you. Take a steady breath. Your immediate safety is the number one priority.**\n\n" +
+                "Please assess your current surroundings right now:\n\n" +
+                "1. **Are you in immediate physical danger?**\n" +
+                "   • If **YES**, do not hesitate: move immediately towards people, a lit shop, or security personnel, and dial **112** (Universal Emergency Helpline) or your local police immediately.\n" +
+                "   • If speaking out loud is dangerous, activate **SilentSOS Stealth Mode** (hold volume rocker or tap Stealth in SOS Hub) to transmit your coordinates silently without an active screen display.\n\n" +
+                "2. **If You Are in a Public Space:**\n" +
+                "   • Stay in well-lit areas with active bystanders or security cameras.\n" +
+                "   • Call a trusted friend, family member, or colleague and stay on the line until you reach a secure destination.\n\n" +
+                "3. **If You Are Indoors or at Home:**\n" +
+                "   • Ensure all doors and deadbolts are locked. Turn off lights that silhouette your movements from outside.\n" +
+                "   • Keep your phone charged, stay in an interior room with an exit path, and call local authorities if someone unauthorized is outside.\n\n" +
+                "*Tell me: are you currently outdoors or indoors? I will guide you through your exact next steps.*",
+                listOf("What should I do if someone is following me?", "How does Stealth Mode work in SilentSOS?", "What are the official emergency numbers?")
+            )
+        }
+
+        // 4. CPR & Medical
+        if (q.contains("cpr") || q.contains("resuscitat") || q.contains("chest compression") || q.contains("heart attack")) {
+            return Pair(
+                "🩺 **Emergency Hands-Only CPR Protocol (Adult):**\n\n" +
+                "If someone collapses, is unresponsive, and is not breathing normally:\n\n" +
+                "1. **Call 112 / 911 Immediately:** Put phone on speaker so dispatchers can assist.\n" +
+                "2. **Position Person:** Lay them flat on their back on a firm, hard floor.\n" +
+                "3. **Hand Placement:** Place the heel of one hand in the center of the chest. Interlock your other hand on top.\n" +
+                "4. **Compress Hard & Fast:** Push down 2 inches deep at **100–120 compressions per minute** (to the beat of *'Stayin Alive'*).\n" +
+                "5. **Don't Stop:** Continue until emergency medical services take over.",
+                listOf("How to treat burns?", "What to do for choking (Heimlich)?", "Emergency phone numbers")
+            )
+        }
+
+        // 5. Zero FIR
+        if (q.contains("zero fir") || q.contains("fir") || q.contains("police refuse") || q.contains("legal rights")) {
+            return Pair(
+                "⚖️ **Zero FIR & Legal Protections in India:**\n\n" +
+                "Under **Section 173 of the Bharatiya Nagarik Suraksha Sanhita (BNSS)**:\n\n" +
+                "1. **Nationwide Registration:** Any police station **MUST** register an FIR for a cognizable offense regardless of territorial jurisdiction.\n" +
+                "2. **Zero Designation:** Assigned temporary number '0' and immediate evidence/medical preservation occurs before case transfer.\n" +
+                "3. **Penalties for Refusal:** Officers refusing to register FIRs for crimes against women face imprisonment under Section 199 of BNS.\n" +
+                "4. **Emergency Helplines:** 112 (Universal), 1091 (Women's Helpline), 181 (Domestic Violence).",
+                listOf("What are emergency numbers in India?", "What to do if followed?", "How does Stealth Mode work?")
+            )
+        }
+
+        // 6. Stealth Mode
+        if (q.contains("stealth") || q.contains("black screen") || q.contains("disguise")) {
+            return Pair(
+                "🕶️ **SilentSOS Stealth Mode:**\n\n" +
+                "• **Simulated Black Screen:** Phone appears completely powered off to aggressors.\n" +
+                "• **Covert Telemetry:** Silently streams live GPS satellite coordinates, front/back photo bursts, and microphone audio buffers to your emergency contacts.\n" +
+                "• **Activation:** Toggle in SOS Hub, Settings, or press your hardware volume button cadence.\n" +
+                "• **Exit:** Double-tap the top corner and enter your 4-digit Safety PIN ($currentPin).",
+                listOf("How to change my safety PIN?", "What should I do if followed?", "How does Fake Call work?")
+            )
+        }
+
+        // 7. General Dynamic Answer
+        return Pair(
+            "Here is clear guidance regarding your inquiry:\n\n" +
+            "1. **Immediate Focus:** Clarify your immediate situation and prioritize safety and situational awareness.\n" +
+            "2. **Recommended Action:** If in danger, use emergency shortcuts (SilentSOS Stealth Mode, 112 emergency call). If learning or planning, break tasks into verified sequential steps.\n" +
+            "3. **Emergency Helplines:** India 112 / US 911 / UK 999.\n\n" +
+            "Would you like more details or guidance on this topic?",
+            listOf("What should I do if someone is following me?", "How can I stay safe when travelling alone?", "How does Stealth Mode work in SilentSOS?")
+        )
     }
-
 }
