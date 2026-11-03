@@ -1,0 +1,64 @@
+[
+  {
+    "id": "legal_zero_fir_and_evidence",
+    "sources": [
+      63,
+      64,
+      66,
+      67,
+      73
+    ],
+    "intent": "legal_rights_evidence_fir",
+    "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+    "keywords": [
+      "zero fir",
+      "fir",
+      "police complaint",
+      "legal rights",
+      "chain of custody",
+      "evidence court",
+      "preserve evidence",
+      "reporting crime",
+      "lalita kumari"
+    ],
+    "summary": "Zero FIR rights and cryptographic digital evidence preservation from Supreme Court of India and CPS",
+    "guidance": "Your constitutional legal rights when reporting crime and preserving evidence:\n1. **Zero FIR Mandate (India):** Under Supreme Court precedent (Lalita Kumari vs. Govt of UP), any police station is legally required to register a First Information Report (FIR) for cognizable offences regardless of where the incident occurred. Refusal is an offence under Section 166A IPC / BNSS.\n2. **Right to Female Police Officer:** Female victims have the statutory right to have their statement recorded by a woman police officer or magistrate.\n3. **Evidentiary Integrity in SilentSOS:**\n• Photos, audio recordings, and GPS breadcrumbs stored in the SilentSOS Evidence Vault contain embedded UTC timestamps and cryptographic checksums.\n• Do not crop, edit, or filter files prior to police submission to maintain unbroken chain of custody in court proceedings.",
+    "suggestions": [
+      "What is Evidence Vault?",
+      "What are emergency hotlines?",
+      "How does SilentSOS trigger SOS?"
+    ]
+  },
+  {
+    "id": "legal_emergency_numbers_worldwide",
+    "sources": [
+      64,
+      75,
+      76,
+      86,
+      112
+    ],
+    "intent": "emergency_phone_numbers",
+    "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+    "keywords": [
+      "emergency number",
+      "helpline",
+      "police number",
+      "ambulance number",
+      "call police",
+      "dial 112",
+      "dial 911",
+      "999",
+      "108",
+      "100",
+      "hotline"
+    ],
+    "summary": "Global standardized emergency numbers and consular networks",
+    "guidance": "Official universal emergency dispatch numbers:\n\n• **India:**\n  - Unified National Emergency: **112**\n  - Police: **100** / **112**\n  - Ambulance & Health: **108** / **102**\n  - Fire: **101**\n  - Women Helpline: **1091** or **181**\n  - Cyber Crime Helpline: **1930** (cybercrime.gov.in)\n  - Railway Emergency: **139**\n\n• **United States & Canada:**\n  - Universal Emergency (Police/Fire/EMS): **911**\n  - Suicide & Crisis Lifeline: **988**\n  - National Domestic Violence Helpline: **1-800-799-7233**\n\n• **United Kingdom:**\n  - Universal Emergency: **999**\n  - Non-Emergency Police: **101**\n\n• **European Union:**\n  - Universal Free Emergency Number: **112**\n\n• **Australia:**\n  - Emergency Service: **000**",
+    "suggestions": [
+      "What to do if someone is following me?",
+      "How to lodge an FIR?",
+      "How to trigger SOS on mobile?"
+    ]
+  }
+]

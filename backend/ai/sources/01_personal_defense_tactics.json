@@ -1,0 +1,63 @@
+[
+  {
+    "id": "tactical_stalking_evasion",
+    "sources": [
+      1,
+      3,
+      5,
+      8,
+      9,
+      12
+    ],
+    "intent": "stalking_followed_foot",
+    "category": "Personal Defense & Tactical Security",
+    "keywords": [
+      "followed",
+      "following me",
+      "stalker",
+      "foot",
+      "walking",
+      "suspicious person",
+      "shadowing",
+      "tailing",
+      "someone behind me",
+      "cornered"
+    ],
+    "summary": "Protocols from ASIS, Cooper's Color Code, and UK Police for when followed on foot",
+    "guidance": "If you suspect someone is following you on foot:\n1. **Verify Without Confronting (Cooper's Code Orange):** Make 4 consecutive right turns around a block or cross diagonally. If the individual replicates your path, pursuit is confirmed.\n2. **Change Speed & Environmental Lighting:** Alter your pace suddenly. Move toward illuminated, high-traffic venues (supermarkets, petrol stations, hotel lobbies, ATM kiosks with security guards).\n3. **Never Lead Pursuers Home:** Do not retreat to your residence or enter dead-end alleys where you can be cornered.\n4. **Discreetly Arm SilentSOS:** Open SilentSOS and enable **Stealth Mode** so live GPS telemetry, dual camera bursts, and ambient audio stream to your emergency contacts.\n5. **Assertive Verbal Boundary:** If the pursuer closes distance, pivot with hands in a defensive frame, make firm eye contact, and shout loudly: *'Stop! Back away! My live GPS tracking is alerting emergency response!'*\n6. **Contact Emergency Services:** Dial **112 (India/EU)** or **911 (US)** immediately.",
+    "suggestions": [
+      "How does Stealth Mode work?",
+      "How to trigger SOS instantly?",
+      "What is the Fake Call feature?"
+    ]
+  },
+  {
+    "id": "tactical_physical_counter_escapes",
+    "sources": [
+      2,
+      6,
+      7
+    ],
+    "intent": "physical_self_defense_tactics",
+    "category": "Personal Defense & Tactical Security",
+    "keywords": [
+      "self defense",
+      "physical attack",
+      "grabbed",
+      "chokehold",
+      "wrist grab",
+      "punch",
+      "assault",
+      "fight back",
+      "vulnerable spots",
+      "bear hug"
+    ],
+    "summary": "Instinctive defense and release mechanics from Krav Maga and Gracie Survival Tactics",
+    "guidance": "If an aggressor attacks physically and evasion is impossible:\n1. **Target Soft Vulnerable Anatomy:** Strike decisively to create an immediate opening to flee:\n• **Eyes:** Palm-thrust or gouge to trigger involuntary ocular defense and head retraction.\n• **Throat / Trachea:** Open palm-heel strike disrupts respiration and induces coughing spasms.\n• **Groin:** Upward knee drive or snappy heel kick collapses posture.\n• **Shin / Instep:** Stomp downward onto the attacker's arch or scrape the shin bone with shoe edge.\n2. **Escaping Wrist Seizures:** Rotate your wrist toward the attacker's thumb (the weakest structural point of any grip) while stepping backward.\n3. **Escaping Rear Chokeholds / Bear Hugs:** Drop your center of gravity rapidly. Deliver backward headbutts to their nose, drive elbows into the solar plexus, and stomp their instep.\n4. **Disengage and Sprint:** Do not grapple or stay to fight once an opening is created. Run toward public visibility while yelling *'FIRE!'* or *'HELP! CALL 112/911!'*",
+    "suggestions": [
+      "What to do if someone is following me?",
+      "How to trigger SOS on mobile?",
+      "What is Fake Call escape?"
+    ]
+  }
+]

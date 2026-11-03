@@ -123,7 +123,19 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
   });
 
   scoredDocs.sort((a, b) => b.score - a.score);
-  const bestMatch = scoredDocs[0];
+  let bestMatch = scoredDocs[0];
+
+  // Disambiguate greeting: only treat as greeting if the query actually contains greeting salutations
+  if (bestMatch && bestMatch.doc.intent === 'greeting') {
+    const greetingSalutations = ['hello', 'hi', 'hey', 'greetings', 'morning', 'afternoon', 'evening', 'sup', 'yo', 'start'];
+    const hasGreetingWord = queryTokens.some(t => greetingSalutations.includes(t));
+    if (!hasGreetingWord) {
+      const alt = scoredDocs.find(d => d.doc.intent !== 'greeting' && d.score > 0.05);
+      if (alt) {
+        bestMatch = alt;
+      }
+    }
+  }
 
   // Dynamic context injection variables
   const currentPin = settings?.safetyPin || '1234';

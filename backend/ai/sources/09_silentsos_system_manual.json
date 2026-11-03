@@ -1,0 +1,161 @@
+[
+  {
+    "id": "silentsos_stealth_mode_operation",
+    "sources": [
+      99,
+      100
+    ],
+    "intent": "silentsos_stealth_mode",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "keywords": [
+      "stealth mode",
+      "stealth",
+      "black screen",
+      "disguise",
+      "hide app",
+      "screen off disguise",
+      "covert tracking",
+      "silent screen"
+    ],
+    "summary": "Stealth Mode operations and black screen disguise engine",
+    "guidance": "🕶️ **SilentSOS Stealth Mode & Covert Defense:**\n\n• **Function:** Renders a blacked-out, completely inactive screen disguise that makes your phone appear powered off or locked to bystanders or aggressors.\n• **Background Engine:** Behind the black disguise, SilentSOS runs continuous high-accuracy GPS tracking, front/rear camera photographic bursts, and high-sensitivity ambient microphone logging.\n• **How to Toggle:** Turn on the toggle in **Settings → Stealth & Disguise** or on the central SOS Hub console.\n• **Tactical Value:** Use when in hostile vehicles, during home break-ins, or when walking through dark areas where illuminating a screen exposes your position.",
+    "suggestions": [
+      "How to change Safety PIN?",
+      "How does Fake Call disguise work?",
+      "How is evidence recorded?"
+    ]
+  },
+  {
+    "id": "silentsos_safety_pin_security",
+    "sources": [
+      100
+    ],
+    "intent": "silentsos_safety_pin",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "keywords": [
+      "pin",
+      "safety pin",
+      "change pin",
+      "password",
+      "reset pin",
+      "default pin",
+      "stop alert",
+      "cancel alert",
+      "1234",
+      "four digit"
+    ],
+    "summary": "Master Safety PIN reset and anti-coercion alert cancellation",
+    "guidance": "🔒 **SilentSOS Safety PIN Security Protocol:**\n\n• **Default Factory PIN:** Initialized as **`1234`** across all installations.\n• **Anti-Tamper Lockout:** Once an emergency SOS beacon or distress trigger is armed, it CANNOT be cancelled, muted, or deleted without entering this 4-digit PIN. This prevents an aggressor from coercing you into turning off your distress alert.\n• **How to Change PIN:**\n1. Web App: Navigate to **Settings → Security & PIN → Change PIN**. Enter your current PIN (`1234` by default), then type your new 4-digit code and confirm.\n2. Android App: Navigate to **Settings tab → Change Safety PIN**, enter your new 4 digits, and tap Save.\n• **Recommendation:** Change the PIN from `1234` immediately upon initial onboarding.",
+    "suggestions": [
+      "How does Stealth Mode work?",
+      "How to add emergency contacts?",
+      "What happens during SOS alert?"
+    ]
+  },
+  {
+    "id": "silentsos_multi_trigger_vectors",
+    "sources": [
+      101,
+      102,
+      105
+    ],
+    "intent": "silentsos_sos_triggers",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "keywords": [
+      "trigger",
+      "how to trigger",
+      "sos button",
+      "shake",
+      "gestures",
+      "volume buttons",
+      "3 seconds",
+      "press hold",
+      "accelerometer"
+    ],
+    "summary": "The 5 hardware and software distress trigger vectors in SilentSOS",
+    "guidance": "🚨 **5 Multi-Vector SOS Emergency Triggers:**\n\n1. **3-Second Press & Hold (Web & Android):** Press and hold the glowing central SOS button on the Hub. A 3-second haptic countdown begins before arming distress.\n2. **Mobile Accelerometer Shake (Android):** Violently shake your mobile phone back and forth 3 times. The accelerometer detects sudden high-g spikes and arms distress without needing to unlock the screen.\n3. **Hardware Volume Key Sequence (Android):** Press physical Volume Up or Volume Down keys in rapid succession.\n4. **Hand Gesture Computer Vision (Web & Mobile):** Open the **Gestures** tab and raise an open flat palm toward the camera for contactless optical arming.\n5. **Category Distress Buttons:** Direct tap on **Police**, **Fire**, **Medical**, or **Personal Threat** for specialized priority triage.",
+    "suggestions": [
+      "How is evidence captured?",
+      "How does Stealth Mode work?",
+      "How to change Safety PIN?"
+    ]
+  },
+  {
+    "id": "silentsos_evidence_vault_forensics",
+    "sources": [
+      103,
+      104
+    ],
+    "intent": "silentsos_evidence_vault",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "keywords": [
+      "evidence",
+      "evidence vault",
+      "photos",
+      "burst",
+      "video",
+      "audio",
+      "recording",
+      "listen to audio",
+      "tamper evident",
+      "chain of custody"
+    ],
+    "summary": "Autonomous camera bursts, microphone recording, and Evidence Vault viewer",
+    "guidance": "🛡️ **SilentSOS Autonomous Multi-Media Evidence Vault:**\n\n• **Automated Dual-Camera Bursts:** When SOS triggers, the device takes rapid front and rear photo bursts stamped with UTC timestamps, GPS coordinates, and cryptographic hashes.\n• **High-Fidelity Audio Buffer:** Automatically records surrounding ambient audio through the microphone to capture threats, perpetrator voices, and vehicular sounds.\n• **Rolling Video Container:** Captures streaming video evidence without screen flashes.\n• **In-App Vault Viewer:** Tap the **Evidence** tab on Web or Android to review all historical incident sessions, browse photo galleries, play audio files, and inspect GPS telemetry.\n• **Cloud & Email Dispatch:** All evidence media is packaged and securely dispatched to your emergency contacts via Resend.",
+    "suggestions": [
+      "How to test Resend email alert?",
+      "How to add emergency contacts?",
+      "What are the emergency numbers?"
+    ]
+  },
+  {
+    "id": "silentsos_fake_call_escape",
+    "sources": [
+      99,
+      100
+    ],
+    "intent": "silentsos_fake_call",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "keywords": [
+      "fake call",
+      "incoming call",
+      "escape call",
+      "mom calling",
+      "fake call simulator",
+      "pretend call",
+      "awkward exit"
+    ],
+    "summary": "Simulated incoming telephone call for graceful situational exits",
+    "guidance": "📞 **Fake Call Escape Simulator:**\n\n• **Purpose:** Simulates an ultra-realistic incoming phone call (displaying 'Mom' with ringing and haptic vibration) to give you an immediate, unsuspicious excuse to walk away from uncomfortable, threatening, or suspicious company.\n• **How to Launch:**\n1. On Web App: Open **Settings → Fake Call Disguise → Test**.\n2. On Android App: Open **Settings tab → Fake Call Escape Simulator**.\n• **Tactical Usage:** Answer the call, hold phone to ear, pretend to speak (*'Yes, I\\'m on my way right now, I\\'m 2 minutes away'*), and briskly walk toward a well-populated, lit area.",
+    "suggestions": [
+      "What to do if someone is following me?",
+      "How does Stealth Mode work?",
+      "How to trigger SOS on mobile?"
+    ]
+  },
+  {
+    "id": "silentsos_contacts_dispatch_pipeline",
+    "sources": [
+      104
+    ],
+    "intent": "silentsos_contacts_resend",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "keywords": [
+      "contacts",
+      "guardians",
+      "emergency contacts",
+      "resend",
+      "email alert",
+      "sms alert",
+      "notify",
+      "test email"
+    ],
+    "summary": "Managing guardians and verified Resend emergency email notifications",
+    "guidance": "👥 **Emergency Contacts & Automated Dispatch Pipeline:**\n\n• **Adding Contacts:** Go to the **Contacts** tab, click **Add Guardian**, and specify their full name, phone number, relationship, and email address.\n• **Live Dispatch Content:** When distress activates, each contact receives:\n1. Instant SMS with direct Google Maps link.\n2. Formal Resend Email containing live coordinates, medical information, and links to all captured photos/audio.\n• **Testing Resend Delivery:** In **Settings → Resend Alert Notifications**, click **Send Test Alert Notification** to verify your contacts' inboxes receive the alert successfully.",
+    "suggestions": [
+      "How to change Safety PIN?",
+      "What happens during SOS alert?",
+      "How does Stealth Mode work?"
+    ]
+  }
+]

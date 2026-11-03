@@ -1,0 +1,35 @@
+{
+  "manifestVersion": "2.0.0",
+  "modelName": "SilentSOS-Local-Cognitive-Chat-v2",
+  "trainedAt": "2026-11-03T13:43:53.854Z",
+  "datasetSummary": {
+    "totalAuthoritativeSources": 112,
+    "totalCategories": 10,
+    "totalIndexedKnowledgeNodes": 22,
+    "rawFiles": [
+      "01_personal_defense_tactics.json",
+      "02_medical_first_aid.json",
+      "03_crisis_and_disaster_survival.json",
+      "04_domestic_violence_stalking.json",
+      "05_cyber_and_device_security.json",
+      "06_legal_rights_and_helplines.json",
+      "07_transit_and_rideshare_safety.json",
+      "08_mental_health_crisis_grounding.json",
+      "09_silentsos_system_manual.json",
+      "10_conversational_and_chat_persona.json"
+    ]
+  },
+  "algorithm": {
+    "type": "TF-IDF Vector Space Model with N-Gram Boosting & Multi-Turn Context Resolution",
+    "normalization": "L2 Unit Normalization",
+    "similarityMetric": "Cosine Similarity via Dot Product",
+    "tokenization": "Unigram + Bigram Sliding Window with Custom Safety Stopword Pruning",
+    "multiTurnContextWindow": 2,
+    "personaStyle": "Claude / ChatGPT Empathetic, Highly-Structured Tactical Markdown"
+  },
+  "clientIntegrations": {
+    "webApp": "frontend/src/pages/Settings.tsx (React + TypeScript + Tailwind)",
+    "androidApp": "android/app/src/main/java/com/silentsos/app/MainActivity.kt (Kotlin Native)",
+    "backendEndpoint": "POST /api/ai/chat (Zero Third-Party Cloud APIs)"
+  }
+}

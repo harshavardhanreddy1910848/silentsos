@@ -1,0 +1,35 @@
+[
+  {
+    "id": "mental_health_panic_grounding",
+    "sources": [
+      87,
+      88,
+      89,
+      90,
+      94,
+      95
+    ],
+    "intent": "panic_attack_anxiety",
+    "category": "Mental Health Crisis, Panic & Psychological First Aid",
+    "keywords": [
+      "panic attack",
+      "anxiety",
+      "hyperventilating",
+      "heart racing",
+      "shaking",
+      "cant calm down",
+      "54321",
+      "grounding",
+      "fear",
+      "terrified",
+      "box breathing"
+    ],
+    "summary": "Grounding and panic de-escalation protocols from SAMHSA, NAMI, and Mind",
+    "guidance": "If you or someone nearby is experiencing acute panic, hyperventilation, or extreme terror:\n1. **The 5-4-3-2-1 Sensory Grounding Technique:** Name aloud:\n• **5 things you can SEE** (e.g. wall clock, shoes, tree, doorknob, street lamp)\n• **4 things you can physically FEEL** (e.g. feet on the floor, texture of clothing, cool phone case, chair back)\n• **3 things you can HEAR** (e.g. distant cars, breathing, air conditioning)\n• **2 things you can SMELL** (e.g. rain, coffee, clothing soap)\n• **1 thing you can TASTE** (or say: *'I am safe right now in this exact moment'*)\n2. **4-4-4-4 Box Breathing:**\n• Inhale slowly through nose for **4 seconds**\n• Hold breath gently for **4 seconds**\n• Exhale smoothly through mouth for **4 seconds**\n• Hold lungs empty for **4 seconds**\n• Repeat 4 times to stimulate the parasympathetic nervous system and slow heart rate.\n3. **Confidential Crisis Lines:** Text **HOME to 741741** (US/UK) or dial **14416** (Tele-MANAS India) / **988** (US).",
+    "suggestions": [
+      "How to use Fake Call for safe exit?",
+      "What is Stealth Mode?",
+      "What are emergency numbers?"
+    ]
+  }
+]

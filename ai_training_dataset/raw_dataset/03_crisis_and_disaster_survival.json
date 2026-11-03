@@ -1,0 +1,61 @@
+[
+  {
+    "id": "crisis_active_threat_run_hide_fight",
+    "sources": [
+      26,
+      27,
+      34,
+      36
+    ],
+    "intent": "active_threat_shooter",
+    "category": "Crisis, Disaster & Hostile Event Response",
+    "keywords": [
+      "active shooter",
+      "run hide fight",
+      "shooter",
+      "hostile event",
+      "gunfire",
+      "attack",
+      "gunman",
+      "lockdown",
+      "barricade",
+      "mass shooting",
+      "active threat"
+    ],
+    "summary": "DHS / CISA Run-Hide-Fight protocol for active hostile events",
+    "guidance": "During an active hostility or shooting incident:\n1. **RUN (Primary Objective):** If an accessible escape path exists, evacuate immediately regardless of whether others agree to follow. Leave belongings behind. Keep hands visible for law enforcement.\n2. **HIDE (If Escape is Blocked):**\n• Find a secure room. Lock and barricade doors with heavy desks, vending machines, or wedges.\n• Turn off lights, silence cellphones (turn off vibrations), and stay low away from windows.\n• Arm SilentSOS in **Stealth Mode** to silently beacon your GPS and audio to responders.\n3. **FIGHT (Absolute Last Resort):** If your life is in imminent peril, act aggressively: commit to disarming the threat, throw heavy items (fire extinguishers, chairs), work together with others, and incapacitate the attacker.",
+    "suggestions": [
+      "How does Stealth Mode work?",
+      "How to trigger SOS covertly?",
+      "What are emergency numbers?"
+    ]
+  },
+  {
+    "id": "crisis_earthquake_drop_cover_hold",
+    "sources": [
+      28,
+      30,
+      31,
+      33
+    ],
+    "intent": "earthquake_disaster_survival",
+    "category": "Crisis, Disaster & Hostile Event Response",
+    "keywords": [
+      "earthquake",
+      "drop cover hold",
+      "tremor",
+      "ground shaking",
+      "tsunami",
+      "aftershock",
+      "quake",
+      "building collapse"
+    ],
+    "summary": "USGS & NDMA Earthquake survival guidelines",
+    "guidance": "When the ground shakes during an earthquake:\n1. **DROP:** Drop down onto your hands and knees. This position protects you from being knocked down and allows crawling to shelter.\n2. **COVER:** Take cover under a sturdy desk or table. Protect your head and neck with your arms. If no shelter is nearby, crawl next to an interior wall away from glass windows and heavy hanging mirrors.\n3. **HOLD ON:** Hold onto your shelter with one hand and protect head/neck with the other until shaking stops.\n4. **If Indoors:** Stay inside! Running outside during shaking is when most falling brick and glass injuries occur.\n5. **After Shaking Stops:** Check for gas leaks, evacuate carefully via stairs (never use elevators), and check in via SilentSOS.",
+    "suggestions": [
+      "What are emergency hotlines?",
+      "What is in an emergency kit?",
+      "How to trigger SOS?"
+    ]
+  }
+]

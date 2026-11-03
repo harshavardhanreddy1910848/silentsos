@@ -1,0 +1,34 @@
+[
+  {
+    "id": "cyber_stalkerware_device_safety",
+    "sources": [
+      51,
+      52,
+      53,
+      58,
+      60,
+      61
+    ],
+    "intent": "cyber_stalkerware_tracking",
+    "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+    "keywords": [
+      "stalkerware",
+      "spyware",
+      "tracking phone",
+      "phone tapped",
+      "monitored",
+      "device privacy",
+      "spied on",
+      "hacked phone",
+      "unknown app",
+      "surveillance"
+    ],
+    "summary": "Detecting spyware and securing mobile devices from EFF, CISA, and Coalition Against Stalkerware",
+    "guidance": "If you suspect your phone is being monitored by an abuser or stalker:\n1. **Warning Indicators:** Unexpected rapid battery drain, device overheating when idle, spikes in mobile data usage, or unfamiliar apps in Device Admin / Accessibility services.\n2. **Check App Permissions:** Audit which applications have access to Location ('Allow all the time'), Camera, and Microphone. Revoke suspicious permissions.\n3. **Do Not Immediately Delete Spyware:** If safe, consult domestic violence specialists or police first—deleting stalkerware can alert an abuser that they have been discovered.\n4. **Use a Secondary Clean Device:** Use a library computer or a friend's phone for sensitive searches, safety planning, and communicating with advocates.\n5. **Harden Screen Lock:** Use a fresh 6-digit alphanumeric passcode that the abuser cannot guess. Disable biometric unlock if coerced fingerprint access is a risk.",
+    "suggestions": [
+      "How does Stealth Mode work?",
+      "How to change Safety PIN?",
+      "What are legal rights for evidence?"
+    ]
+  }
+]

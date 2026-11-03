@@ -1,0 +1,901 @@
+{
+  "totalSources": 112,
+  "sources": [
+    {
+      "id": 1,
+      "name": "ASIS International - Personal Security Guidelines",
+      "organization": "American Society for Industrial Security",
+      "url": "https://www.asisonline.org",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Global industry standards for executive protection, lone worker safety, and travel security risk assessment."
+    },
+    {
+      "id": 2,
+      "name": "Krav Maga Worldwide Tactical Defense",
+      "organization": "Krav Maga Association",
+      "url": "https://www.kravmaga.com",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Instinctive counter-attacks, breaking chokeholds, wrist releases, and neutralization of imminent physical violence."
+    },
+    {
+      "id": 3,
+      "name": "Street Safety & Crime Prevention",
+      "organization": "National Crime Prevention Council (NCPC)",
+      "url": "https://www.ncpc.org",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Situational awareness on public thoroughfares, recognizing mugging pre-assault indicators, and street-smart protocols."
+    },
+    {
+      "id": 4,
+      "name": "Close Protection Field Standards",
+      "organization": "International Association of Personal Protection Agents (IAPPA)",
+      "url": "https://www.iappa.net",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Bodyguard perimeter control, hostile surveillance detection, and route planning."
+    },
+    {
+      "id": 5,
+      "name": "Cooper's Color Code Situational Awareness Doctrine",
+      "organization": "Col. Jeff Cooper Tactical Principles",
+      "url": "https://en.wikipedia.org/wiki/Jeff_Cooper#Combat_mindset_and_the_Cooper_color_code",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Four psychological states of readiness: White (unaware), Yellow (relaxed alert), Orange (specific alert), Red (fight/action trigger)."
+    },
+    {
+      "id": 6,
+      "name": "Model Mugging Impact Self-Defense",
+      "organization": "Model Mugging Defense System",
+      "url": "https://modelmugging.org",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Overcoming fear-induced paralysis ('freezing'), adrenaline stress conditioning, and ground defense escape."
+    },
+    {
+      "id": 7,
+      "name": "Gracie Survival Tactics (GST)",
+      "organization": "Gracie Jiu-Jitsu University",
+      "url": "https://www.gracieuniversity.com",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Leverage-based defense to escape pins, bear hugs, and hair grabs without relying on superior physical strength."
+    },
+    {
+      "id": 8,
+      "name": "Street Safety & Walking at Night",
+      "organization": "UK National Police Services",
+      "url": "https://www.police.uk/advice/advice-and-information/personal-safety/personal-safety/",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Staying safe when walking alone after dark, planning safe return journeys, and handling aggressive strangers."
+    },
+    {
+      "id": 9,
+      "name": "Robbery and Physical Assault Prevention",
+      "organization": "Metropolitan Police Service (Scotland Yard)",
+      "url": "https://www.met.police.uk/cp/crime-prevention/personal-safety-how-to-stay-safe/",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Discreet phone usage in public, avoiding isolated cut-throughs, and asserting verbal boundaries."
+    },
+    {
+      "id": 10,
+      "name": "Personal Safety & Transnational Threat Awareness",
+      "organization": "INTERPOL",
+      "url": "https://www.interpol.int",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Transnational human trafficking indicators, forced kidnapping prevention, and emergency diplomatic signaling."
+    },
+    {
+      "id": 11,
+      "name": "Personal Security Guidelines Abroad",
+      "organization": "Overseas Security Advisory Council (OSAC) / US State Dept",
+      "url": "https://www.osac.gov",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Mitigating robbery, express kidnappings, and counter-surveillance techniques for travelers."
+    },
+    {
+      "id": 12,
+      "name": "National Lone Worker & Personal Safety Framework",
+      "organization": "Suzy Lamplugh Trust",
+      "url": "https://www.suzylamplugh.org",
+      "category": "Personal Defense & Tactical Security",
+      "summary": "Dynamic personal risk assessment (PACE), tracing contacts, and covert emergency distress notification."
+    },
+    {
+      "id": 13,
+      "name": "Guidelines for CPR and Emergency Cardiovascular Care",
+      "organization": "American Heart Association (AHA)",
+      "url": "https://cpr.heart.org",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Adult Hands-Only CPR: 100-120 bpm, 2-inch compression depth, early AED defibrillation, minimize pauses."
+    },
+    {
+      "id": 14,
+      "name": "Consensus on Science and Treatment Recommendations",
+      "organization": "International Liaison Committee on Resuscitation (ILCOR)",
+      "url": "https://www.ilcor.org",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Global evidence-based resuscitation guidelines, foreign body airway obstruction clearance, and post-cardiac arrest recovery."
+    },
+    {
+      "id": 15,
+      "name": "Basic Life Support & Defibrillation (BLS/AED)",
+      "organization": "European Resuscitation Council (ERC)",
+      "url": "https://www.erc.edu",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Bystander CPR algorithms, pediatric resuscitation adaptations, and AED voice-prompt response."
+    },
+    {
+      "id": 16,
+      "name": "Emergency Medical Care & Triage Guidelines",
+      "organization": "American College of Emergency Physicians (ACEP)",
+      "url": "https://www.acep.org",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Identifying stroke (FAST test), heart attack red flags, and recognizing anaphylactic shock."
+    },
+    {
+      "id": 17,
+      "name": "International First Aid and Resuscitation Guidelines",
+      "organization": "International Federation of Red Cross (IFRC)",
+      "url": "https://www.ifrc.org",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Standardized first responder care: recovery position, managing shock, spinal immobility precautions."
+    },
+    {
+      "id": 18,
+      "name": "First Aid & CPR / AED Standards",
+      "organization": "American Red Cross",
+      "url": "https://www.redcross.org/take-a-class/first-aid",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Check-Call-Care protocol, severe asthma relief, diabetic emergency triage, and treating open chest wounds."
+    },
+    {
+      "id": 19,
+      "name": "Clinical First Aid Guidance for Bleeding & Choking",
+      "organization": "St John Ambulance (UK)",
+      "url": "https://www.sja.org.uk/get-advice/first-aid-advice/",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Step-by-step Heimlich maneuver for adults and children, managing severe epistaxis, and seizure care."
+    },
+    {
+      "id": 20,
+      "name": "Stop The Bleed Trauma Protocol",
+      "organization": "American College of Surgeons / DoD",
+      "url": "https://www.stopthebleed.org",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Identifying arterial vs venous blood, wound packing with hemostatic/clean gauze, and limb tourniquet application."
+    },
+    {
+      "id": 21,
+      "name": "Mayo Clinic First Aid Reference Guides",
+      "organization": "Mayo Clinic",
+      "url": "https://www.mayoclinic.org/first-aid",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Comprehensive home first aid: thermal burns, electrical shock, heat exhaustion vs heat stroke, animal bites."
+    },
+    {
+      "id": 22,
+      "name": "Basic Emergency Care (BEC) Manual",
+      "organization": "World Health Organization (WHO)",
+      "url": "https://www.who.int/publications/i/item/9789241515221",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "ABCDE approach (Airway, Breathing, Circulation, Disability, Exposure) for life-threatening acute illness."
+    },
+    {
+      "id": 23,
+      "name": "NHS Emergency First Aid & 999 Triage",
+      "organization": "UK National Health Service (NHS)",
+      "url": "https://www.nhs.uk/conditions/first-aid/",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Recognizing sepsis, meningitis rash tumbler test, handling fractures, and emergency calling protocol."
+    },
+    {
+      "id": 24,
+      "name": "Public Health Emergency Preparedness",
+      "organization": "Centers for Disease Control and Prevention (CDC)",
+      "url": "https://www.cdc.gov/preparedness/",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Infectious containment, chemical spill decontamination, and potable water sterilization during emergencies."
+    },
+    {
+      "id": 25,
+      "name": "First Aid for Poisoning, Burns & Shock",
+      "organization": "Johns Hopkins Medicine",
+      "url": "https://www.hopkinsmedicine.org/health/treatment-tests-and-therapies/first-aid",
+      "category": "Emergency Medical & Trauma First Aid",
+      "summary": "Poison control dispatch rules, chemical eyewash flushes, and preventing hypothermic shock in trauma victims."
+    },
+    {
+      "id": 26,
+      "name": "Are You Ready? An In-depth Guide to Citizen Preparedness",
+      "organization": "Federal Emergency Management Agency (FEMA)",
+      "url": "https://www.ready.gov",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Comprehensive disaster survival: 72-hour bug-out bags, communication plans, evacuation corridors."
+    },
+    {
+      "id": 27,
+      "name": "Active Shooter Preparedness: Run, Hide, Fight",
+      "organization": "Cybersecurity and Infrastructure Security Agency (CISA) / DHS",
+      "url": "https://www.dhs.gov/cisa/active-shooter-preparedness",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Active violence survival doctrine: evacuation routes, covert shelter barricading, weapons of opportunity."
+    },
+    {
+      "id": 28,
+      "name": "Disaster Preparedness and Relief Manual",
+      "organization": "National Disaster Management Authority (NDMA India)",
+      "url": "https://ndma.gov.in",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Monsoon flood evacuation, cyclone wind warnings, and community shelter communication networks."
+    },
+    {
+      "id": 29,
+      "name": "Sendai Framework for Disaster Risk Reduction",
+      "organization": "United Nations Office for Disaster Risk Reduction (UNDRR)",
+      "url": "https://www.undrr.org",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Early warning early action, resilience building, and critical infrastructure contingency."
+    },
+    {
+      "id": 30,
+      "name": "Earthquake Hazards: Drop, Cover, and Hold On",
+      "organization": "United States Geological Survey (USGS)",
+      "url": "https://www.usgs.gov/natural-hazards/earthquake-hazards",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Drop to hands and knees, take cover under a sturdy desk, protect head and neck, hold on until shaking stops."
+    },
+    {
+      "id": 31,
+      "name": "Severe Weather Safety Protocols",
+      "organization": "National Oceanic and Atmospheric Administration (NOAA)",
+      "url": "https://www.noaa.gov",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Tornado shelter guidelines, flash flood vehicle escape rules ('Turn Around Don't Drown'), lightning shelter 30/30 rule."
+    },
+    {
+      "id": 32,
+      "name": "Residential Fire Safety and Escape Planning",
+      "organization": "National Fire Protection Association (NFPA)",
+      "url": "https://www.nfpa.org",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Two ways out of every room, crawl low under toxic smoke, feel closed doors for heat before opening."
+    },
+    {
+      "id": 33,
+      "name": "Emergency RediPlan Disaster Guide",
+      "organization": "Australian Red Cross",
+      "url": "https://www.redcross.org.au/prepare/",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Bushfire survival planning, emergency communications when power and towers fail, psychosocial first aid."
+    },
+    {
+      "id": 34,
+      "name": "Surviving Hostile Events & Home Invasions",
+      "organization": "National Crime Prevention Council",
+      "url": "https://www.ncpc.org/resources/home-safety/",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Reinforced deadbolts, safe room selection, silent emergency dispatch, and avoiding confrontation with thieves."
+    },
+    {
+      "id": 35,
+      "name": "Trauma Survival in Conflict Zones",
+      "organization": "International Committee of the Red Cross (ICRC)",
+      "url": "https://www.icrc.org",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Shrapnel trauma triage, shelter from indirect artillery and blast waves, civil emergency movement rules."
+    },
+    {
+      "id": 36,
+      "name": "Workplace Emergency Action Plans",
+      "organization": "Occupational Safety and Health Administration (OSHA)",
+      "url": "https://www.osha.gov",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Emergency exit marking standards, hazardous material spill isolation, and headcount accountability."
+    },
+    {
+      "id": 37,
+      "name": "Float to Live Water Survival Principles",
+      "organization": "Royal National Lifeboat Institution (RNLI)",
+      "url": "https://rnli.org/safety/respect-the-water",
+      "category": "Crisis, Disaster & Hostile Event Response",
+      "summary": "Fighting cold water shock: tilt head back with ears submerged, extend arms/legs, relax and float until breathing settles."
+    },
+    {
+      "id": 38,
+      "name": "Personalized Safety Planning for Domestic Abuse",
+      "organization": "National Domestic Violence Hotline (US)",
+      "url": "https://www.thehotline.org",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Creating a hidden go-bag, planning emergency escape routes, and confidential 24/7 hotline navigation."
+    },
+    {
+      "id": 39,
+      "name": "Digital Safety and Covert Exit Guidance",
+      "organization": "Refuge (UK)",
+      "url": "https://www.refuge.org.uk",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "One-click website exits, clearing browser history, detecting tracking devices, and emergency safe-house admission."
+    },
+    {
+      "id": 40,
+      "name": "Global Action on Ending Violence Against Women",
+      "organization": "UN Women",
+      "url": "https://www.unwomen.org",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "International support networks, human rights legal protections, and community-based alert networks."
+    },
+    {
+      "id": 41,
+      "name": "Stalking Incident Log & Risk Evaluation",
+      "organization": "Stalking Prevention, Awareness, & Resource Center (SPARC)",
+      "url": "https://www.stalkingawareness.org",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Documenting stalking behaviors (calls, GPS trackers, appearances), preserving digital chain of custody, and restraining orders."
+    },
+    {
+      "id": 42,
+      "name": "Domestic Violence Dynamic Safety Planning",
+      "organization": "National Coalition Against Domestic Violence (NCADV)",
+      "url": "https://ncadv.org",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Child custody safety orders, safeguarding financial accounts, and safe communication with legal advocates."
+    },
+    {
+      "id": 43,
+      "name": "National Sexual Assault Telephone Hotline Support",
+      "organization": "RAINN",
+      "url": "https://www.rainn.org",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Confidential emotional recovery, forensic medical exam guidance, and survivor legal empowerment."
+    },
+    {
+      "id": 44,
+      "name": "Stalking Risk Checklist (S-DASH)",
+      "organization": "Paladin National Stalking Advocacy Service (UK)",
+      "url": "https://paladinservice.co.uk",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "High-risk stalking indicators: loitering at work, cyber-monitoring, threats to pets, escalation warnings."
+    },
+    {
+      "id": 45,
+      "name": "Healthy Relationships & Teen Safety Strategies",
+      "organization": "Love is Respect",
+      "url": "https://www.loveisrespect.org",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Identifying coercive control, digital boundary setting, and safe break-up strategies."
+    },
+    {
+      "id": 46,
+      "name": "Universal 181 Women Helpline Guidelines",
+      "organization": "Ministry of Women and Child Development (India)",
+      "url": "https://wcd.nic.in",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "24/7 telephonic rescue, link with One Stop Centres (Sakhi), legal counseling, and police intervention."
+    },
+    {
+      "id": 47,
+      "name": "Emergency Grievance Redressal for Women in Distress",
+      "organization": "National Commission for Women (NCW India)",
+      "url": "https://ncw.nic.in",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Direct intervention in domestic brutality, dowry harassment reporting, and cyber harassment takedowns."
+    },
+    {
+      "id": 48,
+      "name": "Crime Victim Assistance and Stalking Defense",
+      "organization": "National Center for Victims of Crime",
+      "url": "https://victimsofcrime.org",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Protecting personal identity records, confidential mail forwarding, and emergency civil protection orders."
+    },
+    {
+      "id": 49,
+      "name": "The Survivor's Handbook: Practical Safety Guidelines",
+      "organization": "Women's Aid (UK)",
+      "url": "https://www.womensaid.org.uk",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "Safety planning when living with an abuser, during separation, and after leaving home."
+    },
+    {
+      "id": 50,
+      "name": "Preventing and Combating Domestic Abuse Standards",
+      "organization": "Council of Europe (Istanbul Convention)",
+      "url": "https://www.coe.int/en/web/istanbul-convention",
+      "category": "Domestic Abuse, Stalking & Victim Protection",
+      "summary": "State duties for emergency barring orders, dedicated round-the-clock shelter accessibility, and psychological counseling."
+    },
+    {
+      "id": 51,
+      "name": "Surveillance Self-Defense (SSD) Guide",
+      "organization": "Electronic Frontier Foundation (EFF)",
+      "url": "https://ssd.eff.org",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Threat modeling, encrypted communications (Signal), managing digital trails, and defending against state/private spyware."
+    },
+    {
+      "id": 52,
+      "name": "Detecting and Neutralizing Mobile Stalkerware",
+      "organization": "Coalition Against Stalkerware",
+      "url": "https://stopstalkerware.org",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Recognizing symptoms of spyware (battery drain, high data spikes, unusual permissions) and safely removing covert monitoring tools."
+    },
+    {
+      "id": 53,
+      "name": "Mobile Device Cybersecurity Best Practices",
+      "organization": "Cybersecurity and Infrastructure Security Agency (CISA)",
+      "url": "https://www.cisa.gov",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Disabling unnecessary Bluetooth and location broadcast, avoiding public Wi-Fi, and multi-factor authentication (MFA)."
+    },
+    {
+      "id": 54,
+      "name": "Digital Security for High-Risk Individuals",
+      "organization": "Citizen Lab (Munk School, University of Toronto)",
+      "url": "https://citizenlab.ca",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Zero-click exploit awareness, phishing link triage, lockdown mode deployment, and device isolation."
+    },
+    {
+      "id": 55,
+      "name": "Guidelines for Managing Mobile Device Security (SP 800-124)",
+      "organization": "National Institute of Standards and Technology (NIST)",
+      "url": "https://csrc.nist.gov",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "OS sandboxing, containerization of sensitive data, hardware-backed keystores, and app permission auditing."
+    },
+    {
+      "id": 56,
+      "name": "Mobile Application Security Verification Standard (MASVS)",
+      "organization": "OWASP Foundation",
+      "url": "https://owasp.org",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Hardening mobile local storage, TLS certificate pinning, anti-tampering defenses, and memory sanitization."
+    },
+    {
+      "id": 57,
+      "name": "Personal Safety User Guide & Safety Check",
+      "organization": "Apple Inc.",
+      "url": "https://support.apple.com/guide/personal-safety/welcome/web",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Safety Check to cut ties with abusive people, AirTag unknown item alerts, and emergency satellite SOS messaging."
+    },
+    {
+      "id": 58,
+      "name": "Android Security Architecture & Emergency SOS",
+      "organization": "Google Open Source Security",
+      "url": "https://source.android.com/security",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "SELinux runtime constraints, runtime camera/mic indicators, background location throttling, and emergency location service (ELS)."
+    },
+    {
+      "id": 59,
+      "name": "Digital Security for Journalists and At-Risk Groups",
+      "organization": "Freedom of the Press Foundation",
+      "url": "https://freedom.press",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Burner phone discipline, hardware security keys (FIDO2), metadata stripping, and operational security (OPSEC)."
+    },
+    {
+      "id": 60,
+      "name": "The State of Commercial Stalkerware",
+      "organization": "Kaspersky Threat Intelligence Labs",
+      "url": "https://securelist.com",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Commercial stalkerware indicators: accessibility service misuse, sideloaded APKs, and hidden app launcher icons."
+    },
+    {
+      "id": 61,
+      "name": "Device Security: Protecting Against Stalking and Tracking",
+      "organization": "National Cyber Security Centre (UK NCSC)",
+      "url": "https://www.ncsc.gov.uk",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Checking shared family accounts, auditing location sharing across social apps, and secure device resets."
+    },
+    {
+      "id": 62,
+      "name": "National Cyber Security Guidelines for Citizens",
+      "organization": "Indian Computer Emergency Response Team (CERT-In)",
+      "url": "https://www.cert-in.org.in",
+      "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+      "summary": "Protecting against financial OTP fraud, reporting cyber harassment to 1930, and securing mobile operating systems."
+    },
+    {
+      "id": 63,
+      "name": "Zero FIR Jurisdictional Precedent and Legal Right",
+      "organization": "Law Commission of India",
+      "url": "https://lawcommissionofindia.nic.in",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Citizens can register a First Information Report (FIR) at ANY police station regardless of crime scene location; refusal is punishable by law."
+    },
+    {
+      "id": 64,
+      "name": "Emergency Response Support System (ERSS - 112)",
+      "organization": "Ministry of Home Affairs (India)",
+      "url": "https://112.gov.in",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Pan-India single emergency number 112 integrating police, fire, health, and disaster dispatch with real-time GPS patrol car dispatch."
+    },
+    {
+      "id": 65,
+      "name": "Crime Victim Rights and Federal Reporting Guidelines",
+      "organization": "Federal Bureau of Investigation (FBI)",
+      "url": "https://www.fbi.gov",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Mandatory rights under the Crime Victims' Rights Act: right to protection, timely restitution, and digital harassment reporting."
+    },
+    {
+      "id": 66,
+      "name": "Digital Evidence Handling, Preservation & Admissibility",
+      "organization": "UK Crown Prosecution Service (CPS)",
+      "url": "https://www.cps.gov.uk",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Preserving raw unmodified audio, photos, and chat logs; maintaining contemporaneous notes to ensure judicial admissibility."
+    },
+    {
+      "id": 67,
+      "name": "Electronic Evidence and Chain of Custody Standards",
+      "organization": "United Nations Office on Drugs and Crime (UNODC)",
+      "url": "https://www.unodc.org",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Cryptographic hash verification (SHA-256), timestamp verification, and avoiding spoliation of forensic phone records."
+    },
+    {
+      "id": 68,
+      "name": "Standards for Criminal Justice & Victim Representation",
+      "organization": "American Bar Association (ABA)",
+      "url": "https://www.americanbar.org",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Protective restraining order filings, victims' rights during cross-examination, and obtaining civil restraining injunctions."
+    },
+    {
+      "id": 69,
+      "name": "Free Legal Services & Victim Compensation Scheme",
+      "organization": "National Legal Services Authority (NALSA India)",
+      "url": "https://nalsa.gov.in",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Statutory free legal aid for women and marginalized victims under the Legal Services Authorities Act."
+    },
+    {
+      "id": 70,
+      "name": "European Cybercrime Evidence Standards",
+      "organization": "Europol (EC3)",
+      "url": "https://www.europol.europa.eu",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Transnational preservation orders, combating online sextortion, and tracking IP telemetry for stalking cases."
+    },
+    {
+      "id": 71,
+      "name": "Office for Victims of Crime Assistance Framework",
+      "organization": "U.S. Department of Justice (DOJ)",
+      "url": "https://ovc.ojp.gov",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Victim compensation for medical/trauma costs, emergency relocation funding, and victim advocacy programs."
+    },
+    {
+      "id": 72,
+      "name": "Forensic Digital Evidence Standards in Criminal Justice",
+      "organization": "National Institute of Justice (NIJ)",
+      "url": "https://nij.ojp.gov",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Best practices for seizing mobile evidence, write-blockers, preventing remote wipe via Faraday enclosures."
+    },
+    {
+      "id": 73,
+      "name": "Lalita Kumari vs. Govt of UP Precedent",
+      "organization": "Supreme Court of India",
+      "url": "https://main.sci.gov.in",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Registration of FIR is mandatory under Section 154 of the CrPC if the information discloses the commission of a cognizable offence."
+    },
+    {
+      "id": 74,
+      "name": "National Crime Reporting & Fingerprint Database",
+      "organization": "National Crime Records Bureau (NCRB India)",
+      "url": "https://ncrb.gov.in",
+      "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+      "summary": "Citizen-facing lost report apps, CCTNS nationwide police station linkage, and stolen vehicle tracking."
+    },
+    {
+      "id": 75,
+      "name": "International Travel Safety & Smart Traveler Enrollment (STEP)",
+      "organization": "U.S. Department of State",
+      "url": "https://travel.state.gov",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Country-specific travel advisories, consular emergency evacuation registration, and kidnap ransom avoidance."
+    },
+    {
+      "id": 76,
+      "name": "Overseas Travel Advice & Consular Assistance",
+      "organization": "UK Foreign, Commonwealth & Development Office (FCDO)",
+      "url": "https://www.gov.uk/foreign-travel-advice",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Handling lost passports, civil unrest guidance, and emergency overseas financial/medical assistance."
+    },
+    {
+      "id": 77,
+      "name": "Uber Platform Safety & Emergency Assistance Architecture",
+      "organization": "Uber Technologies Safety",
+      "url": "https://www.uber.com/us/en/safety/",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "PIN verification before entering cars, RideCheck GPS anomaly detection, and in-app 911 dispatch integration."
+    },
+    {
+      "id": 78,
+      "name": "TfL Traveling Safely & Women's Night Transit Protection",
+      "organization": "Transport for London (TfL)",
+      "url": "https://tfl.gov.uk/campaign/safety-on-the-network",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "CCTV coverage on buses/trains, staffed help points on platforms, reporting harassment via 61016 text to British Transport Police."
+    },
+    {
+      "id": 79,
+      "name": "Rail Madad Passenger Grievance & 139 Emergency Helpline",
+      "organization": "Indian Railways / Railway Protection Force (RPF)",
+      "url": "https://railmadad.indianrailways.gov.in",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Immediate armed RPF assistance on running trains by dialing 139 or alerting station guards via coach emergency chain."
+    },
+    {
+      "id": 80,
+      "name": "Passenger Cabin Safety & In-Flight Emergency Standards",
+      "organization": "International Air Transport Association (IATA)",
+      "url": "https://www.iata.org",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Brace positions for impact landing, oxygen mask rapid donning, and managing unruly or threatening passengers."
+    },
+    {
+      "id": 81,
+      "name": "Smartraveller: Solo & Female Traveler Safety Abroad",
+      "organization": "Australian Dept of Foreign Affairs and Trade",
+      "url": "https://www.smartraveller.gov.au",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Avoiding drink spiking in night venues, secure hotel room room-check (locks, peephole, fire exits), and local scams."
+    },
+    {
+      "id": 82,
+      "name": "Automotive Safety & Child Safety Locks",
+      "organization": "National Highway Traffic Safety Administration (NHTSA)",
+      "url": "https://www.nhtsa.gov",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Inspecting rear-door manual child lock switches to prevent being trapped in vehicles by suspicious drivers."
+    },
+    {
+      "id": 83,
+      "name": "Lyft Community Safety Standards and In-Ride SOS",
+      "organization": "Lyft Safety Operations",
+      "url": "https://www.lyft.com/safety",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Real-time route monitoring, SmartTrip check-ins, ADT emergency response integration."
+    },
+    {
+      "id": 84,
+      "name": "Public Transportation Security & Anti-Harassment",
+      "organization": "Federal Transit Administration (FTA)",
+      "url": "https://www.transit.dot.gov",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Bystander intervention protocols, reporting unattended packages, and well-lit designated waiting areas."
+    },
+    {
+      "id": 85,
+      "name": "Solo Traveler Field Safety & Street Scam Identification",
+      "organization": "Lonely Planet Travel Guides",
+      "url": "https://www.lonelyplanet.com",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Confidence posture in transit hubs, keeping duplicate physical and digital copies of documents in separate bags."
+    },
+    {
+      "id": 86,
+      "name": "Tourist Safety & Universal EU 112 Access",
+      "organization": "European Travel Commission (ETC)",
+      "url": "https://etc-corporate.org",
+      "category": "Travel, Rideshare & Public Transit Safety",
+      "summary": "Using European 112 on any mobile carrier without credit or roaming charges, multilingual dispatcher support."
+    },
+    {
+      "id": 87,
+      "name": "988 Suicide & Crisis Lifeline Standards",
+      "organization": "Substance Abuse and Mental Health Services Administration (SAMHSA)",
+      "url": "https://www.samhsa.gov",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Free, confidential 24/7 support for emotional distress, suicide prevention, and immediate intervention across the USA."
+    },
+    {
+      "id": 88,
+      "name": "Crisis De-escalation & Text Crisis Counseling",
+      "organization": "Crisis Text Line",
+      "url": "https://www.crisistextline.org",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Active listening framework, grounding exercises via text (Text HOME to 741741), and collaborative safety planning."
+    },
+    {
+      "id": 89,
+      "name": "Panic Disorder Emergency Management",
+      "organization": "National Alliance on Mental Illness (NAMI)",
+      "url": "https://www.nami.org",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Distinguishing panic attacks from heart conditions, recognizing hyperventilation, and nervous system de-escalation."
+    },
+    {
+      "id": 90,
+      "name": "Sensory Grounding for Panic & Dissociation",
+      "organization": "Mind (UK)",
+      "url": "https://www.mind.org.uk",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "The 5-4-3-2-1 grounding technique, physical grounding (feet firmly on floor, cold water on face), and vagus nerve breathing."
+    },
+    {
+      "id": 91,
+      "name": "Acute Stress Disorder & Psychological Stabilization",
+      "organization": "American Psychological Association (APA)",
+      "url": "https://www.apa.org",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Managing acute stress responses in the immediate aftermath of violence, assault, or natural disasters."
+    },
+    {
+      "id": 92,
+      "name": "Psychological First Aid (PFA) Field Guide",
+      "organization": "World Federation for Mental Health (WFMH)",
+      "url": "https://wfmh.global",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Look, Listen, Link framework: protecting survivors from further harm, connecting them with practical emergency aid."
+    },
+    {
+      "id": 93,
+      "name": "24/7 Mental Health Crisis Helpline (+91 9999 666 555)",
+      "organization": "Vandrevala Foundation (India)",
+      "url": "https://www.vandrevalafoundation.com",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Free round-the-clock telephone counseling for extreme distress, depression, and trauma across India."
+    },
+    {
+      "id": 94,
+      "name": "Tele-MANAS National Mental Health Programme (14416)",
+      "organization": "Ministry of Health and Family Welfare (India)",
+      "url": "https://telemanas.mohfw.gov.in",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Government-supported multi-lingual crisis helpline accessible via toll-free number 14416."
+    },
+    {
+      "id": 95,
+      "name": "Anxiety and Panic Attack Calming Tools",
+      "organization": "Beyond Blue (Australia)",
+      "url": "https://www.beyondblue.org.au",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Diaphragmatic pacing, muscle relaxation exercises, and self-compassion mantras during acute fear."
+    },
+    {
+      "id": 96,
+      "name": "LGBTQ Crisis Intervention & Suicide Prevention",
+      "organization": "The Trevor Project",
+      "url": "https://www.thetrevorproject.org",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Safe, affirming crisis counseling for vulnerable youth facing rejection, threats, or danger."
+    },
+    {
+      "id": 97,
+      "name": "Grounding Exercises for Shock and Trembling",
+      "organization": "Canadian Mental Health Association (CMHA)",
+      "url": "https://cmha.ca",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Neurogenic tremoring release, progressive muscular tension-release cycles, and regaining body agency."
+    },
+    {
+      "id": 98,
+      "name": "Post-Trauma Stabilization Standards",
+      "organization": "International Society for Traumatic Stress Studies (ISTSS)",
+      "url": "https://istss.org",
+      "category": "Mental Health Crisis, Panic & Psychological First Aid",
+      "summary": "Evidence-based trauma containment, avoiding secondary traumatization, and building safe support routines."
+    },
+    {
+      "id": 99,
+      "name": "SilentSOS Stealth Mode & Covert Screen Engine",
+      "organization": "SilentSOS Engineering Core",
+      "url": "https://github.com/harshavardhanreddy1910848/silentsos",
+      "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+      "summary": "Renders dark zero-luminance UI while GPS breadcrumbs, photographic bursts, and ambient audio loops continue in background."
+    },
+    {
+      "id": 100,
+      "name": "SilentSOS Master Safety PIN (Default 1234) Architecture",
+      "organization": "SilentSOS Security Protocol",
+      "url": "https://github.com/harshavardhanreddy1910848/silentsos",
+      "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+      "summary": "Tamper-evident cancellation barrier: alerts cannot be terminated or evidence wiped without entering 4-digit PIN (default 1234)."
+    },
+    {
+      "id": 101,
+      "name": "SilentSOS Multi-Axis Accelerometer Shake Detection",
+      "organization": "SilentSOS Native Android Sensor Core",
+      "url": "https://github.com/harshavardhanreddy1910848/silentsos",
+      "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+      "summary": "Real-time gravity vector calculation (sqrt(x^2 + y^2 + z^2) > 13 m/s^2) for hands-free pocket distress triggering."
+    },
+    {
+      "id": 102,
+      "name": "SilentSOS MediaPipe Computer Vision Gesture Recognition",
+      "organization": "SilentSOS Optical AI Module",
+      "url": "https://github.com/harshavardhanreddy1910848/silentsos",
+      "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+      "summary": "Contactless distress trigger via camera hand palm detection; arms beacon without touching device."
+    },
+    {
+      "id": 103,
+      "name": "SilentSOS Evidence Vault & Dual Camera Media Buffers",
+      "organization": "SilentSOS Digital Forensics Engine",
+      "url": "https://github.com/harshavardhanreddy1910848/silentsos",
+      "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+      "summary": "Automated front & rear photographic burst, rolling audio recording, encrypted local storage, and in-app viewer."
+    },
+    {
+      "id": 104,
+      "name": "SilentSOS Resend Multi-Recipient Emergency Broadcast Pipeline",
+      "organization": "SilentSOS Cloud Dispatch Network",
+      "url": "https://github.com/harshavardhanreddy1910848/silentsos",
+      "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+      "summary": "High-deliverability email dispatch to all trusted contacts with live GPS coordinates, incident type, and media attachments."
+    },
+    {
+      "id": 105,
+      "name": "SilentSOS Hardware Key & Volume Button Trigger Sequence",
+      "organization": "SilentSOS Android Driver Layer",
+      "url": "https://github.com/harshavardhanreddy1910848/silentsos",
+      "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+      "summary": "Pressing physical volume or power buttons in rapid succession engages emergency tracking without turning on the screen."
+    },
+    {
+      "id": 106,
+      "name": "Anthropic Claude Constitutional AI & Safety Dialogue Guidelines",
+      "organization": "Anthropic",
+      "url": "https://www.anthropic.com",
+      "category": "Conversational AI, Reasoning & Standards",
+      "summary": "Principles for helpful, harmless, and honest assistant interaction; empathetic framing and direct, actionable advice."
+    },
+    {
+      "id": 107,
+      "name": "OpenAI Conversational Persona & System Prompting Principles",
+      "organization": "OpenAI Research",
+      "url": "https://openai.com",
+      "category": "Conversational AI, Reasoning & Standards",
+      "summary": "Multi-turn context tracking, clear formatting, bulleted action items, and reducing user cognitive load in high-stress moments."
+    },
+    {
+      "id": 108,
+      "name": "W3C Geolocation API Specification (High-Accuracy Emergency Positioning)",
+      "organization": "World Wide Web Consortium (W3C)",
+      "url": "https://www.w3.org/TR/geolocation/",
+      "category": "Conversational AI, Reasoning & Standards",
+      "summary": "High-accuracy GPS coordinates, latitude/longitude, altitude, speed, and heading telemetry standard for web apps."
+    },
+    {
+      "id": 109,
+      "name": "W3C Media Capture and Streams API Specification",
+      "organization": "World Wide Web Consortium (W3C)",
+      "url": "https://www.w3.org/TR/mediacapture-streams/",
+      "category": "Conversational AI, Reasoning & Standards",
+      "summary": "Standard browser APIs for real-time video streaming, front/rear camera switching, and microphone audio buffers."
+    },
+    {
+      "id": 110,
+      "name": "Android Open Source Project (AOSP) Sensor HAL Specs",
+      "organization": "Android Open Source Project",
+      "url": "https://source.android.com/devices/sensors",
+      "category": "Conversational AI, Reasoning & Standards",
+      "summary": "Hardware abstraction layer for high-frequency accelerometer, gyroscope, and wake-up sensors."
+    },
+    {
+      "id": 111,
+      "name": "IETF RFC 5069: Security Requirements for Emergency Context Resolution",
+      "organization": "Internet Engineering Task Force (IETF)",
+      "url": "https://datatracker.ietf.org/doc/html/rfc5069",
+      "category": "Conversational AI, Reasoning & Standards",
+      "summary": "Internet standards for reliable emergency call signaling, tamper prevention, and location conveyance to PSAPs."
+    },
+    {
+      "id": 112,
+      "name": "ITU-T Recommendation E.161: Emergency Distress Number Harmonization",
+      "organization": "International Telecommunication Union (ITU)",
+      "url": "https://www.itu.int",
+      "category": "Conversational AI, Reasoning & Standards",
+      "summary": "Global telecommunication standards ensuring 112 and 911 route to local emergency dispatch across any cellular network."
+    }
+  ]
+}

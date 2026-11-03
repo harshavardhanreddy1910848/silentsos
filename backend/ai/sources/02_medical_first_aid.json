@@ -1,0 +1,92 @@
+[
+  {
+    "id": "medical_cpr_bls_resuscitation",
+    "sources": [
+      13,
+      14,
+      15,
+      17,
+      18
+    ],
+    "intent": "cpr_cardiac_arrest",
+    "category": "Emergency Medical & Trauma First Aid",
+    "keywords": [
+      "cpr",
+      "heart attack",
+      "cardiac arrest",
+      "not breathing",
+      "unresponsive",
+      "chest compression",
+      "pulse",
+      "passed out",
+      "resuscitation",
+      "collapsed"
+    ],
+    "summary": "Adult Hands-Only CPR according to AHA, ERC, and ILCOR protocols",
+    "guidance": "If a person collapses, is unresponsive, and is not breathing normally:\n1. **Call 112 / 911 / 999:** Place phone on speaker so dispatchers can assist you while you work.\n2. **Firm Hard Surface:** Position the victim flat on their back on a solid floor.\n3. **Hand Placement:** Position the heel of your dominant hand in the center of the chest (lower half of breastbone). Interlock your other hand on top. Lock elbows straight.\n4. **Compress Hard and Fast:**\n• Push down at least **2 inches (5 cm)**.\n• Maintain a rate of **100 to 120 compressions per minute** (the tempo of *'Stayin\\' Alive'*).\n• Allow full chest recoil between every thrust without leaning.\n5. **Continuous Compressions:** Do not stop hands-only compressions until emergency paramedics arrive or an Automated External Defibrillator (AED) is attached and prompts you to stand clear.",
+    "suggestions": [
+      "How to treat severe bleeding?",
+      "How to help someone choking?",
+      "What are emergency numbers?"
+    ]
+  },
+  {
+    "id": "medical_stop_the_bleed_tourniquet",
+    "sources": [
+      17,
+      18,
+      19,
+      20,
+      25
+    ],
+    "intent": "severe_bleeding_hemorrhage",
+    "category": "Emergency Medical & Trauma First Aid",
+    "keywords": [
+      "bleeding",
+      "blood",
+      "stab wound",
+      "deep cut",
+      "wound",
+      "hemorrhage",
+      "tourniquet",
+      "gushing",
+      "arterial",
+      "laceration"
+    ],
+    "summary": "Trauma hemorrhage management from Stop The Bleed and St John Ambulance",
+    "guidance": "For life-threatening or spurting bleeding:\n1. **Direct Firm Pressure:** Place clean cloth or sterile gauze over the wound. Press down with both hands using your full upper body weight.\n2. **Never Remove Blood-Soaked Cloths:** If blood soaks through, add additional layers directly on top. Removing dressings tears away developing platelet clots.\n3. **Wound Packing (Groin, Armpits, Neck Base):** Tightly pack cloth into deep cavity wounds until full, then apply unrelenting direct pressure.\n4. **Tourniquet Application (Limbs Only):**\n• For uncontrolled bleeding on arms or legs, apply a tourniquet **2 to 3 inches above the wound** (closer to the torso, never over a joint).\n• Tighten until all bleeding ceases and distal pulse vanishes. Note the exact application time.\n5. **Prevent Hypothermic Shock:** Keep the casualty warm with blankets or coats and lay them flat.",
+    "suggestions": [
+      "How to perform CPR?",
+      "What to do for panic attacks?",
+      "What are emergency hotlines?"
+    ]
+  },
+  {
+    "id": "medical_choking_heimlich_obstruction",
+    "sources": [
+      14,
+      18,
+      19,
+      21
+    ],
+    "intent": "choking_airway_obstruction",
+    "category": "Emergency Medical & Trauma First Aid",
+    "keywords": [
+      "choking",
+      "cant breathe",
+      "airway blocked",
+      "food stuck in throat",
+      "heimlich",
+      "gasping for air",
+      "hands on neck",
+      "asphyxiation"
+    ],
+    "summary": "Heimlich maneuver and self-rescue from AHA and Mayo Clinic",
+    "guidance": "If a person cannot speak, cough, or breathe and is clutching their throat (universal choking sign):\n1. **Conscious Adult Protocol:**\n• Stand behind victim, wrap your arms around their waist.\n• Make a fist with one hand; place thumb side slightly above the navel (below ribcage).\n• Grasp fist with other hand and deliver quick, forceful **upward and inward abdominal thrusts**.\n• Repeat until the obstruction pops out or the patient loses consciousness.\n2. **Self-Heimlich When Alone:**\n• Position your own fist above navel, lean over the back of a rigid chair, table rim, or balcony rail, and drive abdomen sharply into the edge.\n3. **If Victim Collapses:** Lower them carefully to the ground, call 112 / 911, and begin chest compressions immediately.",
+    "suggestions": [
+      "How to perform CPR?",
+      "How to treat severe bleeding?",
+      "What are emergency numbers?"
+    ]
+  }
+]

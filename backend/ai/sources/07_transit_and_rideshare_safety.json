@@ -1,0 +1,35 @@
+[
+  {
+    "id": "transit_rideshare_cab_protection",
+    "sources": [
+      77,
+      78,
+      79,
+      81,
+      82,
+      83
+    ],
+    "intent": "rideshare_taxi_danger",
+    "category": "Travel, Rideshare & Public Transit Safety",
+    "keywords": [
+      "uber",
+      "ola",
+      "lyft",
+      "taxi",
+      "cab",
+      "rideshare",
+      "driver",
+      "locked doors",
+      "wrong route",
+      "deviating",
+      "child lock"
+    ],
+    "summary": "Vehicle safety, child locks, and route anomalies from NHTSA, Uber, and TfL",
+    "guidance": "Precautionary steps when taking cabs or rideshares:\n1. **Pre-Boarding Verification:** Always ask the driver: *'Who are you here to pick up?'* Let them say your name first. Match the license plate and driver photo precisely.\n2. **Back Seat Seating:** Sit on the rear passenger side. This provides maximum reaction distance and prevents the driver from easily reaching you.\n3. **Test the Door & Child Lock:** Check that the interior door handle works immediately upon sitting. If the child lock is active and the door cannot open from inside, demand to exit immediately.\n4. **Share Live Trip Breadcrumbs:** Share your SilentSOS tracking link with emergency contacts so they can see your real-time GPS location.\n5. **In Case of Route Deviation or Threat:**\n• Speak up firmly: *'You have turned off the GPS route. Stop the vehicle right now.'*\n• Trigger SilentSOS covertly using the shake accelerometer or physical volume keys.\n• If the car slows at an intersection or traffic signal, unlock the door, exit into traffic, and shout for assistance.",
+    "suggestions": [
+      "How to trigger SOS covertly?",
+      "How to add emergency contacts?",
+      "What to do if followed?"
+    ]
+  }
+]

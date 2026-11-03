@@ -1,0 +1,33 @@
+[
+  {
+    "id": "domestic_abuse_safety_plan",
+    "sources": [
+      38,
+      39,
+      41,
+      46,
+      49
+    ],
+    "intent": "domestic_violence_escape",
+    "category": "Domestic Abuse, Stalking & Victim Protection",
+    "keywords": [
+      "domestic violence",
+      "abusive partner",
+      "abuse",
+      "escape",
+      "threatened at home",
+      "danger at home",
+      "hostile family",
+      "covert escape",
+      "women helpline",
+      "safe word"
+    ],
+    "summary": "Safety planning and confidential exit from National DV Hotline, Refuge, and 181",
+    "guidance": "In situations of domestic coercion, violence, or escalating threats:\n1. **Pack a Secret Evacuation Kit:** Stash cash, copies of identification, passports, prescriptions, deeds, duplicate house/car keys, and a secondary charger with a trusted friend or neighbor.\n2. **Avoid Physical Traps:** In escalating arguments, stay out of rooms with hard surfaces or weapons (kitchens with knives, bathrooms with slippery tile floors).\n3. **Use SilentSOS Covert Tools:**\n• **Fake Call Simulator:** Triggers an authentic incoming phone call from 'Mom' to create a natural, urgent excuse to leave the premises.\n• **Stealth Mode:** Appears as an inert, blacked-out screen while secretly recording ambient threats and streaming live coordinates to trusted guardians.\n4. **Emergency Helplines (Confidential):**\n• India: Women in Distress **1091** or **181** | Unified Police **112**\n• US: National Domestic Violence Hotline **1-800-799-7233** or text **START to 88788**\n• UK: National Domestic Abuse Helpline **0808 2000 247**",
+    "suggestions": [
+      "How does Fake Call disguise work?",
+      "How to change Safety PIN?",
+      "What is Evidence Vault?"
+    ]
+  }
+]
