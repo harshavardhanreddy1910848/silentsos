@@ -1,0 +1,34 @@
+[
+  {
+    "source_name": "112 Emergency Response Support System (ERSS)",
+    "url": "https://112.gov.in/",
+    "category": "Emergency Response & National Dispatch",
+    "description": "Pan-India single emergency number for police, fire, health, and disaster relief.",
+    "text": "The Emergency Response Support System (ERSS) is a pan-India single number (112) initiative launched by the Ministry of Home Affairs to address all emergency distress calls. It integrates existing emergency services: 100 (Police), 101 (Fire), 102/108 (Ambulance), and 1091 (Women in distress). Citizens can trigger 112 via voice call, SMS, or panic button in mobile phones (pressing power button 3 times). ERSS provides computerized dispatch with automated vehicle location tracking (AVLT) to send the nearest patrol unit.",
+    "timestamp": "2026-11-03T14:02:13Z"
+  },
+  {
+    "source_name": "National Cyber Crime Reporting Portal",
+    "url": "https://cybercrime.gov.in/",
+    "category": "Cybercrime & Online Safety",
+    "description": "Government of India portal to report cybercrimes, particularly against women and children.",
+    "text": "The National Cyber Crime Reporting Portal (cybercrime.gov.in) facilitates citizens in reporting cybercrimes online. Citizens can call National Cyber Crime Helpline 1930 to report financial fraud, online harassment, non-consensual image sharing, stalking, identity theft, and extortion. For financial cyber fraud, reporting within the first 'golden hour' allows immediate freezing of stolen assets across Indian banking networks.",
+    "timestamp": "2026-11-03T14:02:13Z"
+  },
+  {
+    "source_name": "National Commission for Women (NCW)",
+    "url": "https://www.ncw.nic.in/",
+    "category": "Women Safety & Legal Protection",
+    "description": "Statutory body protecting women's constitutional and legal rights across India.",
+    "text": "The National Commission for Women (NCW) addresses complaints related to domestic violence, dowry harassment, sexual harassment at workplace (POSH Act), and human trafficking. It operates the 24x7 Women Helpline (7827170170) for women facing violence. Under Section 154 CrPC and BNSS, women have the right to record statements before a female police officer and have access to free legal aid via NALSA.",
+    "timestamp": "2026-11-03T14:02:14Z"
+  },
+  {
+    "source_name": "National Crime Records Bureau (NCRB)",
+    "url": "https://ncrb.gov.in/",
+    "category": "Crime Reporting & Citizen Services",
+    "description": "Repository of nationwide crime data, fingerprint databases, and citizen emergency services.",
+    "text": "The National Crime Records Bureau connects all police stations nationwide through the Crime and Criminal Tracking Network & Systems (CCTNS). Citizens can file digital lost document reports, check stolen vehicle registries, and initiate Zero FIR complaints through state citizen portals.",
+    "timestamp": "2026-11-03T14:02:14Z"
+  }
+]

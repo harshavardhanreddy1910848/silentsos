@@ -1,0 +1,378 @@
+[
+  {
+    "id": "doc_0",
+    "source": "112 Emergency Response Support System (ERSS)",
+    "url": "https://112.gov.in/",
+    "category": "Emergency Response & National Dispatch",
+    "content": "The Emergency Response Support System (ERSS) is a pan-India single number (112) initiative launched by the Ministry of Home Affairs to address all emergency distress calls. It integrates existing emergency services: 100 (Police), 101 (Fire), 102/108 (Ambulance), and 1091 (Women in distress). Citizens can trigger 112 via voice call, SMS, or panic button in mobile phones (pressing power button 3 times). ERSS provides computerized dispatch with automated vehicle location tracking (AVLT) to send the nearest patrol unit.",
+    "word_count": 77
+  },
+  {
+    "id": "doc_0",
+    "source": "National Cyber Crime Reporting Portal",
+    "url": "https://cybercrime.gov.in/",
+    "category": "Cybercrime & Online Safety",
+    "content": "The National Cyber Crime Reporting Portal (cybercrime.gov.in) facilitates citizens in reporting cybercrimes online. Citizens can call National Cyber Crime Helpline 1930 to report financial fraud, online harassment, non-consensual image sharing, stalking, identity theft, and extortion. For financial cyber fraud, reporting within the first 'golden hour' allows immediate freezing of stolen assets across Indian banking networks.",
+    "word_count": 55
+  },
+  {
+    "id": "doc_0",
+    "source": "National Commission for Women (NCW)",
+    "url": "https://www.ncw.nic.in/",
+    "category": "Women Safety & Legal Protection",
+    "content": "The National Commission for Women (NCW) addresses complaints related to domestic violence, dowry harassment, sexual harassment at workplace (POSH Act), and human trafficking. It operates the 24x7 Women Helpline (7827170170) for women facing violence. Under Section 154 CrPC and BNSS, women have the right to record statements before a female police officer and have access to free legal aid via NALSA.",
+    "word_count": 61
+  },
+  {
+    "id": "doc_0",
+    "source": "National Crime Records Bureau (NCRB)",
+    "url": "https://ncrb.gov.in/",
+    "category": "Crime Reporting & Citizen Services",
+    "content": "The National Crime Records Bureau connects all police stations nationwide through the Crime and Criminal Tracking Network & Systems (CCTNS). Citizens can file digital lost document reports, check stolen vehicle registries, and initiate Zero FIR complaints through state citizen portals.",
+    "word_count": 40
+  },
+  {
+    "id": "doc_0",
+    "source": "World Health Organization (WHO) Basic Emergency Care",
+    "url": "https://www.who.int/",
+    "category": "Healthcare & First Aid",
+    "content": "The WHO Basic Emergency Care (BEC) framework follows the ABCDE resuscitation priority: A - Airway: Ensure patent airway without obstruction. Use chin lift/jaw thrust. B - Breathing: Assess chest rise, respiratory rate, and oxygenation. C - Circulation: Control catastrophic external hemorrhage with direct pressure or tourniquet. Assess pulse and capillary refill. D - Disability: Check neurological responsiveness via AVPU scale (Alert, Voice, Pain, Unresponsive). E - Exposure: Prevent hypothermia by keeping trauma patients warm.",
+    "word_count": 74
+  },
+  {
+    "id": "doc_0",
+    "source": "Indian Red Cross Society First Aid Manual",
+    "url": "https://indianredcross.org/",
+    "category": "Healthcare & First Aid",
+    "content": "Adult CPR: If an adult is unresponsive and not breathing, initiate chest compressions immediately in the center of the chest. Push hard and fast at 100-120 compressions per minute to a depth of 5-6 cm. For thermal burns, cool the affected area under gentle running water for at least 10-20 minutes. Never apply ice, butter, oil, or toothpaste to burns. For heatstroke (body temperature > 40°C), move the person to a cool area, loosen clothing, apply cold wet cloths to armpits, groin, and neck, and call emergency services.",
+    "word_count": 88
+  },
+  {
+    "id": "doc_0",
+    "source": "NDMA SACHET Disaster Alert Portal",
+    "url": "https://sachet.ndma.gov.in/",
+    "category": "Disaster Management & Weather Alert",
+    "content": "SACHET is the Indian National Early Warning dissemination platform for cyclones, floods, tsunamis, landslides, and earthquakes. During an earthquake: Drop to the floor, take Cover under a sturdy table, and Hold on until shaking ceases. During cyclone alerts: Board up loose glass windows, store 72 hours of non-perishable food and potable water, keep battery radios ready, and disconnect electrical appliances before evacuation.",
+    "word_count": 62
+  },
+  {
+    "id": "doc_0",
+    "source": "India Meteorological Department (IMD Mausam)",
+    "url": "https://mausam.imd.gov.in/",
+    "category": "Disaster Management & Weather Alert",
+    "content": "IMD issues four-color weather alerts: Green (No warning / normal), Yellow (Be updated / watch), Orange (Be prepared / alert), and Red (Take action / emergency response). For thunderstorms and lightning, follow the 30/30 rule: if the time between lightning flash and thunder is less than 30 seconds, seek substantial enclosed shelter immediately. Stay inside for at least 30 minutes after the last thunderclap.",
+    "word_count": 64
+  },
+  {
+    "id": "doc_0",
+    "source": "Python Official Documentation",
+    "url": "https://docs.python.org/3/",
+    "category": "Programming & Technology",
+    "content": "Python is a high-level, dynamically typed language emphasizing readability and developer productivity. Key data structures include lists (ordered, mutable), tuples (ordered, immutable), sets (unordered, unique), and dictionaries (hash tables with O(1) average lookup). Python 3.5+ supports asynchronous programming via asyncio, using async/await syntax to manage non-blocking I/O operations cooperatively on an event loop.",
+    "word_count": 53
+  },
+  {
+    "id": "doc_0",
+    "source": "Android Developer Guides",
+    "url": "https://developer.android.com/guide",
+    "category": "Programming & Technology",
+    "content": "Android applications are built with four primary components: Activities (UI windows), Services (background tasks), Broadcast Receivers (system event listeners), and Content Providers (data management). Modern Android emphasizes Jetpack architecture with ViewModels, StateFlow, and Coroutines. Access to hardware sensors requires SensorManager and SensorEventListener with runtime permissions: ACCESS_FINE_LOCATION, CAMERA, and RECORD_AUDIO. Background execution is coordinated through WorkManager.",
+    "word_count": 55
+  },
+  {
+    "id": "doc_0",
+    "source": "Open Educational Mathematics & Logic",
+    "url": "https://www.khanacademy.org/math",
+    "category": "Education & Mathematics",
+    "content": "Mathematical reasoning involves deductive and inductive logic. Key algebraic identities: (a+b)^2 = a^2 + 2ab + b^2, and a^2 - b^2 = (a-b)(a+b). In calculus, the derivative f'(x) represents the instantaneous rate of change of a function, while the definite integral represents the accumulated net area beneath a curve. In probability, Bayes' Theorem calculates conditional probability: P(A|B) = [P(B|A) * P(A)] / P(B).",
+    "word_count": 63
+  },
+  {
+    "id": "doc_0",
+    "source": "Foundational Science & Physics Principles",
+    "url": "https://www.britannica.com/science",
+    "category": "General Science & Education",
+    "content": "Classical physics is governed by Newton's Three Laws of Motion: 1. An object in motion remains in motion unless acted upon by an external net force (Inertia). 2. Force equals mass times acceleration (F = ma). 3. Every action has an equal and opposite reaction. The First Law of Thermodynamics dictates that energy cannot be created or destroyed, only transformed. Cellular biology identifies DNA (deoxyribonucleic acid) as the universal genetic code, transcribing information into mRNA for ribosomal protein synthesis.",
+    "word_count": 79
+  },
+  {
+    "id": "tactical_stalking_evasion_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Personal Defense & Tactical Security",
+    "content": "If you suspect someone is following you on foot: 1. **Verify Without Confronting (Cooper's Code Orange):** Make 4 consecutive right turns around a block or cross diagonally. If the individual replicates your path, pursuit is confirmed. 2. **Change Speed & Environmental Lighting:** Alter your pace suddenly. Move toward illuminated, high-traffic venues (supermarkets, petrol stations, hotel lobbies, ATM kiosks with security guards). 3. **Never Lead Pursuers Home:** Do not retreat to your residence or enter dead-end alleys where you can be cornered. 4. **Discreetly Arm SilentSOS:** Open SilentSOS and enable **Stealth Mode** so live GPS telemetry, dual camera bursts, and ambient audio stream to your emergency contacts. 5. **Assertive Verbal Boundary:** If the pursuer closes distance, pivot with hands in a",
+    "word_count": 120
+  },
+  {
+    "id": "tactical_stalking_evasion_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Personal Defense & Tactical Security",
+    "content": "dual camera bursts, and ambient audio stream to your emergency contacts. 5. **Assertive Verbal Boundary:** If the pursuer closes distance, pivot with hands in a defensive frame, make firm eye contact, and shout loudly: *'Stop! Back away! My live GPS tracking is alerting emergency response!'* 6. **Contact Emergency Services:** Dial **112 (India/EU)** or **911 (US)** immediately.",
+    "word_count": 56
+  },
+  {
+    "id": "tactical_physical_counter_escapes_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Personal Defense & Tactical Security",
+    "content": "If an aggressor attacks physically and evasion is impossible: 1. **Target Soft Vulnerable Anatomy:** Strike decisively to create an immediate opening to flee: • **Eyes:** Palm-thrust or gouge to trigger involuntary ocular defense and head retraction. • **Throat / Trachea:** Open palm-heel strike disrupts respiration and induces coughing spasms. • **Groin:** Upward knee drive or snappy heel kick collapses posture. • **Shin / Instep:** Stomp downward onto the attacker's arch or scrape the shin bone with shoe edge. 2. **Escaping Wrist Seizures:** Rotate your wrist toward the attacker's thumb (the weakest structural point of any grip) while stepping backward. 3. **Escaping Rear Chokeholds / Bear Hugs:** Drop your center of gravity rapidly. Deliver backward headbutts to their nose, drive elbows",
+    "word_count": 120
+  },
+  {
+    "id": "tactical_physical_counter_escapes_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Personal Defense & Tactical Security",
+    "content": "grip) while stepping backward. 3. **Escaping Rear Chokeholds / Bear Hugs:** Drop your center of gravity rapidly. Deliver backward headbutts to their nose, drive elbows into the solar plexus, and stomp their instep. 4. **Disengage and Sprint:** Do not grapple or stay to fight once an opening is created. Run toward public visibility while yelling *'FIRE!'* or *'HELP! CALL 112/911!'*",
+    "word_count": 60
+  },
+  {
+    "id": "medical_cpr_bls_resuscitation_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Emergency Medical & Trauma First Aid",
+    "content": "If a person collapses, is unresponsive, and is not breathing normally: 1. **Call 112 / 911 / 999:** Place phone on speaker so dispatchers can assist you while you work. 2. **Firm Hard Surface:** Position the victim flat on their back on a solid floor. 3. **Hand Placement:** Position the heel of your dominant hand in the center of the chest (lower half of breastbone). Interlock your other hand on top. Lock elbows straight. 4. **Compress Hard and Fast:** • Push down at least **2 inches (5 cm)**. • Maintain a rate of **100 to 120 compressions per minute** (the tempo of *'Stayin\\' Alive'*). • Allow full chest recoil between every thrust without leaning. 5. **Continuous Compressions:** Do not stop",
+    "word_count": 120
+  },
+  {
+    "id": "medical_cpr_bls_resuscitation_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Emergency Medical & Trauma First Aid",
+    "content": "120 compressions per minute** (the tempo of *'Stayin\\' Alive'*). • Allow full chest recoil between every thrust without leaning. 5. **Continuous Compressions:** Do not stop hands-only compressions until emergency paramedics arrive or an Automated External Defibrillator (AED) is attached and prompts you to stand clear.",
+    "word_count": 45
+  },
+  {
+    "id": "medical_stop_the_bleed_tourniquet_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Emergency Medical & Trauma First Aid",
+    "content": "For life-threatening or spurting bleeding: 1. **Direct Firm Pressure:** Place clean cloth or sterile gauze over the wound. Press down with both hands using your full upper body weight. 2. **Never Remove Blood-Soaked Cloths:** If blood soaks through, add additional layers directly on top. Removing dressings tears away developing platelet clots. 3. **Wound Packing (Groin, Armpits, Neck Base):** Tightly pack cloth into deep cavity wounds until full, then apply unrelenting direct pressure. 4. **Tourniquet Application (Limbs Only):** • For uncontrolled bleeding on arms or legs, apply a tourniquet **2 to 3 inches above the wound** (closer to the torso, never over a joint). • Tighten until all bleeding ceases and distal pulse vanishes. Note the exact application time. 5. **Prevent",
+    "word_count": 120
+  },
+  {
+    "id": "medical_stop_the_bleed_tourniquet_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Emergency Medical & Trauma First Aid",
+    "content": "(closer to the torso, never over a joint). • Tighten until all bleeding ceases and distal pulse vanishes. Note the exact application time. 5. **Prevent Hypothermic Shock:** Keep the casualty warm with blankets or coats and lay them flat.",
+    "word_count": 39
+  },
+  {
+    "id": "medical_choking_heimlich_obstruction_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Emergency Medical & Trauma First Aid",
+    "content": "If a person cannot speak, cough, or breathe and is clutching their throat (universal choking sign): 1. **Conscious Adult Protocol:** • Stand behind victim, wrap your arms around their waist. • Make a fist with one hand; place thumb side slightly above the navel (below ribcage). • Grasp fist with other hand and deliver quick, forceful **upward and inward abdominal thrusts**. • Repeat until the obstruction pops out or the patient loses consciousness. 2. **Self-Heimlich When Alone:** • Position your own fist above navel, lean over the back of a rigid chair, table rim, or balcony rail, and drive abdomen sharply into the edge. 3. **If Victim Collapses:** Lower them carefully to the ground, call 112 / 911, and begin",
+    "word_count": 120
+  },
+  {
+    "id": "medical_choking_heimlich_obstruction_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Emergency Medical & Trauma First Aid",
+    "content": "balcony rail, and drive abdomen sharply into the edge. 3. **If Victim Collapses:** Lower them carefully to the ground, call 112 / 911, and begin chest compressions immediately.",
+    "word_count": 28
+  },
+  {
+    "id": "crisis_active_threat_run_hide_fight_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Crisis, Disaster & Hostile Event Response",
+    "content": "During an active hostility or shooting incident: 1. **RUN (Primary Objective):** If an accessible escape path exists, evacuate immediately regardless of whether others agree to follow. Leave belongings behind. Keep hands visible for law enforcement. 2. **HIDE (If Escape is Blocked):** • Find a secure room. Lock and barricade doors with heavy desks, vending machines, or wedges. • Turn off lights, silence cellphones (turn off vibrations), and stay low away from windows. • Arm SilentSOS in **Stealth Mode** to silently beacon your GPS and audio to responders. 3. **FIGHT (Absolute Last Resort):** If your life is in imminent peril, act aggressively: commit to disarming the threat, throw heavy items (fire extinguishers, chairs), work together with others, and incapacitate the attacker.",
+    "word_count": 120
+  },
+  {
+    "id": "crisis_earthquake_drop_cover_hold_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Crisis, Disaster & Hostile Event Response",
+    "content": "When the ground shakes during an earthquake: 1. **DROP:** Drop down onto your hands and knees. This position protects you from being knocked down and allows crawling to shelter. 2. **COVER:** Take cover under a sturdy desk or table. Protect your head and neck with your arms. If no shelter is nearby, crawl next to an interior wall away from glass windows and heavy hanging mirrors. 3. **HOLD ON:** Hold onto your shelter with one hand and protect head/neck with the other until shaking stops. 4. **If Indoors:** Stay inside! Running outside during shaking is when most falling brick and glass injuries occur. 5. **After Shaking Stops:** Check for gas leaks, evacuate carefully via stairs (never use elevators), and check",
+    "word_count": 120
+  },
+  {
+    "id": "crisis_earthquake_drop_cover_hold_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Crisis, Disaster & Hostile Event Response",
+    "content": "when most falling brick and glass injuries occur. 5. **After Shaking Stops:** Check for gas leaks, evacuate carefully via stairs (never use elevators), and check in via SilentSOS.",
+    "word_count": 28
+  },
+  {
+    "id": "domestic_abuse_safety_plan_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Domestic Abuse, Stalking & Victim Protection",
+    "content": "In situations of domestic coercion, violence, or escalating threats: 1. **Pack a Secret Evacuation Kit:** Stash cash, copies of identification, passports, prescriptions, deeds, duplicate house/car keys, and a secondary charger with a trusted friend or neighbor. 2. **Avoid Physical Traps:** In escalating arguments, stay out of rooms with hard surfaces or weapons (kitchens with knives, bathrooms with slippery tile floors). 3. **Use SilentSOS Covert Tools:** • **Fake Call Simulator:** Triggers an authentic incoming phone call from 'Mom' to create a natural, urgent excuse to leave the premises. • **Stealth Mode:** Appears as an inert, blacked-out screen while secretly recording ambient threats and streaming live coordinates to trusted guardians. 4. **Emergency Helplines (Confidential):** • India: Women in Distress **1091** or **181**",
+    "word_count": 120
+  },
+  {
+    "id": "domestic_abuse_safety_plan_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Domestic Abuse, Stalking & Victim Protection",
+    "content": "screen while secretly recording ambient threats and streaming live coordinates to trusted guardians. 4. **Emergency Helplines (Confidential):** • India: Women in Distress **1091** or **181** | Unified Police **112** • US: National Domestic Violence Hotline **1-800-799-7233** or text **START to 88788** • UK: National Domestic Abuse Helpline **0808 2000 247**",
+    "word_count": 50
+  },
+  {
+    "id": "cyber_stalkerware_device_safety_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+    "content": "If you suspect your phone is being monitored by an abuser or stalker: 1. **Warning Indicators:** Unexpected rapid battery drain, device overheating when idle, spikes in mobile data usage, or unfamiliar apps in Device Admin / Accessibility services. 2. **Check App Permissions:** Audit which applications have access to Location ('Allow all the time'), Camera, and Microphone. Revoke suspicious permissions. 3. **Do Not Immediately Delete Spyware:** If safe, consult domestic violence specialists or police first—deleting stalkerware can alert an abuser that they have been discovered. 4. **Use a Secondary Clean Device:** Use a library computer or a friend's phone for sensitive searches, safety planning, and communicating with advocates. 5. **Harden Screen Lock:** Use a fresh 6-digit alphanumeric passcode that the abuser",
+    "word_count": 120
+  },
+  {
+    "id": "cyber_stalkerware_device_safety_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Cybersecurity, Device Privacy & Anti-Stalkerware",
+    "content": "a friend's phone for sensitive searches, safety planning, and communicating with advocates. 5. **Harden Screen Lock:** Use a fresh 6-digit alphanumeric passcode that the abuser cannot guess. Disable biometric unlock if coerced fingerprint access is a risk.",
+    "word_count": 37
+  },
+  {
+    "id": "legal_zero_fir_and_evidence_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+    "content": "Your constitutional legal rights when reporting crime and preserving evidence: 1. **Zero FIR Mandate (India):** Under Supreme Court precedent (Lalita Kumari vs. Govt of UP), any police station is legally required to register a First Information Report (FIR) for cognizable offences regardless of where the incident occurred. Refusal is an offence under Section 166A IPC / BNSS. 2. **Right to Female Police Officer:** Female victims have the statutory right to have their statement recorded by a woman police officer or magistrate. 3. **Evidentiary Integrity in SilentSOS:** • Photos, audio recordings, and GPS breadcrumbs stored in the SilentSOS Evidence Vault contain embedded UTC timestamps and cryptographic checksums. • Do not crop, edit, or filter files prior to police submission to maintain",
+    "word_count": 120
+  },
+  {
+    "id": "legal_zero_fir_and_evidence_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+    "content": "the SilentSOS Evidence Vault contain embedded UTC timestamps and cryptographic checksums. • Do not crop, edit, or filter files prior to police submission to maintain unbroken chain of custody in court proceedings.",
+    "word_count": 32
+  },
+  {
+    "id": "legal_emergency_numbers_worldwide_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Legal Rights, Law Enforcement & Evidence Preservation",
+    "content": "Official universal emergency dispatch numbers: • **India:** - Unified National Emergency: **112** - Police: **100** / **112** - Ambulance & Health: **108** / **102** - Fire: **101** - Women Helpline: **1091** or **181** - Cyber Crime Helpline: **1930** (cybercrime.gov.in) - Railway Emergency: **139** • **United States & Canada:** - Universal Emergency (Police/Fire/EMS): **911** - Suicide & Crisis Lifeline: **988** - National Domestic Violence Helpline: **1-800-799-7233** • **United Kingdom:** - Universal Emergency: **999** - Non-Emergency Police: **101** • **European Union:** - Universal Free Emergency Number: **112** • **Australia:** - Emergency Service: **000**",
+    "word_count": 91
+  },
+  {
+    "id": "transit_rideshare_cab_protection_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Travel, Rideshare & Public Transit Safety",
+    "content": "Precautionary steps when taking cabs or rideshares: 1. **Pre-Boarding Verification:** Always ask the driver: *'Who are you here to pick up?'* Let them say your name first. Match the license plate and driver photo precisely. 2. **Back Seat Seating:** Sit on the rear passenger side. This provides maximum reaction distance and prevents the driver from easily reaching you. 3. **Test the Door & Child Lock:** Check that the interior door handle works immediately upon sitting. If the child lock is active and the door cannot open from inside, demand to exit immediately. 4. **Share Live Trip Breadcrumbs:** Share your SilentSOS tracking link with emergency contacts so they can see your real-time GPS location. 5. **In Case of Route Deviation or",
+    "word_count": 120
+  },
+  {
+    "id": "transit_rideshare_cab_protection_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Travel, Rideshare & Public Transit Safety",
+    "content": "Trip Breadcrumbs:** Share your SilentSOS tracking link with emergency contacts so they can see your real-time GPS location. 5. **In Case of Route Deviation or Threat:** • Speak up firmly: *'You have turned off the GPS route. Stop the vehicle right now.'* • Trigger SilentSOS covertly using the shake accelerometer or physical volume keys. • If the car slows at an intersection or traffic signal, unlock the door, exit into traffic, and shout for assistance.",
+    "word_count": 75
+  },
+  {
+    "id": "mental_health_panic_grounding_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Mental Health Crisis, Panic & Psychological First Aid",
+    "content": "If you or someone nearby is experiencing acute panic, hyperventilation, or extreme terror: 1. **The 5-4-3-2-1 Sensory Grounding Technique:** Name aloud: • **5 things you can SEE** (e.g. wall clock, shoes, tree, doorknob, street lamp) • **4 things you can physically FEEL** (e.g. feet on the floor, texture of clothing, cool phone case, chair back) • **3 things you can HEAR** (e.g. distant cars, breathing, air conditioning) • **2 things you can SMELL** (e.g. rain, coffee, clothing soap) • **1 thing you can TASTE** (or say: *'I am safe right now in this exact moment'*) 2. **4-4-4-4 Box Breathing:** • Inhale slowly through nose for **4 seconds** • Hold breath gently for **4 seconds** • Exhale smoothly through mouth for",
+    "word_count": 120
+  },
+  {
+    "id": "mental_health_panic_grounding_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Mental Health Crisis, Panic & Psychological First Aid",
+    "content": "2. **4-4-4-4 Box Breathing:** • Inhale slowly through nose for **4 seconds** • Hold breath gently for **4 seconds** • Exhale smoothly through mouth for **4 seconds** • Hold lungs empty for **4 seconds** • Repeat 4 times to stimulate the parasympathetic nervous system and slow heart rate. 3. **Confidential Crisis Lines:** Text **HOME to 741741** (US/UK) or dial **14416** (Tele-MANAS India) / **988** (US).",
+    "word_count": 65
+  },
+  {
+    "id": "silentsos_stealth_mode_operation_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "content": "🕶️ **SilentSOS Stealth Mode & Covert Defense:** • **Function:** Renders a blacked-out, completely inactive screen disguise that makes your phone appear powered off or locked to bystanders or aggressors. • **Background Engine:** Behind the black disguise, SilentSOS runs continuous high-accuracy GPS tracking, front/rear camera photographic bursts, and high-sensitivity ambient microphone logging. • **How to Toggle:** Turn on the toggle in **Settings → Stealth & Disguise** or on the central SOS Hub console. • **Tactical Value:** Use when in hostile vehicles, during home break-ins, or when walking through dark areas where illuminating a screen exposes your position.",
+    "word_count": 96
+  },
+  {
+    "id": "silentsos_safety_pin_security_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "content": "🔒 **SilentSOS Safety PIN Security Protocol:** • **Default Factory PIN:** Initialized as **`1234`** across all installations. • **Anti-Tamper Lockout:** Once an emergency SOS beacon or distress trigger is armed, it CANNOT be cancelled, muted, or deleted without entering this 4-digit PIN. This prevents an aggressor from coercing you into turning off your distress alert. • **How to Change PIN:** 1. Web App: Navigate to **Settings → Security & PIN → Change PIN**. Enter your current PIN (`1234` by default), then type your new 4-digit code and confirm. 2. Android App: Navigate to **Settings tab → Change Safety PIN**, enter your new 4 digits, and tap Save. • **Recommendation:** Change the PIN from `1234` immediately upon initial onboarding.",
+    "word_count": 117
+  },
+  {
+    "id": "silentsos_multi_trigger_vectors_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "content": "🚨 **5 Multi-Vector SOS Emergency Triggers:** 1. **3-Second Press & Hold (Web & Android):** Press and hold the glowing central SOS button on the Hub. A 3-second haptic countdown begins before arming distress. 2. **Mobile Accelerometer Shake (Android):** Violently shake your mobile phone back and forth 3 times. The accelerometer detects sudden high-g spikes and arms distress without needing to unlock the screen. 3. **Hardware Volume Key Sequence (Android):** Press physical Volume Up or Volume Down keys in rapid succession. 4. **Hand Gesture Computer Vision (Web & Mobile):** Open the **Gestures** tab and raise an open flat palm toward the camera for contactless optical arming. 5. **Category Distress Buttons:** Direct tap on **Police**, **Fire**, **Medical**, or **Personal Threat** for specialized",
+    "word_count": 120
+  },
+  {
+    "id": "silentsos_multi_trigger_vectors_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "content": "open flat palm toward the camera for contactless optical arming. 5. **Category Distress Buttons:** Direct tap on **Police**, **Fire**, **Medical**, or **Personal Threat** for specialized priority triage.",
+    "word_count": 27
+  },
+  {
+    "id": "silentsos_evidence_vault_forensics_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "content": "🛡️ **SilentSOS Autonomous Multi-Media Evidence Vault:** • **Automated Dual-Camera Bursts:** When SOS triggers, the device takes rapid front and rear photo bursts stamped with UTC timestamps, GPS coordinates, and cryptographic hashes. • **High-Fidelity Audio Buffer:** Automatically records surrounding ambient audio through the microphone to capture threats, perpetrator voices, and vehicular sounds. • **Rolling Video Container:** Captures streaming video evidence without screen flashes. • **In-App Vault Viewer:** Tap the **Evidence** tab on Web or Android to review all historical incident sessions, browse photo galleries, play audio files, and inspect GPS telemetry. • **Cloud & Email Dispatch:** All evidence media is packaged and securely dispatched to your emergency contacts via Resend.",
+    "word_count": 109
+  },
+  {
+    "id": "silentsos_fake_call_escape_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "content": "📞 **Fake Call Escape Simulator:** • **Purpose:** Simulates an ultra-realistic incoming phone call (displaying 'Mom' with ringing and haptic vibration) to give you an immediate, unsuspicious excuse to walk away from uncomfortable, threatening, or suspicious company. • **How to Launch:** 1. On Web App: Open **Settings → Fake Call Disguise → Test**. 2. On Android App: Open **Settings tab → Fake Call Escape Simulator**. • **Tactical Usage:** Answer the call, hold phone to ear, pretend to speak (*'Yes, I\\'m on my way right now, I\\'m 2 minutes away'*), and briskly walk toward a well-populated, lit area.",
+    "word_count": 96
+  },
+  {
+    "id": "silentsos_contacts_dispatch_pipeline_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "SilentSOS Platform Manual & Sensor Telemetry Specs",
+    "content": "👥 **Emergency Contacts & Automated Dispatch Pipeline:** • **Adding Contacts:** Go to the **Contacts** tab, click **Add Guardian**, and specify their full name, phone number, relationship, and email address. • **Live Dispatch Content:** When distress activates, each contact receives: 1. Instant SMS with direct Google Maps link. 2. Formal Resend Email containing live coordinates, medical information, and links to all captured photos/audio. • **Testing Resend Delivery:** In **Settings → Resend Alert Notifications**, click **Send Test Alert Notification** to verify your contacts' inboxes receive the alert successfully.",
+    "word_count": 86
+  },
+  {
+    "id": "conversational_greeting_persona_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Conversational AI, Reasoning & Standards",
+    "content": "👋 **Hello! I am your SilentSOS AI Defense & Safety Assistant.** I am your 24/7 in-house safety companion trained on 112 international emergency protocols, trauma first aid, self-defense tactics, and complete SilentSOS platform controls—operating 100% locally with zero cloud API dependencies. **Key topics you can ask me right now:** • *'What should I do if someone is following me?'* • *'How do I perform CPR?'* • *'How does Stealth Mode work?'* • *'How do I change my safety PIN?'* • *'What are the official emergency numbers in my country?'* How can I support your safety today?",
+    "word_count": 96
+  },
+  {
+    "id": "conversational_identity_and_capabilities_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Conversational AI, Reasoning & Standards",
+    "content": "🛡️ **About SilentSOS AI:** I am the **SilentSOS Cognitive Safety Assistant**, designed to work like Claude / ChatGPT with deep situational awareness, compassionate empathy, and actionable crisis guidance. **Core Pillars:** 1. **Trained on 112 Authoritative Sources:** Encompassing Red Cross, AHA, WHO, FEMA, CISA, Krav Maga, Supreme Court legal precedents, and SilentSOS engineering manuals. 2. **100% In-House & Private:** Built with an embedded vector-space semantic matching engine. I operate directly inside the SilentSOS server and native Android runtime without sending your queries to external cloud LLM APIs. 3. **Tactical & Device Mastery:** Instant step-by-step guidance for Safety PINs, Stealth Mode, Fake Call disguise, accelerometer shake triggers, and Evidence Vault retrieval. Whenever you feel uncertain, threatened, or in distress, I am right",
+    "word_count": 120
+  },
+  {
+    "id": "conversational_identity_and_capabilities_1",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Conversational AI, Reasoning & Standards",
+    "content": "Safety PINs, Stealth Mode, Fake Call disguise, accelerometer shake triggers, and Evidence Vault retrieval. Whenever you feel uncertain, threatened, or in distress, I am right here with you.",
+    "word_count": 28
+  },
+  {
+    "id": "conversational_gratitude_and_reassurance_0",
+    "source": "SilentSOS Safety Corpus",
+    "url": "",
+    "category": "Conversational AI, Reasoning & Standards",
+    "content": "You are very welcome! Staying informed and prepared is the single most powerful step you can take for your security. **Quick Safety Checklist:** • Keep your phone battery above 30%. • Test your emergency contacts periodically. • Memorize your 4-digit Safety PIN (default `1234`). • Practice activating Stealth Mode and Fake Call so muscle memory takes over in stress. I am standing by 24/7 whenever you need guidance. Stay safe and aware!",
+    "word_count": 72
+  }
+]

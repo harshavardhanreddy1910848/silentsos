@@ -1120,6 +1120,30 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                     listOf("What to do if followed?", "How does Stealth Mode work?", "How to change PIN?")
                 )
             }
+            q.contains("shooter") || q.contains("gun") || q.contains("attack") -> {
+                Pair(
+                    "🚨 Run-Hide-Fight Active Threat Protocol:\n\n1. RUN: Evacuate if a safe path exists. Leave belongings behind.\n2. HIDE: If escape impossible, lock & barricade doors, silence phone & vibrate, turn off lights.\n3. FIGHT: As a last resort, act with aggression, use improvised weapons to incapacitate the threat.\n4. Call 112 once safe.",
+                    listOf("How does Stealth Mode work?", "What to do if followed?", "Emergency phone numbers")
+                )
+            }
+            q.contains("fir") || q.contains("police") || q.contains("station") -> {
+                Pair(
+                    "⚖️ Zero FIR & Legal Rights in India:\n\n• Any police station MUST register a 'Zero FIR' regardless of jurisdiction.\n• Under BNSS Section 173, police cannot refuse complaint based on territorial boundaries.\n• Women can lodge complaints online via NCW or national portal (112.gov.in).",
+                    listOf("Emergency phone numbers", "Cybercrime complaint 1930", "What to do if followed?")
+                )
+            }
+            q.contains("cyber") || q.contains("scam") || q.contains("hack") || q.contains("fraud") -> {
+                Pair(
+                    "🔒 Cybercrime & Financial Fraud Protocol:\n\n• Call 1930 immediately within the golden hour to freeze unauthorized bank transfers.\n• Report incidents with transaction logs at cybercrime.gov.in.\n• Preserve SMS, UPI transaction IDs, and call logs as digital evidence.",
+                    listOf("Emergency phone numbers", "How to change PIN?", "How does Stealth Mode work?")
+                )
+            }
+            q.contains("panic") || q.contains("anxiety") || q.contains("breathe") || q.contains("scared") -> {
+                Pair(
+                    "🧘 5-4-3-2-1 Grounding & Crisis Calming:\n\n• Acknowledge 5 things you can see.\n• 4 things you can physically touch.\n• 3 things you can hear around you.\n• 2 things you can smell.\n• 1 thing you can taste.\n• Inhale 4s, hold 7s, exhale slowly 8s.",
+                    listOf("Emergency phone numbers", "What to do if followed?", "How to use Fake Call?")
+                )
+            }
             else -> {
                 Pair(
                     "🛡️ SilentSOS On-Device Safety AI:\n\nI am your offline crisis assistant. In danger, hold the central SOS button for 3s or shake your phone rapidly.\n\nEmergency Numbers: India 112 / US 911 / UK 999.",
