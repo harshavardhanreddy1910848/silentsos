@@ -870,9 +870,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             startActivity(Intent(this, ProfileActivity::class.java))
         }
 
-        // AI Defense Assistant -> showAiAssistantDialog()
+        // AI Defense Assistant -> AiAssistantActivity (Dedicated Next Screen for Chatting)
         view.findViewById<LinearLayout>(R.id.cardAiAssistant).setOnClickListener {
-            showAiAssistantDialog()
+            startActivity(Intent(this, AiAssistantActivity::class.java))
         }
 
         // Capture settings -> CaptureSettingsActivity

@@ -34,121 +34,6 @@ export function Settings() {
   const { state, updateSettings, clearData, logout, testResendAlert, submitFeedback } = useApp();
   const [showFakeCall, setShowFakeCall] = useState(false);
 
-  // AI Defense & Safety Assistant State
-  const [aiInput, setAiInput] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [isAiExpanded, setIsAiExpanded] = useState(true);
-  const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string; time: string }>>([
-    {
-      role: 'assistant',
-      text: 'Hello! I am your 24/7 SilentSOS AI Defense Assistant. Ask me anything about Stealth Mode, safety PINs, crisis triage, emergency gesture setup, or what happens when an SOS is triggered.',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([
-    'How does Stealth Mode work?',
-    'How do I change my PIN?',
-    'What happens during SOS alert?',
-    'Advice if someone is following me'
-  ]);
-  const chatBottomRef = useRef<HTMLDivElement | null>(null);
-
-  const handleSendAiMessage = async (overrideText?: string) => {
-    const text = (overrideText || aiInput).trim();
-    if (!text || aiLoading) return;
-
-    const userMsg = {
-      role: 'user' as const,
-      text,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setAiMessages(prev => [...prev, userMsg]);
-    if (!overrideText) setAiInput('');
-    setAiLoading(true);
-
-    try {
-      const res = await fetch(`${API_BASE}/ai/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(state.authToken ? { Authorization: `Bearer ${state.authToken}` } : {})
-        },
-        body: JSON.stringify({
-          message: text,
-          history: aiMessages.slice(-6).map(m => ({ role: m.role, text: m.text }))
-        })
-      });
-
-      if (!res.ok) throw new Error(`AI assistant returned ${res.status}`);
-      const data = await res.json();
-
-      setAiMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: data.reply || 'Guidance noted. Prioritize personal safety and seek open public spaces if in danger.',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
-
-      if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
-        setAiSuggestions(data.suggestions);
-      }
-    } catch (err: any) {
-      setAiMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: 'AI response offline. Default rule: in immediate danger, hold the red SOS button for 3 seconds or execute your secret volume/shake gesture to alert all contacts.',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
-    } finally {
-      setAiLoading(false);
-      setTimeout(() => {
-        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
-  };
-
-  const handleClearAiChat = () => {
-    setAiMessages([
-      {
-        role: 'assistant',
-        text: 'Hello! I am your 24/7 SilentSOS AI Defense Assistant. Ask me anything about Stealth Mode, safety PINs, crisis triage, emergency gesture setup, or what happens when an SOS is triggered.',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }
-    ]);
-  };
-
-  const formatAiMessage = (content: string) => {
-    return content.split('\n').map((line, lineIdx) => {
-      const parts = line.split(/(\*\*.*?\*\*|`.*?`)/g);
-      return (
-        <span key={lineIdx} className={line.trim() === '' ? 'block h-2' : 'block leading-relaxed'}>
-          {parts.map((part, partIdx) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-              return (
-                <strong key={partIdx} className="font-bold text-white">
-                  {part.slice(2, -2)}
-                </strong>
-              );
-            }
-            if (part.startsWith('`') && part.endsWith('`')) {
-              return (
-                <code key={partIdx} className="px-1.5 py-0.5 rounded bg-black/40 text-cyan-300 font-mono text-[11px] border border-cyan-800/30">
-                  {part.slice(1, -1)}
-                </code>
-              );
-            }
-            return part;
-          })}
-        </span>
-      );
-    });
-  };
-
   // Resend Alert Testing State
   const [testingResend, setTestingResend] = useState(false);
   const [testResendResult, setTestResendResult] = useState<string | null>(null);
@@ -440,121 +325,38 @@ export function Settings() {
             </span>
           </div>
 
-          <div className="bg-surface border border-surfaceHighlight rounded-2xl overflow-hidden shadow-lg">
-            {/* Header / Intro */}
-            <div className="p-4 bg-gradient-to-r from-slate-900/90 via-surface to-slate-900/90 border-b border-surfaceHighlight flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
-                  <Bot className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    SilentSOS Cognitive AI
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono border border-cyan-800/40">LOCAL BRAIN</span>
-                  </h3>
-                  <p className="text-[11px] text-textMuted">
-                    Trained in-house on self-defense, CPR first aid, app controls &amp; crisis navigation (Zero External APIs)
-                  </p>
-                </div>
+          <div
+            onClick={() => navigate('/ai-assistant')}
+            className="bg-surface hover:bg-surfaceHighlight/80 border border-surfaceHighlight hover:border-cyan-500/40 rounded-2xl p-4 sm:p-5 cursor-pointer transition-all shadow-md group flex items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform shrink-0">
+                <Bot className="w-7 h-7" />
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleClearAiChat}
-                  title="Clear conversation"
-                  className="text-xs text-textMuted hover:text-red-400 px-2.5 py-1 rounded-lg bg-surfaceHighlight hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Clear</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsAiExpanded(prev => !prev)}
-                  className="text-xs text-textMuted hover:text-white px-2.5 py-1 rounded-lg bg-surfaceHighlight hover:bg-white/10 transition-colors cursor-pointer"
-                >
-                  {isAiExpanded ? 'Collapse' : 'Expand'}
-                </button>
+
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-base text-white group-hover:text-cyan-400 transition-colors">
+                    AI Defense &amp; Safety Assistant
+                  </h3>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-400 border border-cyan-500/30">
+                    LOCAL BRAIN &bull; 112 SOURCES
+                  </span>
+                </div>
+
+                <p className="text-xs text-textMuted mt-1">
+                  Tap to chat with your local AI guide for CPR first aid, tactical stalking evasion, Zero FIR legal rights, and app controls.
+                </p>
               </div>
             </div>
 
-            {isAiExpanded && (
-              <div className="p-4 space-y-4">
-                {/* Chat Message Scroll Window */}
-                <div className="max-h-80 min-h-48 overflow-y-auto space-y-3 pr-1 text-xs">
-                  {aiMessages.map((m, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
-                    >
-                      <div
-                        className={`max-w-[88%] rounded-2xl p-3.5 leading-relaxed shadow-sm ${
-                          m.role === 'user'
-                            ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-tr-sm'
-                            : 'bg-surfaceHighlight/80 border border-white/5 text-slate-200 rounded-tl-sm'
-                        }`}
-                      >
-                        <div className="space-y-1">{formatAiMessage(m.text)}</div>
-                      </div>
-                      <span className="text-[10px] text-slate-500 mt-1 px-1">{m.time}</span>
-                    </div>
-                  ))}
-                  {aiLoading && (
-                    <div className="flex items-center gap-2 text-cyan-400 text-xs py-1 px-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                      <span>Defense AI is formulating tactical response...</span>
-                    </div>
-                  )}
-                  <div ref={chatBottomRef} />
-                </div>
-
-                {/* Quick Suggestion Chips */}
-                {aiSuggestions.length > 0 && (
-                  <div className="pt-2 border-t border-surfaceHighlight/60">
-                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-2 tracking-wider">
-                      Suggested Safety Inquiries:
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {aiSuggestions.map((s, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          disabled={aiLoading}
-                          onClick={() => handleSendAiMessage(s)}
-                          className="text-[11px] px-3 py-1.5 rounded-xl bg-surfaceHighlight hover:bg-cyan-950/60 hover:text-cyan-300 border border-white/5 hover:border-cyan-500/40 text-slate-300 transition-all text-left cursor-pointer"
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Input form */}
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSendAiMessage();
-                  }}
-                  className="flex items-center gap-2 pt-1"
-                >
-                  <input
-                    type="text"
-                    value={aiInput}
-                    onChange={(e) => setAiInput(e.target.value)}
-                    placeholder="Ask AI defense assistant (e.g. 'How do I change PIN?')..."
-                    disabled={aiLoading}
-                    className="flex-1 bg-surfaceHighlight/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
-                  />
-                  <button
-                    type="submit"
-                    disabled={aiLoading || !aiInput.trim()}
-                    className="p-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-40 text-white rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center shrink-0"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </form>
-              </div>
-            )}
+            <button
+              type="button"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-cyan-900/30 shrink-0 group-hover:translate-x-1 transition-transform cursor-pointer"
+            >
+              Chat Now
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </section>
         {/* Stealth & Disguise */}

@@ -11,6 +11,7 @@ import { History } from './pages/History';
 import { Settings } from './pages/Settings';
 import { Profile } from './pages/Profile';
 import { CaptureSettings } from './pages/CaptureSettings';
+import { AiAssistant } from './pages/AiAssistant';
 import { Receiver } from './pages/Receiver';
 import { Auth } from './pages/Auth';
 import { SetupPin } from './pages/SetupPin';
@@ -181,6 +182,16 @@ function AppContent() {
         <Navigate to="/onboarding" /> :
 
         <CaptureSettings />
+
+        } />
+
+      <Route
+        path="/ai-assistant"
+        element={
+        !state.isSetupComplete ?
+        <Navigate to="/onboarding" /> :
+
+        <AiAssistant />
 
         } />
 

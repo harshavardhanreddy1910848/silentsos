@@ -20,3 +20,4 @@ echo ======================================================================
 echo ✅ Environment successfully configured for Silent SOS AI Engine.
 echo You can now run "start_ai_engine.bat" to start the local AI inference service.
 echo ======================================================================
+

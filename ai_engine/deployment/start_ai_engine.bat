@@ -7,3 +7,4 @@ echo.
 
 python ai_engine/inference_server/server.py
 pause
+
