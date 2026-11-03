@@ -1725,7 +1725,7 @@ app.post('/api/ai/chat', optionalAuthenticateToken, async (req, res) => {
     const settings = userId ? await db.getSettings(userId) : null;
     const contacts = userId ? await db.getContacts(userId) : [];
 
-    const result = generateAiAssistantReply({
+    const result = await generateAiAssistantReply({
       message: message.trim(),
       user,
       settings,

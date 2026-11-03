@@ -242,6 +242,33 @@ class AiAssistantActivity : AppCompatActivity() {
                     listOf("What to do if followed?", "How does Stealth Mode work?", "How to change PIN?")
                 )
             }
+            q.contains("poem") || q.contains("poetry") || q.contains("rhyme") -> {
+                Pair(
+                    "✨ A Poetic Reflection on Courage:\n\n" +
+                    "The quiet streets may hum with doubt,\n" +
+                    "When shadow turns the lanterns out,\n" +
+                    "Yet in the palm, a steady spark,\n" +
+                    "A silent voice cuts through the dark.\n\n" +
+                    "For courage is no absence of the chill,\n" +
+                    "It is the pulse that whispers: 'Still,'\n" +
+                    "We step through night and find the dawn,\n" +
+                    "Protected, steady, marching on.\n\n" +
+                    "— SilentSOS Creative Mind",
+                    listOf("How does Stealth Mode work?", "What to do if followed?", "Emergency numbers")
+                )
+            }
+            q.contains("story") || q.contains("narrative") -> {
+                Pair(
+                    "📖 The Midnight Protocol:\n\nWalking late past the terminal, Ananya felt footsteps matching her pace. Remembering her training, she didn't panic. She made 4 consecutive right turns, arming SilentSOS in Stealth Mode. Her coordinates and live audio streamed silently to her circle as she entered a lit store, safe and in full control.",
+                    listOf("How does Stealth Mode work?", "What to do if followed?", "Emergency numbers")
+                )
+            }
+            q.contains("python") || q.contains("code") || q.contains("async") || q.contains("kotlin") -> {
+                Pair(
+                    "💻 Software & Mobile Concurrency:\n\n• Kotlin Coroutines: Use `Dispatchers.IO` for background sensor loops and `Dispatchers.Main` for UI.\n• Python Asyncio: Non-blocking single-threaded I/O with `async def` and `await asyncio.sleep()`.\n• Big-O: Binary Search operates in O(log n) time.",
+                    listOf("How does Stealth Mode work?", "What to do if followed?", "Emergency numbers")
+                )
+            }
             else -> {
                 Pair(
                     "🛡️ SilentSOS On-Device Safety AI:\n\nI am your offline crisis assistant. In danger, hold the central SOS button for 3s or shake your phone rapidly.\n\nEmergency Numbers: India 112 / US 911 / UK 999.",
