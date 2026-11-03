@@ -1912,6 +1912,20 @@ app.post('/api/alerts', async (req, res) => {
   const user = await db.getUser(userId);
   let contacts = await db.getContacts(userId);
 
+  // If client provided contacts (e.g. from Android app), use and persist them
+  if (Array.isArray(req.body.contacts) && req.body.contacts.length > 0) {
+    contacts = req.body.contacts;
+    try {
+      for (const c of contacts) {
+        if (c && (c.name || c.email || c.phone)) {
+          await db.addOrUpdateContact(userId, c);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to sync client contacts to DB during alert creation:', e.message);
+    }
+  }
+
   // Fallback to default responders if user has no contacts configured
   if (contacts.length === 0) {
     contacts = [
@@ -2124,6 +2138,9 @@ app.post('/api/alerts/:id/complete', async (req, res) => {
         sentEvidenceAlerts.add(alertId);
         const user = await db.getUser(alert.userId);
         let contacts = await db.getContacts(alert.userId);
+        if (Array.isArray(req.body.contacts) && req.body.contacts.length > 0) {
+          contacts = req.body.contacts;
+        }
         if (contacts.length === 0) {
           contacts = [
             { id: 'police-dispatch', name: 'Emergency Police Dispatch', phone: '911', email: 'dispatch@emergency.gov', preferences: { gps: true, photos: true, video: true, audio: true, message: true } },

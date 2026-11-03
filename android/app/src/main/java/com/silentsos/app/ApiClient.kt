@@ -539,7 +539,13 @@ class ApiClient(private val context: Context) {
         }
     }
 
-    suspend fun triggerAlert(lat: Double, lng: Double, type: String = "Emergency", address: String = ""): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun triggerAlert(
+        lat: Double,
+        lng: Double,
+        type: String = "Emergency",
+        address: String = "",
+        contacts: List<Contact> = emptyList()
+    ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val base = getBaseUrl()
             val json = JSONObject().apply {
@@ -549,6 +555,13 @@ class ApiClient(private val context: Context) {
                     put("lng", lng)
                     put("address", address)
                 })
+                if (contacts.isNotEmpty()) {
+                    val contactsArr = org.json.JSONArray()
+                    for (c in contacts) {
+                        contactsArr.put(c.toJson())
+                    }
+                    put("contacts", contactsArr)
+                }
             }
             val request = Request.Builder()
                 .url("$base/api/alerts")
@@ -566,6 +579,34 @@ class ApiClient(private val context: Context) {
                 Result.success(alertId)
             } else {
                 Result.failure(Exception("Failed to trigger SOS alert (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun completeAlert(alertId: String, contacts: List<Contact> = emptyList()): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val json = JSONObject().apply {
+                if (contacts.isNotEmpty()) {
+                    val contactsArr = org.json.JSONArray()
+                    for (c in contacts) {
+                        contactsArr.put(c.toJson())
+                    }
+                    put("contacts", contactsArr)
+                }
+            }
+            val request = Request.Builder()
+                .url("$base/api/alerts/$alertId/complete")
+                .post(json.toString().toRequestBody(jsonMediaType))
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Failed to signal alert completion (${response.code})"))
             }
         } catch (e: Exception) {
             Result.failure(e)
