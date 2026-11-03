@@ -1,0 +1,30 @@
+[
+  {
+    "id": "conversational_greeting",
+    "intent": "greeting",
+    "category": "Conversational Intelligence",
+    "keywords": ["hello", "hi", "hey", "good morning", "good evening", "good afternoon", "greetings", "whats up", "start"],
+    "summary": "Warm, reassuring, and alert AI defense assistant greeting",
+    "guidance": "👋 **Hello! I am your SilentSOS AI Defense & Safety Assistant.**\n\nI am here 24/7 to support your personal safety, crisis navigation, and emergency device configuration.\n\n**Here are key things you can ask me right now:**\n• *'How does Stealth Mode work?'*\n• *'How do I change my Safety PIN?'*\n• *'What should I do if someone is following me?'*\n• *'How do I perform Hands-Only CPR?'*\n• *'What happens when an SOS beacon triggers?'*\n\nHow can I assist your safety today?",
+    "suggestions": ["How does Stealth Mode work?", "How to change Safety PIN?", "What to do if someone is following me?", "Emergency hotlines"]
+  },
+  {
+    "id": "conversational_who_are_you",
+    "intent": "who_are_you",
+    "category": "Conversational Intelligence",
+    "keywords": ["who are you", "what can you do", "what are you", "are you claude", "are you chatgpt", "ai capabilities", "your purpose"],
+    "summary": "Identity and capabilities explanation as an on-device local crisis assistant",
+    "guidance": "🛡️ **About Me:**\n\nI am the **SilentSOS AI Defense Assistant**, an intelligent safety companion designed to provide rapid, actionable crisis instructions, self-defense tactics, medical first aid guidance, and full mastery over the SilentSOS security platform.\n\n**Key Capabilities:**\n1. **Personal Defense Tactics:** Instant protocols for stalking, suspicious transit, break-ins, and street awareness.\n2. **Medical Emergency First Aid:** Actionable instructions for CPR, severe hemorrhage triage, choking, and panic attacks.\n3. **SilentSOS Controls:** Guidance on Stealth Mode, default PIN `1234`, Shake accelerometer triggers, Evidence Vault, and Resend notifications.\n4. **100% On-Device & Private:** I operate completely independently without third-party cloud LLM APIs, ensuring zero risk of credential leaks or privacy compromises.\n\nWhenever you feel unsafe, I am right here with you.",
+    "suggestions": ["How does Stealth Mode work?", "What to do if followed?", "How to trigger SOS on mobile?"]
+  },
+  {
+    "id": "conversational_gratitude",
+    "intent": "gratitude",
+    "category": "Conversational Intelligence",
+    "keywords": ["thank you", "thanks", "appreciate it", "great help", "awesome", "good job", "helpful"],
+    "summary": "Polite response to user gratitude with safety reinforcement",
+    "guidance": "You are very welcome! Staying prepared is the most effective way to ensure your safety. Remember:\n• Keep your phone charged.\n• Verify your emergency contacts regularly.\n• Keep Stealth Mode and your Safety PIN memorized.\n\nI am always here if you have any questions or need tactical advice. Stay safe!",
+    "suggestions": ["How does Stealth Mode work?", "How to test Resend alert?", "What are emergency hotlines?"]
+  }
+]
+

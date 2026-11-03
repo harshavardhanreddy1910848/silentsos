@@ -1,0 +1,48 @@
+[
+  {
+    "id": "cpr_guidelines",
+    "intent": "cpr_cardiac_arrest",
+    "category": "Medical First Aid",
+    "keywords": ["cpr", "heart attack", "cardiac arrest", "not breathing", "unresponsive", "chest compression", "pulse", "passed out", "resuscitation"],
+    "summary": "Step-by-step adult Hands-Only CPR instructions",
+    "guidance": "If a person collapses, is unresponsive, and is not breathing or only gasping:\n1. **Call Emergency Services First:** Dial **112 / 911 / 999** immediately and put the phone on speaker.\n2. **Position the Patient:** Lay the person flat on their back on a firm, hard surface.\n3. **Hand Placement:** Place the heel of one hand in the center of the person's chest (between the nipples). Interlock your other hand on top, keeping elbows locked straight.\n4. **Compress Hard and Fast:**\n• Push down at least **2 inches (5 cm)** deep.\n• Maintain a rhythm of **100 to 120 beats per minute** (match the tempo of the song *'Stayin' Alive'*).\n• Allow the chest to recoil completely between compressions.\n5. **Do NOT Stop:** Continue hands-only compressions without interruption until emergency medical paramedics arrive or an Automated External Defibrillator (AED) is attached.",
+    "suggestions": ["What are the emergency numbers?", "How to treat severe bleeding?", "How to trigger Medical SOS?"]
+  },
+  {
+    "id": "severe_bleeding_trauma",
+    "intent": "severe_bleeding_hemorrhage",
+    "category": "Medical First Aid",
+    "keywords": ["bleeding", "blood", "stab wound", "deep cut", "wound", "hemorrhage", "tourniquet", "gushing", "arterial"],
+    "summary": "Controlling severe life-threatening bleeding and hemorrhage",
+    "guidance": "For severe or spurting blood loss:\n1. **Direct Firm Pressure:** Immediately place a sterile gauze, clean cloth, or clothing over the wound. Press down with both hands using your full body weight.\n2. **Do Not Remove Saturated Cloths:** If blood soaks through, add more layers on top and press harder. Removing the first cloth tears away forming clots.\n3. **Wound Packing:** For deep junctional wounds (groin, armpit, neck base), pack cloth tightly directly into the wound cavity, then apply heavy pressure.\n4. **Tourniquet Application (Limbs Only):**\n• If bleeding from an arm or leg is arterial/uncontrolled, apply a commercial or improvised tourniquet **2 to 3 inches above the wound** (closer to the torso, not over a joint).\n• Tighten until bleeding completely stops and the pulse below is gone.\n• Note down the exact time of application.\n5. **Prevent Shock:** Keep the patient lying flat, elevate legs slightly if possible, and cover with a jacket/blanket to preserve body temperature.",
+    "suggestions": ["How to perform CPR?", "What to do for panic attacks?", "How to trigger Medical SOS?"]
+  },
+  {
+    "id": "choking_heimlich",
+    "intent": "choking_airway_obstruction",
+    "category": "Medical First Aid",
+    "keywords": ["choking", "cant breathe", "airway blocked", "food stuck in throat", "heimlich", "gasping for air", "hands on neck"],
+    "summary": "Heimlich maneuver protocol for choking victims and self-rescue",
+    "guidance": "If a person cannot speak, cough forcefully, or breathe and is clutching their throat:\n1. **For Conscious Adult:**\n• Stand behind the person, wrap your arms around their waist.\n• Make a fist with one hand and place the thumb side just above their navel (well below the ribcage).\n• Grasp your fist with your other hand.\n• Deliver quick, forceful **upward and inward abdominal thrusts**.\n• Continue until the obstruction is dislodged or the person becomes unconscious.\n2. **If You Are Choking Alone (Self-Heimlich):**\n• Make a fist above your navel, grasp with your other hand, and pull inward and upward.\n• Lean forward over the back of a rigid chair, table corner, or railing and drive your abdomen downward into the edge.\n3. **If Person Becomes Unresponsive:** Lower them to the floor, call 112 / 911, and begin chest compressions immediately.",
+    "suggestions": ["How to perform CPR?", "How to treat severe bleeding?", "What are the emergency numbers?"]
+  },
+  {
+    "id": "panic_attack_grounding",
+    "intent": "panic_attack_anxiety",
+    "category": "Medical First Aid",
+    "keywords": ["panic attack", "anxiety", "hyperventilating", "heart racing", "shaking", "cant calm down", "grounding", "fear", "terrified"],
+    "summary": "Grounding and breath control for acute panic attacks and severe distress",
+    "guidance": "If you or someone nearby is experiencing an intense panic attack, hyperventilating, or feeling overwhelmed:\n1. **The 5-4-3-2-1 Sensory Grounding Technique:** Look around and name out loud:\n• **5 things you can SEE** (e.g. lamp, floor tile, door, shoe, tree)\n• **4 things you can physically TOUCH/FEEL** (e.g. phone surface, jeans texture, cold air on skin, watch strap)\n• **3 things you can HEAR** (e.g. distant traffic, clock ticking, humming fan)\n• **2 things you can SMELL** (e.g. fresh rain, coffee, fabric detergent)\n• **1 thing you can TASTE** (or a positive mantra: *'I am safe right now, this feeling is temporary'*)\n2. **Box Breathing Technique (4-4-4-4):**\n• Inhale slowly through your nose for **4 seconds**\n• Hold your breath gently for **4 seconds**\n• Exhale completely through your mouth for **4 seconds**\n• Hold empty lungs for **4 seconds**\n• Repeat 4 times to stimulate the vagus nerve and slow down heart rate.",
+    "suggestions": ["How to use Fake Call for safe exit?", "What is SilentSOS Stealth Mode?", "What to do if someone is following me?"]
+  },
+  {
+    "id": "burns_scalds",
+    "intent": "burns_scalds_treatment",
+    "category": "Medical First Aid",
+    "keywords": ["burn", "scald", "fire", "boiling water", "blister", "chemical burn", "hot oil"],
+    "summary": "First aid for thermal and scald burns",
+    "guidance": "For thermal burns from fire, hot liquids, or hot objects:\n1. **Cool Immediately with Water:** Run cool (not freezing or ice-cold) tap water over the burn for at least **10 to 20 minutes**.\n2. **Do NOT Use Ice, Butter, or Toothpaste:** Ice causes further tissue death (frostbite injury); butter and oils trap heat and encourage bacterial infection.\n3. **Remove Constricting Items:** Gently take off rings, watches, belts, or tight clothing around the burn before swelling begins.\n4. **Cover Cleanly:** Cover loosely with sterile non-stick dressing or clean cling film.\n5. **Seek Emergency Care If:** The burn is larger than the palm of your hand, causes white/charred skin, or is on the face, hands, joints, or groin.",
+    "suggestions": ["How to perform CPR?", "How to treat severe bleeding?", "What are emergency hotlines?"]
+  }
+]
+

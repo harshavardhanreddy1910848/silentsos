@@ -1,0 +1,21 @@
+[
+  {
+    "id": "global_emergency_numbers",
+    "intent": "emergency_phone_numbers",
+    "category": "Emergency Directories & Helplines",
+    "keywords": ["emergency number", "helpline", "police number", "ambulance number", "call police", "dial", "112", "911", "999", "100", "108", "hotline"],
+    "summary": "Verified national and international emergency numbers",
+    "guidance": "📞 **Official Emergency Response Numbers:**\n\n• **India:**\n  - Unified National Emergency: **112**\n  - Police: **100** / **112**\n  - Ambulance & Medical: **108** / **102**\n  - Fire Service: **101**\n  - Women in Distress Helpline: **1091** or **181**\n  - Cyber Crime Helpline: **1930** (cybercrime.gov.in)\n  - Child Helpline: **1098**\n\n• **United States & Canada:**\n  - All Emergencies (Police, Fire, Ambulance): **911**\n  - Suicide & Crisis Lifeline: **988**\n  - National Domestic Violence Hotline: **1-800-799-7233**\n\n• **United Kingdom:**\n  - Emergency (Police/Fire/Ambulance): **999**\n  - Non-Emergency Police: **101**\n\n• **European Union:**\n  - Universal Emergency Number: **112**\n\n• **Australia:**\n  - Emergency Service: **000**",
+    "suggestions": ["What to do if someone is following me?", "How to lodge a police complaint?", "How does SilentSOS trigger SOS?"]
+  },
+  {
+    "id": "legal_rights_evidence_police",
+    "intent": "legal_rights_evidence_fir",
+    "category": "Emergency Directories & Helplines",
+    "keywords": ["legal rights", "police complaint", "fir", "zero fir", "evidence court", "preserve evidence", "reporting crime", "chain of custody"],
+    "summary": "Legal rights during reporting, Zero FIR rules, and digital evidence preservation",
+    "guidance": "⚖️ **Legal Rights & Evidence Preservation Protocol:**\n\n1. **Zero FIR Right (India):** You have the legal right to lodge an FIR at ANY police station, regardless of jurisdiction or where the incident occurred. The police station cannot turn you away; they must register a 'Zero FIR' and transfer it to the relevant jurisdictional station.\n2. **Right to Female Officer:** A woman has the right to record her statement before a female police officer or magistrate (under Section 154 CrPC / BNSS).\n3. **Preserving Digital Evidence:**\n• Do not edit, crop, or apply filters to photos or audio captured in the SilentSOS Evidence Vault.\n• The cryptographic timestamp, GPS geolocation tags, and camera hashes stored in SilentSOS establish evidentiary integrity and admissible chain of custody.\n• Export incident summaries and audio files to secure cloud backup before handing devices to authorities.",
+    "suggestions": ["What is Evidence Vault?", "What are emergency hotlines?", "How to change Safety PIN?"]
+  }
+]
+

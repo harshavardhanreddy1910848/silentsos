@@ -74,7 +74,10 @@ export function Settings() {
           'Content-Type': 'application/json',
           ...(state.authToken ? { Authorization: `Bearer ${state.authToken}` } : {})
         },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({
+          message: text,
+          history: aiMessages.slice(-6).map(m => ({ role: m.role, text: m.text }))
+        })
       });
 
       if (!res.ok) throw new Error(`AI assistant returned ${res.status}`);
@@ -107,6 +110,43 @@ export function Settings() {
         chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
+  };
+
+  const handleClearAiChat = () => {
+    setAiMessages([
+      {
+        role: 'assistant',
+        text: 'Hello! I am your 24/7 SilentSOS AI Defense Assistant. Ask me anything about Stealth Mode, safety PINs, crisis triage, emergency gesture setup, or what happens when an SOS is triggered.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  };
+
+  const formatAiMessage = (content: string) => {
+    return content.split('\n').map((line, lineIdx) => {
+      const parts = line.split(/(\*\*.*?\*\*|`.*?`)/g);
+      return (
+        <span key={lineIdx} className={line.trim() === '' ? 'block h-2' : 'block leading-relaxed'}>
+          {parts.map((part, partIdx) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              return (
+                <strong key={partIdx} className="font-bold text-white">
+                  {part.slice(2, -2)}
+                </strong>
+              );
+            }
+            if (part.startsWith('`') && part.endsWith('`')) {
+              return (
+                <code key={partIdx} className="px-1.5 py-0.5 rounded bg-black/40 text-cyan-300 font-mono text-[11px] border border-cyan-800/30">
+                  {part.slice(1, -1)}
+                </code>
+              );
+            }
+            return part;
+          })}
+        </span>
+      );
+    });
   };
 
   // Resend Alert Testing State
@@ -409,40 +449,51 @@ export function Settings() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    SilentSOS Defense AI
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono border border-cyan-800/40">ONLINE</span>
+                    SilentSOS Cognitive AI
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono border border-cyan-800/40">LOCAL BRAIN</span>
                   </h3>
                   <p className="text-[11px] text-textMuted">
-                    Ask questions about PIN safety, stealth gestures, evidence, or crisis protocol
+                    Trained in-house on self-defense, CPR first aid, app controls &amp; crisis navigation (Zero External APIs)
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsAiExpanded(prev => !prev)}
-                className="text-xs text-textMuted hover:text-white px-2.5 py-1 rounded-lg bg-surfaceHighlight hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                {isAiExpanded ? 'Collapse' : 'Expand'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleClearAiChat}
+                  title="Clear conversation"
+                  className="text-xs text-textMuted hover:text-red-400 px-2.5 py-1 rounded-lg bg-surfaceHighlight hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Clear</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAiExpanded(prev => !prev)}
+                  className="text-xs text-textMuted hover:text-white px-2.5 py-1 rounded-lg bg-surfaceHighlight hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  {isAiExpanded ? 'Collapse' : 'Expand'}
+                </button>
+              </div>
             </div>
 
             {isAiExpanded && (
               <div className="p-4 space-y-4">
                 {/* Chat Message Scroll Window */}
-                <div className="max-h-72 min-h-40 overflow-y-auto space-y-3 pr-1 text-xs">
+                <div className="max-h-80 min-h-48 overflow-y-auto space-y-3 pr-1 text-xs">
                   {aiMessages.map((m, idx) => (
                     <div
                       key={idx}
                       className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl p-3.5 leading-relaxed shadow-sm ${
+                        className={`max-w-[88%] rounded-2xl p-3.5 leading-relaxed shadow-sm ${
                           m.role === 'user'
                             ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-tr-sm'
                             : 'bg-surfaceHighlight/80 border border-white/5 text-slate-200 rounded-tl-sm'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap">{m.text}</p>
+                        <div className="space-y-1">{formatAiMessage(m.text)}</div>
                       </div>
                       <span className="text-[10px] text-slate-500 mt-1 px-1">{m.time}</span>
                     </div>

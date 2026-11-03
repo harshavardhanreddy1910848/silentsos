@@ -1,0 +1,48 @@
+[
+  {
+    "id": "stalking_foot",
+    "intent": "stalking_followed_foot",
+    "category": "Personal Safety & Self Defense",
+    "keywords": ["followed", "following me", "stalker", "foot", "walking", "suspicious person", "shadowing", "tailing", "someone behind me"],
+    "summary": "Tactical protocol when someone is following you on foot",
+    "guidance": "If you suspect you are being followed on foot:\n1. **Confirm Without Confronting:** Make 3 or 4 right turns to circle a block. If they follow, your suspicion is confirmed. Cross the street diagonally.\n2. **Change Speed & Direction:** Suddenly change pace or duck into an open, well-lit business (café, pharmacy, supermarket, bank with ATM guards).\n3. **Do NOT Go Home or Down Dark Alleys:** Never lead a pursuer to your doorstep or isolated alleys where you could be trapped.\n4. **Discreetly Arm SilentSOS:** Open SilentSOS and hold your finger on the SOS button, or enable **Stealth Mode** so live GPS breadcrumbs and audio recording stream to your contacts.\n5. **Create Public Awareness:** If they close the distance, turn firmly with hands up in a defensive barrier, make eye contact, and speak loudly: *'Stay back! I am on live emergency tracking with police!'*\n6. **Call Emergency Services:** Immediately dial 112 (India/EU) or 911 (US) and describe your exact intersection, clothing, and the suspect's appearance.",
+    "suggestions": ["How does Stealth Mode work?", "How to trigger SOS instantly?", "What is the Fake Call feature?"]
+  },
+  {
+    "id": "rideshare_cab_safety",
+    "intent": "rideshare_taxi_danger",
+    "category": "Personal Safety & Self Defense",
+    "keywords": ["uber", "ola", "lyft", "taxi", "cab", "rideshare", "driver", "locked doors", "wrong route", "deviating"],
+    "summary": "Safety precautions and crisis response in taxis and rideshares",
+    "guidance": "When taking a cab or rideshare:\n1. **Pre-Boarding Verification:** Always confirm the driver says YOUR name first (*'Who are you here for?'*), match the vehicle license plate, and inspect the driver photo.\n2. **Sit in the Back Seat:** Never sit in the front passenger seat. Sitting on the rear passenger side maximizes reaction distance and lets you see the driver.\n3. **Check Child Locks:** Open and close the rear door slightly from the inside before leaving to ensure the inside handle functions and child-safety locks are not engaged.\n4. **Share Live Tracking:** Share your live SilentSOS GPS link or trip route with trusted guardians before entering the vehicle.\n5. **If Driver Deviates or Refuses to Stop:**\n• Speak up firmly: *'You have deviated from the GPS route. Stop here immediately.'*\n• Trigger SilentSOS covertly using volume button/shake gestures.\n• If held against your will at a red light or slow traffic, roll down the window, scream for help, unlock the door and exit immediately into a crowd.",
+    "suggestions": ["How to trigger SOS covertly?", "How to add emergency contacts?", "What to do if followed?"]
+  },
+  {
+    "id": "home_invasion_breakin",
+    "intent": "home_invasion_breakin",
+    "category": "Personal Safety & Self Defense",
+    "keywords": ["break in", "burglar", "intruder", "home invasion", "someone in my house", "footsteps inside", "window broken", "door lock picked"],
+    "summary": "Survival guidelines during a home invasion or burglary",
+    "guidance": "If you hear an intruder or suspect someone has broken into your home:\n1. **Do NOT Search the House:** Never confront an intruder. Your goal is survival, not protecting property.\n2. **Shelter in Place (Safe Room):** Retreat to a room with a lockable solid door (bathroom or bedroom). Lock the door and barricade it with heavy furniture.\n3. **Silent Distress:** Keep the lights OFF. Do not make noise. Activate SilentSOS in Stealth Mode to transmit your GPS, live audio, and emergency email notification without alerting the intruder.\n4. **Call Emergency Responders:** Whisper to 112 / 911 dispatch. State: *'Intruder in my house at [Your Address]. I am barricaded in the second-floor bedroom. Send armed police immediately.'*\n5. **Prepare Defense Weapon:** If the barricade fails, grab an improvised impact tool (heavy flashlight, fire extinguisher, chair) and aim for vulnerable areas (face, throat, groin).",
+    "suggestions": ["What are the emergency numbers?", "How does Stealth Mode work?", "How to cancel alert with PIN?"]
+  },
+  {
+    "id": "domestic_abuse_covert_escape",
+    "intent": "domestic_violence_escape",
+    "category": "Personal Safety & Self Defense",
+    "keywords": ["domestic violence", "abusive partner", "abuse", "escape", "threatened at home", "danger at home", "hostile family", "covert escape"],
+    "summary": "Discreet safety planning and emergency exit for domestic violence situations",
+    "guidance": "In situations involving an aggressive or abusive household:\n1. **Secret Evacuation Bag:** Prepare a hidden emergency kit with cash, copies of identification, bank cards, essential medicines, duplicate keys, and a backup charger.\n2. **Avoid Enclosed Traps:** In escalating conflicts, avoid rooms with no exit or easy access to weapons (kitchens with knives, bathrooms with slippery tile surfaces).\n3. **Use SilentSOS Disguises:**\n• Use **Fake Call Simulator** to create an immediate plausible reason to step out (*'My boss is calling, I have to step outside'*).\n• Keep **Stealth Mode** configured so the screen appears off even if you activate distress.\n4. **Emergency Safe Word:** Establish a code word with trusted contacts or neighbors (*'Can you lend me a recipe book?'*) that signals them to call the police.\n5. **National Helplines:** Reach out confidentially:\n• India: Women Helpline **1091** or **181** | Police **112**\n• US: National Domestic Violence Hotline **1-800-799-SAFE (7233)**\n• UK: National Helpline **0808 2000 247**",
+    "suggestions": ["How does Fake Call disguise work?", "How to add emergency contacts?", "What is Evidence Vault?"]
+  },
+  {
+    "id": "physical_self_defense",
+    "intent": "physical_self_defense_tactics",
+    "category": "Personal Safety & Self Defense",
+    "keywords": ["self defense", "physical attack", "grabbed", "chokehold", "wrist grab", "punch", "assault", "fight back", "vulnerable spots"],
+    "summary": "Core physical self-defense principles against an attacker",
+    "guidance": "If physically attacked and escape is impossible:\n1. **Target Soft Vulnerable Points:** Attackers do not expect decisive counters. Target:\n• **Eyes:** Gouge or strike to cause immediate blinding and reflexive head pull-back.\n• **Throat/Windpipe:** Open-hand palm strike creates airway disruption.\n• **Groin:** Knee strike or upward kick causes sudden collapse.\n• **Shin/Instep:** Stomp your heel downward onto the attacker's foot or scrape the shin.\n2. **Breaking a Wrist Grip:** Rotate your wrist toward the attacker's thumb (the weakest point of the grip) and yank your arm back sharply while stepping back.\n3. **If Grabbed from Behind:** Drive your heel down onto their instep, strike backward with an elbow into their solar plexus or chin, and twist your hips to create space.\n4. **Sprint and Shout:** Never stay to continue fighting once you create an opening. Run immediately toward crowds while yelling specific commands (*'FIRE!'* or *'HELP! CALL POLICE!'*).",
+    "suggestions": ["What to do if someone is following me?", "How to trigger SOS on mobile?", "What happens during SOS?"]
+  }
+]
+

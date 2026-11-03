@@ -1067,11 +1067,65 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                         populateSuggestions(aiRes.suggestions)
                     }
                 }.onFailure {
-                    addBubble("Defense Server Notice: For immediate emergencies, hold the SOS button for 3 seconds or trigger your safety gesture.", false)
+                    // Zero-API offline cognitive safety engine fallback
+                    val (offlineReply, offlineSuggestions) = getLocalOfflineSafetyAdvice(text)
+                    addBubble(offlineReply, false)
+                    if (offlineSuggestions.isNotEmpty()) {
+                        populateSuggestions(offlineSuggestions)
+                    }
                 }
             }
         }
 
         dialog.show()
+    }
+
+    private fun getLocalOfflineSafetyAdvice(query: String): Pair<String, List<String>> {
+        val q = query.lowercase()
+        val currentPin = sessionManager.safetyPin.ifEmpty { "1234" }
+        return when {
+            q.contains("cpr") || q.contains("heart") || q.contains("breathing") -> {
+                Pair(
+                    "🫀 Hands-Only CPR Guidelines:\n\n1. Call 112 / 911 immediately.\n2. Place hands in center of chest.\n3. Push hard & fast (100-120 bpm, 2 inches deep).\n4. Do not interrupt compressions.",
+                    listOf("How to treat bleeding?", "What are emergency hotlines?", "How to trigger Medical SOS?")
+                )
+            }
+            q.contains("pin") || q.contains("password") || q.contains("stop") || q.contains("cancel") -> {
+                Pair(
+                    "🔒 Safety PIN Security:\n\n• Your active safety PIN is $currentPin (Default: 1234).\n• To change: Settings → Change Safety PIN.\n• Note: An armed SOS alert can ONLY be cancelled using this PIN.",
+                    listOf("How does Stealth Mode work?", "How to add contacts?", "What to do if followed?")
+                )
+            }
+            q.contains("stealth") || q.contains("disguise") || q.contains("black") -> {
+                Pair(
+                    "🕶️ Stealth Mode & Covert Tracking:\n\n• Displays black screen disguise while GPS, photo bursts & audio recording continue secretly.\n• Toggle directly in Settings or SOS Hub.",
+                    listOf("How to use Fake Call?", "How to trigger SOS on mobile?", "How to change PIN?")
+                )
+            }
+            q.contains("followed") || q.contains("stalk") || q.contains("danger") -> {
+                Pair(
+                    "⚠️ Stalker / Foot Pursuit Protocol:\n\n1. Make 4 right turns around a block to confirm.\n2. Do NOT go home. Walk toward lit public venues (stores, fuel stations).\n3. Arm SilentSOS in Stealth Mode.\n4. Call 112 / 911 immediately.",
+                    listOf("How to trigger Fake Call?", "How does Stealth Mode work?", "Emergency phone numbers")
+                )
+            }
+            q.contains("bleeding") || q.contains("blood") || q.contains("wound") -> {
+                Pair(
+                    "🩸 Severe Bleeding Control:\n\n1. Apply continuous direct pressure with clean cloth.\n2. Do not remove blood-soaked cloths; add more.\n3. Apply tourniquet 2-3 inches above wound on limbs.",
+                    listOf("How to do CPR?", "What are emergency hotlines?", "How to trigger SOS?")
+                )
+            }
+            q.contains("fake call") || q.contains("escape") -> {
+                Pair(
+                    "📞 Fake Call Simulator:\n\n• Tap 'Fake Call Escape Simulator' in Settings to receive an incoming call from Mom.\n• Use it as an immediate excuse to exit uncomfortable or unsafe company.",
+                    listOf("What to do if followed?", "How does Stealth Mode work?", "How to change PIN?")
+                )
+            }
+            else -> {
+                Pair(
+                    "🛡️ SilentSOS On-Device Safety AI:\n\nI am your offline crisis assistant. In danger, hold the central SOS button for 3s or shake your phone rapidly.\n\nEmergency Numbers: India 112 / US 911 / UK 999.",
+                    listOf("How does Stealth Mode work?", "How to change PIN?", "How to do CPR?", "Advice if followed")
+                )
+            }
+        }
     }
 }
