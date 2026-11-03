@@ -801,4 +801,259 @@ class ApiClient(private val context: Context) {
         SyncManager.getInstance(context).disconnect()
         Result.success(true)
     }
+
+    // ==========================================
+    // 🛡️ SOS ADMINISTRATIVE BACKEND CLIENT APIS
+    // ==========================================
+
+    suspend fun fetchAdminStats(): Result<AdminStats> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/stats")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                Result.success(AdminStats.fromJson(JSONObject(body)))
+            } else {
+                Result.failure(Exception("Failed to fetch admin statistics (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchAdminAlerts(): Result<List<AdminAlertItem>> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/alerts")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                val arr = JSONArray(body)
+                val list = mutableListOf<AdminAlertItem>()
+                for (i in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(i) ?: continue
+                    list.add(AdminAlertItem.fromJson(obj))
+                }
+                list.sortByDescending { it.timestamp }
+                Result.success(list)
+            } else {
+                Result.failure(Exception("Failed to fetch emergency alerts (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun resolveAdminAlert(alertId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/alerts/$alertId/resolve")
+                .post("{}".toRequestBody(jsonMediaType))
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Failed to resolve alert (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteAdminAlert(alertId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/alerts/$alertId")
+                .delete()
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Failed to delete alert (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchAdminUsers(): Result<List<AdminUserItem>> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/users")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                val arr = JSONArray(body)
+                val list = mutableListOf<AdminUserItem>()
+                for (i in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(i) ?: continue
+                    list.add(AdminUserItem.fromJson(obj))
+                }
+                Result.success(list)
+            } else {
+                Result.failure(Exception("Failed to fetch users (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateAdminUser(
+        id: String,
+        name: String? = null,
+        email: String? = null,
+        role: String? = null,
+        disabled: Boolean? = null,
+        password: String? = null
+    ): Result<AdminUserItem> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val json = JSONObject().apply {
+                if (name != null) put("name", name)
+                if (email != null) put("email", email.trim().lowercase())
+                if (role != null) put("role", role)
+                if (disabled != null) put("disabled", disabled)
+                if (!password.isNullOrBlank()) put("password", password)
+            }
+            val request = Request.Builder()
+                .url("$base/api/admin/users/$id")
+                .put(json.toString().toRequestBody(jsonMediaType))
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                Result.success(AdminUserItem.fromJson(JSONObject(body)))
+            } else {
+                Result.failure(Exception("Failed to update user (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteAdminUser(id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/users/$id")
+                .delete()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                val err = try { JSONObject(body).optString("error", "Failed to delete user") } catch (e: Exception) { "Failed to delete user (${response.code})" }
+                Result.failure(Exception(err))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchAdminSettings(): Result<AdminSettingsData> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/settings")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                Result.success(AdminSettingsData.fromJson(JSONObject(body)))
+            } else {
+                Result.failure(Exception("Failed to load settings (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateAdminSettings(settings: AdminSettingsData): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/settings")
+                .put(settings.toJson().toString().toRequestBody(jsonMediaType))
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Failed to update settings (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchAdminFeedback(): Result<List<AdminFeedbackItem>> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/feedback")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                val arr = JSONArray(body)
+                val list = mutableListOf<AdminFeedbackItem>()
+                for (i in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(i) ?: continue
+                    list.add(AdminFeedbackItem.fromJson(obj))
+                }
+                list.sortByDescending { it.createdAt }
+                Result.success(list)
+            } else {
+                Result.failure(Exception("Failed to fetch feedback (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteAdminFeedback(id: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val request = Request.Builder()
+                .url("$base/api/admin/feedback/$id")
+                .delete()
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Failed to delete feedback (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

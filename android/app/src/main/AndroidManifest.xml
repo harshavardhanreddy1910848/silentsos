@@ -113,6 +113,19 @@
             android:windowSoftInputMode="adjustResize"
             android:screenOrientation="portrait" />
 
+        <!-- SOS Administrative Security Portal -->
+        <activity
+            android:name=".AdminLoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".AdminDashboardActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
+
         <!-- Trusted Contacts Management (standalone route fallback) -->
         <activity
             android:name=".ContactsActivity"

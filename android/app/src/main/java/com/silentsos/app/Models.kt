@@ -313,3 +313,194 @@ data class AlertEvent(
         }
     }
 }
+
+// ==========================================
+// 🛡️ SOS ADMINISTRATIVE DATA MODELS
+// ==========================================
+
+data class AdminStats(
+    val totalUsers: Int = 0,
+    val activeAlerts: Int = 0,
+    val totalFeedback: Int = 0,
+    val avgRating: String = "5.0",
+    val recentFeedback: List<AdminFeedbackItem> = emptyList()
+) {
+    companion object {
+        fun fromJson(json: JSONObject): AdminStats {
+            val fbList = mutableListOf<AdminFeedbackItem>()
+            val fbArr = json.optJSONArray("recentFeedback")
+            if (fbArr != null) {
+                for (i in 0 until fbArr.length()) {
+                    val item = fbArr.optJSONObject(i) ?: continue
+                    fbList.add(AdminFeedbackItem.fromJson(item))
+                }
+            }
+            return AdminStats(
+                totalUsers = json.optInt("totalUsers", 0),
+                activeAlerts = json.optInt("activeAlerts", 0),
+                totalFeedback = json.optInt("totalFeedback", 0),
+                avgRating = json.optString("avgRating", "5.0"),
+                recentFeedback = fbList
+            )
+        }
+    }
+}
+
+data class AdminLocation(
+    val lat: Double = 0.0,
+    val lng: Double = 0.0,
+    val accuracy: Double = 0.0,
+    val address: String = ""
+) {
+    companion object {
+        fun fromJson(json: JSONObject?): AdminLocation? {
+            if (json == null) return null
+            return AdminLocation(
+                lat = json.optDouble("lat", 0.0),
+                lng = json.optDouble("lng", 0.0),
+                accuracy = json.optDouble("accuracy", 0.0),
+                address = json.optString("address", "")
+            )
+        }
+    }
+}
+
+data class AdminEvidenceCounts(
+    val photos: Int = 0,
+    val videos: Int = 0,
+    val audio: Int = 0
+) {
+    companion object {
+        fun fromJson(json: JSONObject?): AdminEvidenceCounts {
+            if (json == null) return AdminEvidenceCounts()
+            return AdminEvidenceCounts(
+                photos = json.optInt("photos", 0),
+                videos = json.optInt("videos", 0),
+                audio = json.optInt("audio", 0)
+            )
+        }
+    }
+}
+
+data class AdminAlertItem(
+    val id: String,
+    val userId: String,
+    val userName: String,
+    val userEmail: String,
+    val timestamp: Long,
+    val type: String,
+    val durationSeconds: Int,
+    val status: String,
+    val location: AdminLocation?,
+    val evidence: AdminEvidenceCounts
+) {
+    companion object {
+        fun fromJson(json: JSONObject): AdminAlertItem {
+            return AdminAlertItem(
+                id = json.optString("id", ""),
+                userId = json.optString("userId", ""),
+                userName = json.optString("userName", "Unknown User"),
+                userEmail = json.optString("userEmail", ""),
+                timestamp = json.optLong("timestamp", 0L),
+                type = json.optString("type", "General Emergency"),
+                durationSeconds = json.optInt("durationSeconds", 0),
+                status = json.optString("status", "Active"),
+                location = AdminLocation.fromJson(json.optJSONObject("location")),
+                evidence = AdminEvidenceCounts.fromJson(json.optJSONObject("evidence"))
+            )
+        }
+    }
+}
+
+data class AdminUserItem(
+    val id: String,
+    val name: String,
+    val email: String,
+    val role: String,
+    val disabled: Boolean
+) {
+    companion object {
+        fun fromJson(json: JSONObject): AdminUserItem {
+            return AdminUserItem(
+                id = json.optString("id", ""),
+                name = json.optString("name", "User"),
+                email = json.optString("email", ""),
+                role = json.optString("role", "user"),
+                disabled = json.optBoolean("disabled", false)
+            )
+        }
+    }
+}
+
+data class AdminSettingsData(
+    val globalEmergencyEmails: String = "",
+    val messageTemplate: String = "",
+    val gestureSensitivity: String = "Medium",
+    val autoRepeatInterval: Int = 5,
+    val photoBurstCount: Int = 5,
+    val videoDuration: String = "1min"
+) {
+    fun toJson(): JSONObject {
+        return JSONObject().apply {
+            put("globalEmergencyEmails", globalEmergencyEmails)
+            put("messageTemplate", messageTemplate)
+            put("gestureSensitivity", gestureSensitivity)
+            put("autoRepeatInterval", autoRepeatInterval)
+            put("photoBurstCount", photoBurstCount)
+            put("videoDuration", videoDuration)
+        }
+    }
+
+    companion object {
+        fun fromJson(json: JSONObject): AdminSettingsData {
+            return AdminSettingsData(
+                globalEmergencyEmails = json.optString("globalEmergencyEmails", ""),
+                messageTemplate = json.optString("messageTemplate", ""),
+                gestureSensitivity = json.optString("gestureSensitivity", "Medium"),
+                autoRepeatInterval = json.optInt("autoRepeatInterval", 5),
+                photoBurstCount = json.optInt("photoBurstCount", 5),
+                videoDuration = json.optString("videoDuration", "1min")
+            )
+        }
+    }
+}
+
+data class AdminFeedbackItem(
+    val id: String,
+    val userId: String,
+    val userName: String,
+    val userEmail: String,
+    val category: String,
+    val rating: Int,
+    val message: String,
+    val createdAt: Long,
+    val status: String = "received"
+) {
+    companion object {
+        fun fromJson(json: JSONObject): AdminFeedbackItem {
+            val dateVal = json.opt("createdAt") ?: json.opt("timestamp")
+            val ts = when (dateVal) {
+                is Number -> dateVal.toLong()
+                is String -> {
+                    try {
+                        java.time.Instant.parse(dateVal).toEpochMilli()
+                    } catch (e: Exception) {
+                        System.currentTimeMillis()
+                    }
+                }
+                else -> System.currentTimeMillis()
+            }
+            return AdminFeedbackItem(
+                id = json.optString("id", ""),
+                userId = json.optString("userId", ""),
+                userName = json.optString("userName", "Anonymous"),
+                userEmail = json.optString("userEmail", ""),
+                category = json.optString("category", "General"),
+                rating = json.optInt("rating", 5),
+                message = json.optString("message", json.optString("comment", "")),
+                createdAt = ts,
+                status = json.optString("status", "received")
+            )
+        }
+    }
+}

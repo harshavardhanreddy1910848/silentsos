@@ -1,0 +1,926 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#030712"
+    android:orientation="vertical">
+
+    <!-- Top Admin Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:background="#090a10"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_shield_alert_vector"
+            app:tint="#e11d48" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:letterSpacing="0.08"
+            android:text="SOS ADMIN"
+            android:textColor="#e11d48"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <!-- Active Incidents Pill -->
+        <TextView
+            android:id="@+id/tvAdminActiveBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_badge_red"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="0 ACTIVE"
+            android:textColor="#f87171"
+            android:textSize="10.5sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Refresh button -->
+        <ImageView
+            android:id="@+id/ivAdminRefresh"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
+            android:src="@drawable/ic_retry"
+            app:tint="#94a3b8" />
+
+        <!-- Logout button -->
+        <ImageView
+            android:id="@+id/ivAdminLogout"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
+            android:src="@drawable/ic_close_vector"
+            app:tint="#ef4444" />
+    </LinearLayout>
+
+    <!-- Horizontal Scrollable Tab Bar -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#07070a"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp">
+
+            <TextView
+                android:id="@+id/tabNavDashboard"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_auth_tab_active"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="Dashboard"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tabNavAlerts"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="6dp"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="Alerts"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tabNavUsers"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="6dp"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="Users"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tabNavFeedback"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="6dp"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="Feedback"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tabNavSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="6dp"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="Settings"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Global Loading Spinner -->
+    <ProgressBar
+        android:id="@+id/pbAdminMainLoading"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:layout_marginVertical="16dp"
+        android:indeterminateTint="#e11d48"
+        android:visibility="gone" />
+
+    <!-- Main Content Scroll Area -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- ============================================== -->
+            <!-- TAB 1: DASHBOARD VIEW                          -->
+            <!-- ============================================== -->
+            <LinearLayout
+                android:id="@+id/llViewDashboard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <!-- Active Incident Banner (pulsing red alert) -->
+                <LinearLayout
+                    android:id="@+id/llActiveIncidentBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/bg_badge_red"
+                    android:orientation="vertical"
+                    android:padding="14dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_danger_vector"
+                            app:tint="#ef4444" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:text="ACTIVE SOS DISTRESS INCIDENT"
+                            android:textColor="#f87171"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvActiveBannerTimer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvActiveBannerDetails"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/white"
+                        android:textSize="12sp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnActiveBannerResolve"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_badge_green"
+                        android:paddingHorizontal="16dp"
+                        android:text="Resolve Incident Now"
+                        android:textAllCaps="false"
+                        android:textColor="#10b981"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Metric Cards 2x2 Grid -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <!-- Total Users -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_surface"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TOTAL USERS"
+                            android:textColor="#94a3b8"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvDashTotalUsers"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="0"
+                            android:textColor="@color/white"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Registered Profiles"
+                            android:textColor="#64748b"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <!-- Active Incidents -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_surface"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="ACTIVE INCIDENTS"
+                            android:textColor="#f87171"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvDashActiveAlerts"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="0"
+                            android:textColor="#ef4444"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Live SOS Alerts"
+                            android:textColor="#64748b"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <!-- Total Feedback -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_surface"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TOTAL FEEDBACK"
+                            android:textColor="#94a3b8"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvDashTotalFeedback"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="0"
+                            android:textColor="@color/white"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="User Reviews"
+                            android:textColor="#64748b"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <!-- Average Rating -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_surface"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="SAFETY SATISFACTION"
+                            android:textColor="#f59e0b"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvDashAvgRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="5.0 ★"
+                            android:textColor="#f59e0b"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Average Star Rating"
+                            android:textColor="#64748b"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Section: Recent Activities -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:text="Live Recent SOS Alerts"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/llRecentActivitiesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+
+                <!-- Section: Recent Feedback -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:text="Recent User Feedback"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/llRecentFeedbackList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- ============================================== -->
+            <!-- TAB 2: ALERTS VIEW                             -->
+            <!-- ============================================== -->
+            <LinearLayout
+                android:id="@+id/llViewAlerts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Filter Chips -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipAlertsAll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_auth_tab_active"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="All"
+                            android:textColor="@color/white"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipAlertsActive"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_card_surface"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Active"
+                            android:textColor="#f87171"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipAlertsSent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_card_surface"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Sent / Resolved"
+                            android:textColor="#94a3b8"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipAlertsCancelled"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_card_surface"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Cancelled"
+                            android:textColor="#94a3b8"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- Search Input -->
+                <EditText
+                    android:id="@+id/etAlertsSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_auth_input_selector"
+                    android:hint="Search by user, email, or alert ID..."
+                    android:paddingHorizontal="14dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#475569"
+                    android:textSize="12.5sp" />
+
+                <!-- Alerts List Container -->
+                <LinearLayout
+                    android:id="@+id/llAlertsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- ============================================== -->
+            <!-- TAB 3: USERS VIEW                              -->
+            <!-- ============================================== -->
+            <LinearLayout
+                android:id="@+id/llViewUsers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Search Input -->
+                <EditText
+                    android:id="@+id/etUsersSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:background="@drawable/bg_auth_input_selector"
+                    android:hint="Search users by name or email..."
+                    android:paddingHorizontal="14dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#475569"
+                    android:textSize="12.5sp" />
+
+                <TextView
+                    android:id="@+id/tvUsersCountLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Showing 0 registered users"
+                    android:textColor="#94a3b8"
+                    android:textSize="11.5sp" />
+
+                <!-- Users List Container -->
+                <LinearLayout
+                    android:id="@+id/llUsersList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- ============================================== -->
+            <!-- TAB 4: FEEDBACK VIEW                           -->
+            <!-- ============================================== -->
+            <LinearLayout
+                android:id="@+id/llViewFeedback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Category Filters -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipFbCatAll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_auth_tab_active"
+                            android:gravity="center"
+                            android:paddingHorizontal="12dp"
+                            android:text="All"
+                            android:textColor="@color/white"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipFbCatBug"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_card_surface"
+                            android:gravity="center"
+                            android:paddingHorizontal="12dp"
+                            android:text="Bug Report"
+                            android:textColor="#94a3b8"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/chipFbCatFeature"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_card_surface"
+                            android:gravity="center"
+                            android:paddingHorizontal="12dp"
+                            android:text="Feature"
+                            android:textColor="#94a3b8"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/chipFbCatUi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_card_surface"
+                            android:gravity="center"
+                            android:paddingHorizontal="12dp"
+                            android:text="UI/UX"
+                            android:textColor="#94a3b8"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/chipFbCatGeneral"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_card_surface"
+                            android:gravity="center"
+                            android:paddingHorizontal="12dp"
+                            android:text="General"
+                            android:textColor="#94a3b8"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- Search Input -->
+                <EditText
+                    android:id="@+id/etFeedbackSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_auth_input_selector"
+                    android:hint="Search reviews, user name, or email..."
+                    android:paddingHorizontal="14dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#475569"
+                    android:textSize="12.5sp" />
+
+                <!-- Feedback List Container -->
+                <LinearLayout
+                    android:id="@+id/llFeedbackList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- ============================================== -->
+            <!-- TAB 5: SETTINGS VIEW                           -->
+            <!-- ============================================== -->
+            <LinearLayout
+                android:id="@+id/llViewSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- 1. Administrator Profile Settings -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_surface"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Administrator Profile"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Update your admin name and security access credentials"
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Admin Name"
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etAdminProfileName"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_auth_input_selector"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="@color/white"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="New Password (optional)"
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etAdminProfileNewPass"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_auth_input_selector"
+                        android:hint="Leave blank to keep current"
+                        android:inputType="textPassword"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="@color/white"
+                        android:textColorHint="#475569"
+                        android:textSize="13sp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnAdminSaveProfile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="14dp"
+                        android:background="@drawable/bg_auth_btn_primary"
+                        android:paddingHorizontal="18dp"
+                        android:text="Save Profile"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- 2. Global SOS System Configuration -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Global SOS System Configuration"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Manage parameters applied across all Silent SOS clients"
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp" />
+
+                    <!-- Global Emergency Emails -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="Global Emergency Responders Email"
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etGlobalEmails"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_auth_input_selector"
+                        android:hint="dispatch@emergency.gov, police@silentsos.org"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="@color/white"
+                        android:textColorHint="#475569"
+                        android:textSize="12.5sp" />
+
+                    <!-- SMS Distress Template -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Global SMS Alert Template"
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etGlobalSmsTemplate"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_auth_input_selector"
+                        android:gravity="top|start"
+                        android:hint="[EMERGENCY SOS] {user} triggered distress alert at {location}."
+                        android:padding="10dp"
+                        android:textColor="@color/white"
+                        android:textColorHint="#475569"
+                        android:textSize="12sp" />
+
+                    <!-- Gesture Sensitivity -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Default Gesture Detection Sensitivity"
+                        android:textColor="#94a3b8"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/bg_auth_tab_bar"
+                        android:orientation="horizontal"
+                        android:padding="2dp">
+
+                        <TextView
+                            android:id="@+id/tvSensLow"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="Low"
+                            android:textColor="#94a3b8"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvSensMed"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_auth_tab_active"
+                            android:gravity="center"
+                            android:text="Medium"
+                            android:textColor="@color/white"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvSensHigh"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="High"
+                            android:textColor="#94a3b8"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Save System Settings Button -->
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnSaveGlobalSettings"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@drawable/bg_auth_btn_primary"
+                        android:text="Update Global System Settings"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+    </ScrollView>
+
+</LinearLayout>

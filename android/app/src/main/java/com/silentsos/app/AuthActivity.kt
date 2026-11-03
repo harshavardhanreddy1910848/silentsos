@@ -215,6 +215,11 @@ class AuthActivity : AppCompatActivity() {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+
+        // SOS Admin Portal Direct Link
+        findViewById<View?>(R.id.tvAdminPortalLink)?.setOnClickListener {
+            startActivity(Intent(this, AdminLoginActivity::class.java))
+        }
     }
 
     private fun setAuthMode(mode: AuthMode) {

@@ -54,6 +54,9 @@ class SessionManager(context: Context) {
     val isLoggedIn: Boolean
         get() = !authToken.isNullOrEmpty()
 
+    val isAdmin: Boolean
+        get() = currentUser?.role.equals("admin", ignoreCase = true) || userProfile.role.equals("admin", ignoreCase = true)
+
     var isSetupComplete: Boolean
         get() = prefs.getBoolean(KEY_IS_SETUP_COMPLETE, false)
         set(value) = prefs.edit().putBoolean(KEY_IS_SETUP_COMPLETE, value).apply()

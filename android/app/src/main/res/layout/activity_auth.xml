@@ -610,6 +610,19 @@
                 android:textColor="#475569"
                 android:textSize="11sp" />
 
+            <!-- SOS Admin Portal Direct Access Link -->
+            <TextView
+                android:id="@+id/tvAdminPortalLink"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:padding="6dp"
+                android:text="🛡️ SOS Administrative Portal"
+                android:textColor="#e11d48"
+                android:textSize="11.5sp"
+                android:textStyle="bold" />
+
         </LinearLayout>
 
         <!-- Bottom Legal / Cloud Disclaimer -->
