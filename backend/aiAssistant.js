@@ -16,7 +16,7 @@
 
 import http from 'http';
 import { queryAiBrain, handleNearbyEmergencyLocations } from './ai/nlp_inference_engine.js';
-import { searchOnlineKnowledge, synthesizeOnlineResponse } from './ai/online_search_service.js';
+import { searchOnlineKnowledge, synthesizeOnlineResponse, isWebSearchCategory } from './ai/online_search_service.js';
 
 const SYSTEM_PROMPT = `You are the SilentSOS Emergency, Medical & Personal Safety AI Assistant powered by local Ollama llama3.2 inference.
 
@@ -48,7 +48,20 @@ Rules & Guidelines:
 - Maintain a calm, empathetic, and decisive tone.
 - Format responses cleanly with GitHub-flavored markdown.
 - For immediate emergencies, provide basic safety instructions without waiting.
-- Do NOT provide, include, or cite URLs or links from online in your response UNLESS the user explicitly asks for links or sources. If the user did NOT ask for links, analyze the facts and provide a direct, informative answer with zero links.`;
+- When verified live online facts are provided in [VERIFIED LIVE ONLINE SEARCH FACTS]:
+  1. Clearly distinguish facts from AI advice by formatting into two distinct sections:
+     🌐 **Verified Online Information:**
+     [Summarize the factual online findings from official sources clearly and accurately]
+     
+     🛡️ **Safety Guidance & Action Steps:**
+     [Provide practical emergency precautions, step-by-step guidance, and SilentSOS protections]
+  2. Display verified source names and clickable markdown links at the end under:
+     ---
+     📌 **Verified Official Sources:**
+     • [Source Name - Title](URL)
+  3. NEVER invent, alter, or hallucinate sources, URLs, medical facts, or emergency numbers.
+- If web search is offline, provide guidance using local knowledge and state:
+  > ⚠️ **Notice:** Real-time web search is currently offline. The following guidance is based on local knowledge and may not reflect the most recent real-time updates.`;
 
 /**
  * Generates 2-3 smart, contextually relevant follow-up questions based on the topic.
@@ -575,20 +588,30 @@ export async function generateAiAssistantReply({ message, history = [], user, se
     }
   }
 
-  // 3. Online Grounding Search (if query requests online facts or external knowledge)
+  // 3. Online Grounding Search (Web search for Medical, Women's Protection, Helplines & Public Safety)
+  const needsWebSearch = isWebSearchCategory(cleanMessage);
   let onlineData = null;
   let groundingPrompt = '';
-  try {
-    onlineData = await searchOnlineKnowledge(cleanMessage);
-    if (onlineData?.groundingPrompt) {
-      groundingPrompt = onlineData.groundingPrompt;
+  let isOfflineNoticeNeeded = false;
+
+  if (needsWebSearch) {
+    try {
+      onlineData = await searchOnlineKnowledge(cleanMessage);
+      if (onlineData?.hasOnlineData && onlineData?.groundingPrompt) {
+        groundingPrompt = onlineData.groundingPrompt;
+      } else if (onlineData?.offline) {
+        isOfflineNoticeNeeded = true;
+        groundingPrompt = `\n[NOTICE: Real-time internet search is currently offline or unreachable. Use local offline knowledge base. Prominently state to the user: '> ⚠️ **Notice:** Real-time web search is currently offline. The following guidance is based on local knowledge and may not reflect the most recent real-time updates.']`;
+      }
+    } catch (searchErr) {
+      console.warn('[AI Engine] Online search pipeline skipped:', searchErr.message);
+      isOfflineNoticeNeeded = true;
+      groundingPrompt = `\n[NOTICE: Real-time internet search is currently offline or unreachable. Use local offline knowledge base. Prominently state to the user: '> ⚠️ **Notice:** Real-time web search is currently offline. The following guidance is based on local knowledge and may not reflect the most recent real-time updates.']`;
     }
-  } catch (searchErr) {
-    console.warn('[AI Engine] Online search pipeline skipped:', searchErr.message);
   }
 
-  const onlineSources = wantsLinks && onlineData?.results
-    ? onlineData.results.map(r => ({ title: r.title, url: r.url, source: r.source }))
+  const onlineSources = (onlineData?.hasOnlineData && onlineData?.sources)
+    ? onlineData.sources
     : [];
 
   try {
@@ -596,7 +619,21 @@ export async function generateAiAssistantReply({ message, history = [], user, se
     // Secure internal integration (Windows 11 host @ http://127.0.0.1:11434)
     const localLlmRes = await tryLocalOllama(cleanMessage, history, groundingPrompt);
     if (localLlmRes && localLlmRes.reply) {
-      let finalReply = stripOnlineLinksIfUnrequested(localLlmRes.reply, wantsLinks);
+      let finalReply = localLlmRes.reply;
+
+      // Ensure offline notice is present if internet search was requested but offline
+      if (isOfflineNoticeNeeded && !finalReply.includes('Real-time web search is currently offline')) {
+        finalReply = `> ⚠️ **Notice:** Real-time web search is currently offline. The following guidance is based on local knowledge and may not reflect the most recent real-time updates.\n\n` + finalReply;
+      }
+
+      // If online sources were retrieved and Ollama didn't format the links at the end, append them
+      if (onlineSources.length > 0 && !finalReply.includes('Verified Official Sources')) {
+        let sourcesBlock = `\n\n---\n📌 **Verified Official Sources:**\n`;
+        onlineSources.forEach(s => {
+          sourcesBlock += `• [${s.source} - ${s.title}](${s.url})\n`;
+        });
+        finalReply += sourcesBlock;
+      }
 
       // If Llama 3.2 produced a canned refusal on a critical first aid emergency query,
       // augment with verified bystander emergency instructions:
@@ -620,12 +657,12 @@ export async function generateAiAssistantReply({ message, history = [], user, se
 
       return {
         success: true,
-        intent: 'local_ollama_llama3_2',
+        intent: onlineSources.length > 0 ? 'local_ollama_web_grounded' : 'local_ollama_llama3_2',
         confidence: 98,
         reply: finalReply,
         source: localLlmRes.source || 'Local Ollama (llama3.2)',
         model: localLlmRes.model || 'llama3.2',
-        onlineFetched: !!onlineData,
+        onlineFetched: onlineSources.length > 0,
         sources: onlineSources,
         suggestions: deriveSmartSuggestions(cleanMessage, finalReply)
       };

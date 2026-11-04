@@ -2,38 +2,191 @@
  * SilentSOS Online Web Search & Real-Time Knowledge Retrieval Engine
  * 
  * Enables the AI assistant to fetch live, verified information from the internet:
- * - Wikipedia REST & Search APIs (Medical, Safety, Laws, Technical, and General Facts)
- * - DuckDuckGo Instant Knowledge API (Web snippets, definitions, real-time facts)
- * - OpenStreetMap Nominatim API (Real-world places, addresses, police stations, hospitals)
+ * 1. MedlinePlus (National Library of Medicine / NIH) - Official medical & first aid portal
+ * 2. Official Government Emergency Directory (112, 1091, 181, 108, 1930, 1078, BNSS Zero FIR)
+ * 3. Wikipedia Public Knowledge Base (Government services, helplines, laws, public safety)
+ * 4. OpenStreetMap Nominatim API (Hospitals, police stations, geographic places)
  * 
- * Works across both Web Application and Native Android App.
+ * Features:
+ * - Free and keyless: zero paid APIs or private keys required.
+ * - Prioritizes official government (.gov, .nic.in), hospital, and recognized medical portals.
+ * - Clickable source titles and verified URLs.
+ * - Graceful offline error handling when internet connection is unavailable.
+ * - Works across both Web Application and Native Android App.
  */
 
 /**
- * Strips HTML tags and excessive whitespace from text.
+ * Decodes HTML entities and strips HTML tags cleanly.
  */
-function cleanHtml(raw) {
+export function decodeAndCleanHtml(raw) {
   if (!raw || typeof raw !== 'string') return '';
-  return raw
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
+  const decoded = raw
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ');
+  return decoded
+    .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 /**
- * 1. Query Wikipedia Search & Summary API
+ * 1. Query MedlinePlus Health & Medical Knowledge (Official NIH / NLM Government Service)
+ * Keyless, official U.S. National Library of Medicine & National Institutes of Health.
+ */
+async function fetchMedlinePlusKnowledge(query) {
+  try {
+    const url = `https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term=${encodeURIComponent(query)}`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'SilentSOS-Emergency-AI/1.0 (safety@silentsos.org)' },
+      signal: AbortSignal.timeout(4500)
+    });
+
+    if (!res.ok) return null;
+    const xml = await res.text();
+    const docRegex = /<document\s+[^>]*url="([^"]+)"[^>]*>([\s\S]*?)<\/document>/gi;
+    let match;
+    const items = [];
+
+    while ((match = docRegex.exec(xml)) !== null && items.length < 2) {
+      const docUrl = match[1];
+      const body = match[2];
+      const titleMatch = /<content\s+name="title"[^>]*>([\s\S]*?)<\/content>/i.exec(body);
+      const summaryMatch = /<content\s+name="FullSummary"[^>]*>([\s\S]*?)<\/content>/i.exec(body);
+
+      const title = decodeAndCleanHtml(titleMatch ? titleMatch[1] : query);
+      const summary = decodeAndCleanHtml(summaryMatch ? summaryMatch[1] : '');
+
+      if (title && docUrl) {
+        items.push({
+          source: 'MedlinePlus (National Library of Medicine / NIH)',
+          title: `MedlinePlus: ${title}`,
+          extract: summary.slice(0, 320) + (summary.length > 320 ? '...' : ''),
+          url: docUrl
+        });
+      }
+    }
+
+    return items.length > 0 ? items : null;
+  } catch (err) {
+    // Offline or network error
+    return null;
+  }
+}
+
+/**
+ * 2. Official Government Helplines & Authorities Knowledge Directory
+ * Matches verified Indian and international government emergency frameworks.
+ */
+function matchOfficialGovDirectory(query) {
+  const q = (query || '').toLowerCase();
+  const matched = [];
+
+  // Universal Emergency 112
+  if (q.includes('112') || q.includes('universal emergency') || q.includes('emergency number') || q.includes('police number') || q.includes('fire number')) {
+    matched.push({
+      source: 'National Emergency Response Support System (Govt. of India)',
+      title: 'ERSS 112 - Pan-India Universal Emergency Service',
+      extract: '112 is the single emergency number in India for Police, Fire, and Ambulance, operational 24/7 with GPS dispatch.',
+      url: 'https://112.gov.in'
+    });
+  }
+
+  // Women's Helpline & National Commission for Women
+  if (q.includes('1091') || q.includes('women helpline') || q.includes('ncw') || q.includes('harass') || q.includes('stalk') || q.includes('eve-teas') || q.includes('women safe')) {
+    matched.push({
+      source: 'National Commission for Women (Govt. of India)',
+      title: 'NCW 24/7 Women Helpline & Redressal (1091 & 7827170170)',
+      extract: 'The National Commission for Women provides round-the-clock emergency assistance, legal guidance, and anti-harassment escalation.',
+      url: 'http://ncw.nic.in'
+    });
+  }
+
+  // Women Domestic Violence / Distress 181
+  if (q.includes('181') || q.includes('domestic violence') || q.includes('abuse') || q.includes('women distress') || q.includes('one stop centre')) {
+    matched.push({
+      source: 'Ministry of Women & Child Development (Govt. of India)',
+      title: '181 Women in Distress Helpline & Sakhi One Stop Centres',
+      extract: '181 provides toll-free 24/7 support for women facing violence, facilitating shelter, medical aid, police intervention, and legal counsel.',
+      url: 'https://wcd.nic.in'
+    });
+  }
+
+  // Section 173 BNSS (Zero FIR)
+  if (q.includes('zero fir') || q.includes('fir') || q.includes('bnss') || q.includes('police refuse') || q.includes('jurisdiction')) {
+    matched.push({
+      source: 'Ministry of Home Affairs (Govt. of India)',
+      title: 'Bharatiya Nagarik Suraksha Sanhita (BNSS) - Section 173 Zero FIR',
+      extract: 'Section 173 of BNSS mandates that any police station must register an FIR for cognizable crimes irrespective of territorial jurisdiction.',
+      url: 'https://www.mha.gov.in'
+    });
+  }
+
+  // Cyber Crime 1930
+  if (q.includes('1930') || q.includes('cyber') || q.includes('online harass') || q.includes('cyber stalk') || q.includes('blackmail') || q.includes('morphed')) {
+    matched.push({
+      source: 'National Cyber Crime Reporting Portal (MHA Govt. of India)',
+      title: 'National Cyber Crime Reporting Helpline (1930)',
+      extract: 'Dedicated portal and 1930 helpline for reporting cyber crimes, online harassment, obscene content, and digital extortion.',
+      url: 'https://cybercrime.gov.in'
+    });
+  }
+
+  // Ambulance / Medical Emergency 108 & MoHFW
+  if (q.includes('108') || q.includes('ambulance') || q.includes('medical helpline') || q.includes('mohfw') || q.includes('health ministry')) {
+    matched.push({
+      source: 'Ministry of Health & Family Welfare (Govt. of India)',
+      title: '108 National Health Emergency Ambulance Service',
+      extract: '108 is the free emergency response service providing primary care ambulances and trained emergency medical technicians (EMTs).',
+      url: 'https://mohfw.gov.in'
+    });
+  }
+
+  // Disaster Management 1078 (NDMA)
+  if (q.includes('1078') || q.includes('disaster') || q.includes('earthquake') || q.includes('flood') || q.includes('cyclone') || q.includes('ndma')) {
+    matched.push({
+      source: 'National Disaster Management Authority (Govt. of India)',
+      title: 'NDMA 24/7 Disaster Control Room (1078)',
+      extract: 'National helpline and alert monitoring service for natural and man-made disasters, evacuation protocols, and emergency relief.',
+      url: 'https://ndma.gov.in'
+    });
+  }
+
+  // Indian Red Cross Society
+  if (q.includes('red cross') || q.includes('cpr') || q.includes('first aid') || q.includes('blood bank') || q.includes('trauma')) {
+    matched.push({
+      source: 'Indian Red Cross Society',
+      title: 'Indian Red Cross Society - First Aid & Disaster Relief',
+      extract: 'Recognized humanitarian institution providing accredited first aid training, blood bank coordination, and emergency relief.',
+      url: 'https://www.indianredcross.org'
+    });
+  }
+
+  // World Health Organization (WHO)
+  if (q.includes('who') || q.includes('world health') || q.includes('pandemic') || q.includes('burn') || q.includes('chok') || q.includes('bleed')) {
+    matched.push({
+      source: 'World Health Organization (WHO)',
+      title: 'WHO Emergency & Trauma Care Guidelines',
+      extract: 'Global recognized medical authority providing clinical protocols for community resuscitation, burns, and trauma care.',
+      url: 'https://www.who.int'
+    });
+  }
+
+  return matched;
+}
+
+/**
+ * 3. Query Wikipedia Public Knowledge Base (Free & Keyless)
  */
 async function fetchWikipediaKnowledge(query) {
   try {
-    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&utf8=1&srlimit=3`;
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&utf8=1&srlimit=2`;
     const searchRes = await fetch(searchUrl, {
       headers: { 'User-Agent': 'SilentSOS-Emergency-AI/1.0 (safety@silentsos.org)' },
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(4500)
     });
 
     if (!searchRes.ok) return null;
@@ -48,99 +201,42 @@ async function fetchWikipediaKnowledge(query) {
     const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topTitle)}`;
     const sumRes = await fetch(summaryUrl, {
       headers: { 'User-Agent': 'SilentSOS-Emergency-AI/1.0 (safety@silentsos.org)' },
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(4500)
     });
 
     if (sumRes.ok) {
       const sumData = await sumRes.json();
       return {
-        source: 'Wikipedia Online Encyclopedia',
+        source: 'Wikipedia Public Knowledge Base',
         title: sumData.title || topTitle,
-        extract: sumData.extract || cleanHtml(topItem.snippet),
-        url: sumData.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(topTitle)}`,
-        relatedSnippets: items.slice(1).map(i => ({
-          title: i.title,
-          snippet: cleanHtml(i.snippet),
-          url: `https://en.wikipedia.org/wiki/${encodeURIComponent(i.title)}`
-        }))
+        extract: sumData.extract || decodeAndCleanHtml(topItem.snippet),
+        url: sumData.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(topTitle)}`
       };
     }
 
     return {
-      source: 'Wikipedia Online Encyclopedia',
+      source: 'Wikipedia Public Knowledge Base',
       title: topTitle,
-      extract: cleanHtml(topItem.snippet),
-      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(topTitle)}`,
-      relatedSnippets: items.slice(1).map(i => ({
-        title: i.title,
-        snippet: cleanHtml(i.snippet),
-        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(i.title)}`
-      }))
+      extract: decodeAndCleanHtml(topItem.snippet),
+      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(topTitle)}`
     };
   } catch (err) {
-    // Online fetch unavailable (network isolation or timeout)
     return null;
   }
 }
 
 /**
- * 2. Query DuckDuckGo Instant Knowledge API
- */
-async function fetchDuckDuckGoKnowledge(query) {
-  try {
-    const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
-    const res = await fetch(ddgUrl, {
-      headers: { 'User-Agent': 'SilentSOS-Emergency-AI/1.0' },
-      signal: AbortSignal.timeout(4500)
-    });
-
-    if (!res.ok) return null;
-    const data = await res.json();
-
-    const abstract = data.AbstractText || data.Abstract || '';
-    const heading = data.Heading || '';
-    const url = data.AbstractURL || '';
-
-    if (abstract && abstract.length > 20) {
-      return {
-        source: data.AbstractSource || 'DuckDuckGo Web Index',
-        title: heading || query,
-        extract: abstract,
-        url: url || `https://duckduckgo.com/?q=${encodeURIComponent(query)}`
-      };
-    }
-
-    // Check related topics
-    if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-      const firstTopic = data.RelatedTopics.find(t => t.Text && t.FirstURL);
-      if (firstTopic) {
-        return {
-          source: 'DuckDuckGo Knowledge Graph',
-          title: query,
-          extract: firstTopic.Text,
-          url: firstTopic.FirstURL
-        };
-      }
-    }
-
-    return null;
-  } catch (err) {
-    return null;
-  }
-}
-
-/**
- * 3. Query OpenStreetMap Nominatim for Places / Locations
+ * 4. Query OpenStreetMap Nominatim for Places / Hospitals / Police Stations
  */
 async function fetchNominatimLocation(query) {
   const isLocationSearch = /in\s+[a-z]+|near\s+[a-z]+|at\s+[a-z]+|police\s+in|hospital\s+in|emergency\s+in/i.test(query);
   if (!isLocationSearch) return null;
 
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=2`;
     const res = await fetch(url, {
       headers: { 'User-Agent': 'SilentSOS-Emergency-AI/1.0 (safety@silentsos.org)' },
-      signal: AbortSignal.timeout(4500)
+      signal: AbortSignal.timeout(4000)
     });
 
     if (!res.ok) return null;
@@ -161,65 +257,157 @@ async function fetchNominatimLocation(query) {
 }
 
 /**
+ * Categorizes whether a query requires live web retrieval for:
+ * 1. Medical awareness and first aid
+ * 2. Women's protection and safety
+ * 3. Government emergency services and helplines
+ * 4. Public safety information
+ */
+export function isWebSearchCategory(query) {
+  if (!query || typeof query !== 'string') return false;
+  const lower = query.toLowerCase();
+
+  // 1. Medical awareness and first aid
+  const isMedical = lower.includes('first aid') || lower.includes('cpr') || lower.includes('burn') || 
+    lower.includes('bleed') || lower.includes('chok') || lower.includes('poison') || 
+    lower.includes('fracture') || lower.includes('stroke') || lower.includes('heart attack') || 
+    lower.includes('wound') || lower.includes('seizure') || lower.includes('heatstroke') ||
+    lower.includes('asthma') || lower.includes('emergency medical') || lower.includes('bandage') ||
+    lower.includes('tourniquet') || lower.includes('ambulance') || lower.includes('medical');
+
+  // 2. Women's protection and safety
+  const isWomensProtection = lower.includes('women') || lower.includes('stalk') || 
+    lower.includes('harass') || lower.includes('domestic violence') || lower.includes('eve-teas') || 
+    lower.includes('safety for women') || lower.includes('travel alone') || lower.includes('following me') ||
+    lower.includes('safe at night') || lower.includes('girls safety') || lower.includes('molest');
+
+  // 3. Government emergency services and helplines
+  const isGovHelpline = lower.includes('112') || lower.includes('1091') || lower.includes('181') || 
+    lower.includes('108') || lower.includes('1930') || lower.includes('1078') || 
+    lower.includes('helpline') || lower.includes('emergency number') || lower.includes('zero fir') || 
+    lower.includes('police station') || lower.includes('bnss') || lower.includes('fir') || 
+    lower.includes('ncw') || lower.includes('government service') || lower.includes('cyber crime');
+
+  // 4. Public safety information
+  const isPublicSafety = lower.includes('accident') || lower.includes('fire safety') || 
+    lower.includes('earthquake') || lower.includes('flood') || lower.includes('disaster') || 
+    lower.includes('public safety') || lower.includes('road safety') || lower.includes('emergency evacuation') ||
+    lower.includes('cyclone') || lower.includes('stampede');
+
+  // General questions or queries explicitly asking for online facts
+  const isOnlineQuery = lower.includes('online') || lower.includes('latest') || lower.includes('current') || 
+    lower.includes('search') || lower.includes('what is') || lower.includes('how to');
+
+  return isMedical || isWomensProtection || isGovHelpline || isPublicSafety || isOnlineQuery;
+}
+
+/**
  * Master Online Knowledge Fetcher
- * Aggregates results from multiple live web sources concurrently.
+ * Aggregates results from recognized official government, medical, and public sources.
  */
 export async function searchOnlineKnowledge(query) {
   const cleanQ = (query || '').trim();
   if (!cleanQ) return null;
 
   try {
-    // Run concurrent fetches with graceful timeout handling
-    const [wikiResult, ddgResult, placeResult] = await Promise.allSettled([
+    // 1. Check verified official government directory first (0 latency)
+    const govMatches = matchOfficialGovDirectory(cleanQ);
+
+    // 2. Concurrent live fetches with timeout guard
+    const [medlineRes, wikiRes, placeRes] = await Promise.allSettled([
+      fetchMedlinePlusKnowledge(cleanQ),
       fetchWikipediaKnowledge(cleanQ),
-      fetchDuckDuckGoKnowledge(cleanQ),
       fetchNominatimLocation(cleanQ)
     ]);
 
     const results = [];
 
-    if (wikiResult.status === 'fulfilled' && wikiResult.value) {
-      results.push(wikiResult.value);
+    // Prioritize official government emergency sources
+    if (govMatches && govMatches.length > 0) {
+      results.push(...govMatches.slice(0, 2));
     }
-    if (ddgResult.status === 'fulfilled' && ddgResult.value) {
-      results.push(ddgResult.value);
+
+    // Prioritize official recognized medical sources (MedlinePlus / NIH)
+    if (medlineRes.status === 'fulfilled' && medlineRes.value) {
+      results.push(...medlineRes.value);
     }
-    if (placeResult.status === 'fulfilled' && placeResult.value) {
-      results.push(placeResult.value);
+
+    // Add Wikipedia public knowledge base
+    if (wikiRes.status === 'fulfilled' && wikiRes.value) {
+      results.push(wikiRes.value);
+    }
+
+    // Add OpenStreetMap place if applicable
+    if (placeRes.status === 'fulfilled' && placeRes.value) {
+      results.push(placeRes.value);
     }
 
     if (results.length === 0) {
-      return null;
+      return {
+        hasOnlineData: false,
+        offline: true,
+        results: [],
+        sources: []
+      };
     }
 
-    // Build context grounding block for LLM prompts
-    let groundingPrompt = '\n\n[VERIFIED LIVE ONLINE SEARCH FACTS]:\n';
-    results.forEach((r, idx) => {
-      groundingPrompt += `[Fact Source ${idx + 1}] (${r.source}) ${r.title}\n`;
-      if (r.extract) groundingPrompt += `Summary: ${r.extract}\n`;
-      if (r.relatedSnippets) {
-        r.relatedSnippets.forEach(s => {
-          groundingPrompt += `• Detail: ${s.title} - ${s.snippet}\n`;
-        });
+    // Deduplicate by URL
+    const seenUrls = new Set();
+    const uniqueResults = [];
+    for (const r of results) {
+      if (r.url && !seenUrls.has(r.url)) {
+        seenUrls.add(r.url);
+        uniqueResults.push(r);
       }
+      if (uniqueResults.length >= 4) break;
+    }
+
+    // Build grounding prompt for Ollama llama3.2
+    let groundingPrompt = '\n\n[VERIFIED LIVE ONLINE SEARCH FACTS]:\n';
+    uniqueResults.forEach((r, idx) => {
+      groundingPrompt += `Source ${idx + 1}: ${r.source} - "${r.title}" (${r.url})\n`;
+      if (r.extract) groundingPrompt += `Verified Content: ${r.extract}\n`;
       groundingPrompt += '\n';
     });
-    groundingPrompt += 'CRITICAL REQUIREMENT: Analyze the online facts above and give a direct, clear, and well-synthesized answer related to the question. DO NOT provide or include URLs or links from online in your response UNLESS the user explicitly asks for links or sources.\n';
+
+    groundingPrompt += `INSTRUCTIONS FOR OLLAMA INFERENCE:
+1. Summarize the verified online facts under the heading:
+   🌐 **Verified Online Information:**
+2. Provide step-by-step guidance and SilentSOS recommendations under:
+   🛡️ **Safety Guidance & Action Steps:**
+3. Clearly distinguish retrieved facts from AI-generated explanations.
+4. List the verified official sources with markdown links at the end under:
+   📌 **Verified Official Sources:**
+   • [Source Name - Title](URL)
+5. NEVER invent, modify, or hallucinate sources, URLs, medical facts, or emergency numbers.`;
+
+    const sources = uniqueResults.map(r => ({
+      title: r.title,
+      url: r.url,
+      source: r.source
+    }));
 
     return {
       hasOnlineData: true,
-      results,
+      offline: false,
+      results: uniqueResults,
+      sources,
       groundingPrompt,
-      primarySource: results[0]
+      primarySource: uniqueResults[0]
     };
   } catch (err) {
-    console.warn('[Online Search Engine] Search pipeline skipped:', err.message);
-    return null;
+    console.warn('[Online Search Engine] Search pipeline failure (offline mode):', err.message);
+    return {
+      hasOnlineData: false,
+      offline: true,
+      results: [],
+      sources: []
+    };
   }
 }
 
 /**
- * Checks whether user explicitly requested links or URLs
+ * Checks whether user explicitly requested links
  */
 export function userExplicitlyAskedForLinks(query) {
   if (!query || typeof query !== 'string') return false;
@@ -228,51 +416,31 @@ export function userExplicitlyAskedForLinks(query) {
 }
 
 /**
- * Synthesizes a structured response directly from online search results
- * when cloud LLMs are unavailable or offline.
- * Analyzes the data and provides the answer directly without links,
- * providing links ONLY if explicitly requested.
+ * Direct Online Knowledge Synthesis (Offline/Fallback when Ollama is unavailable)
  */
 export function synthesizeOnlineResponse(query, onlineData) {
   if (!onlineData || !onlineData.primarySource) return null;
 
   const primary = onlineData.primarySource;
-  const otherSources = onlineData.results.slice(1);
-  const wantsLinks = userExplicitlyAskedForLinks(query);
+  const otherSources = onlineData.results || [];
 
-  let reply = `🌐 **Online Analysis: ${primary.title}**\n\n`;
+  let reply = `🌐 **Verified Online Information: ${primary.title}**\n\n`;
 
   if (primary.extract) {
     reply += `${primary.extract}\n\n`;
   }
 
-  if (primary.relatedSnippets && primary.relatedSnippets.length > 0) {
-    reply += `### 🔍 Key Analysis & Details:\n`;
-    primary.relatedSnippets.forEach(s => {
-      reply += `• **${s.title}:** ${s.snippet}\n`;
-    });
-    reply += '\n';
-  }
+  reply += `🛡️ **Safety Guidance & Action Steps:**\n`;
+  reply += `• Assess your surroundings and prioritize physical safety immediately.\n`;
+  reply += `• In life-threatening emergencies, dial **112** (Universal Emergency) or **108** (Ambulance).\n`;
+  reply += `• Trigger SilentSOS covert tracking or SOS dispatch if in danger.\n\n`;
 
-  // Only provide links if the user explicitly asked for them
-  if (wantsLinks) {
-    reply += `### 🔗 Reference Links:\n`;
-    reply += `• [${primary.source}](${primary.url})\n`;
-    otherSources.forEach(s => {
-      if (s.url && s.title) {
-        reply += `• [${s.title} (${s.source})](${s.url})\n`;
-      }
-    });
-    reply += '\n';
-  }
-
-  reply += `*Information analyzed from online knowledge registries.*`;
-
-  const suggestions = [
-    `Tell me more about ${primary.title.slice(0, 30)}`,
-    `What are the emergency protocols for this?`,
-    `How does live GPS tracking work in SilentSOS?`
-  ];
+  reply += `---\n📌 **Verified Official Sources:**\n`;
+  otherSources.forEach(s => {
+    if (s.url && s.title) {
+      reply += `• [${s.source} - ${s.title}](${s.url})\n`;
+    }
+  });
 
   return {
     success: true,
@@ -281,8 +449,11 @@ export function synthesizeOnlineResponse(query, onlineData) {
     confidence: 96,
     onlineFetched: true,
     reply,
-    suggestions,
-    sources: wantsLinks ? onlineData.results.map(r => ({ title: r.title, url: r.url, source: r.source })) : []
+    suggestions: [
+      `What are the emergency protocols for this?`,
+      `Where is the nearest hospital?`,
+      `How does live GPS tracking work in SilentSOS?`
+    ],
+    sources: onlineData.sources || []
   };
 }
-
