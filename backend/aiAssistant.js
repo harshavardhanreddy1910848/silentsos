@@ -16,6 +16,7 @@
 
 import http from 'http';
 import { queryAiBrain, handleNearbyEmergencyLocations } from './ai/nlp_inference_engine.js';
+import { searchOnlineKnowledge, synthesizeOnlineResponse } from './ai/online_search_service.js';
 
 const SYSTEM_PROMPT = `You are the SilentSOS Emergency, Medical & Personal Safety AI Assistant.
 
@@ -124,7 +125,7 @@ function deriveSmartSuggestions(query, answer) {
 /**
  * 1. Cloud Provider: Google Gemini API
  */
-async function tryGeminiApi(message, history = []) {
+async function tryGeminiApi(message, history = [], groundingPrompt = '') {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
 
@@ -137,12 +138,13 @@ async function tryGeminiApi(message, history = []) {
       { role: 'user', parts: [{ text: message }] }
     ];
 
+    const systemText = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        system_instruction: { parts: [{ text: systemText }] },
         contents,
         generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
       }),
@@ -168,13 +170,14 @@ async function tryGeminiApi(message, history = []) {
 /**
  * 2. Cloud Provider: Groq API (Llama 3.3 70B)
  */
-async function tryGroqApi(message, history = []) {
+async function tryGroqApi(message, history = [], groundingPrompt = '') {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return null;
 
   try {
+    const systemContent = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemContent },
       ...history.slice(-6).map(h => ({ role: h.role === 'assistant' ? 'assistant' : 'user', content: h.text || h.content || '' })),
       { role: 'user', content: message }
     ];
@@ -213,13 +216,14 @@ async function tryGroqApi(message, history = []) {
 /**
  * 3. Cloud Provider: OpenAI API (GPT-4o mini)
  */
-async function tryOpenAiApi(message, history = []) {
+async function tryOpenAiApi(message, history = [], groundingPrompt = '') {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
 
   try {
+    const systemContent = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemContent },
       ...history.slice(-6).map(h => ({ role: h.role === 'assistant' ? 'assistant' : 'user', content: h.text || h.content || '' })),
       { role: 'user', content: message }
     ];
@@ -259,10 +263,11 @@ async function tryOpenAiApi(message, history = []) {
  * 4. High-Performance Free Dynamic LLM Engine (Pollinations AI)
  * No API key required; connects to high-capacity hosted inference.
  */
-async function tryPollinationsAi(message, history = []) {
+async function tryPollinationsAi(message, history = [], groundingPrompt = '') {
   try {
+    const systemContent = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemContent },
       ...history.slice(-6).map(h => ({
         role: h.role === 'assistant' ? 'assistant' : 'user',
         content: h.text || h.content || ''
@@ -294,7 +299,8 @@ async function tryPollinationsAi(message, history = []) {
   } catch (e) {
     // Try simple GET query fallback
     try {
-      const promptParam = encodeURIComponent(`${SYSTEM_PROMPT}\n\nUser Question: ${message}`);
+      const systemContent = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
+      const promptParam = encodeURIComponent(`${systemContent}\n\nUser Question: ${message}`);
       const res2 = await fetch(`https://text.pollinations.ai/${promptParam}`, {
         signal: AbortSignal.timeout(6000)
       });
@@ -315,12 +321,13 @@ async function tryPollinationsAi(message, history = []) {
 /**
  * 5. Local Ollama Runtime (localhost:11434)
  */
-async function tryLocalOllama(message, history = []) {
+async function tryLocalOllama(message, history = [], groundingPrompt = '') {
   return new Promise((resolve) => {
+    const systemContent = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
     const payload = JSON.stringify({
       model: 'qwen2.5:latest',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemContent },
         ...history.slice(-4).map(h => ({ role: h.role, content: h.text || h.content || '' })),
         { role: 'user', content: message }
       ],
@@ -395,68 +402,100 @@ export async function generateAiAssistantReply({ message, history = [], user, se
     };
   }
 
+  // 0. Live Real-Time Online Knowledge Search
+  let onlineData = null;
+  let groundingPrompt = '';
+  try {
+    onlineData = await searchOnlineKnowledge(cleanMessage);
+    if (onlineData?.groundingPrompt) {
+      groundingPrompt = onlineData.groundingPrompt;
+    }
+  } catch (searchErr) {
+    console.warn('[AI Engine] Online search pipeline skipped:', searchErr.message);
+  }
+
+  const onlineSources = onlineData?.results?.map(r => ({ title: r.title, url: r.url, source: r.source })) || [];
+
   try {
     // 1. Try Configured Gemini API
-    const geminiRes = await tryGeminiApi(cleanMessage, history);
+    const geminiRes = await tryGeminiApi(cleanMessage, history, groundingPrompt);
     if (geminiRes && geminiRes.reply) {
       return {
         success: true,
         intent: 'cloud_llm_gemini',
         confidence: 99,
         reply: geminiRes.reply,
+        onlineFetched: !!onlineData,
+        sources: onlineSources,
         suggestions: deriveSmartSuggestions(cleanMessage, geminiRes.reply)
       };
     }
 
     // 2. Try Configured Groq API
-    const groqRes = await tryGroqApi(cleanMessage, history);
+    const groqRes = await tryGroqApi(cleanMessage, history, groundingPrompt);
     if (groqRes && groqRes.reply) {
       return {
         success: true,
         intent: 'cloud_llm_groq',
         confidence: 99,
         reply: groqRes.reply,
+        onlineFetched: !!onlineData,
+        sources: onlineSources,
         suggestions: deriveSmartSuggestions(cleanMessage, groqRes.reply)
       };
     }
 
     // 3. Try Configured OpenAI API
-    const openAiRes = await tryOpenAiApi(cleanMessage, history);
+    const openAiRes = await tryOpenAiApi(cleanMessage, history, groundingPrompt);
     if (openAiRes && openAiRes.reply) {
       return {
         success: true,
         intent: 'cloud_llm_openai',
         confidence: 99,
         reply: openAiRes.reply,
+        onlineFetched: !!onlineData,
+        sources: onlineSources,
         suggestions: deriveSmartSuggestions(cleanMessage, openAiRes.reply)
       };
     }
 
     // 4. Try Free High-Performance Neural LLM Engine (Pollinations AI)
-    const neuralRes = await tryPollinationsAi(cleanMessage, history);
+    const neuralRes = await tryPollinationsAi(cleanMessage, history, groundingPrompt);
     if (neuralRes && neuralRes.reply) {
       return {
         success: true,
         intent: 'cloud_neural_inference',
         confidence: 98,
         reply: neuralRes.reply,
+        onlineFetched: !!onlineData,
+        sources: onlineSources,
         suggestions: deriveSmartSuggestions(cleanMessage, neuralRes.reply)
       };
     }
 
     // 5. Try Local Ollama LLM
-    const localLlmRes = await tryLocalOllama(cleanMessage, history);
+    const localLlmRes = await tryLocalOllama(cleanMessage, history, groundingPrompt);
     if (localLlmRes && localLlmRes.reply) {
       return {
         success: true,
         intent: 'local_ollama_inference',
         confidence: 95,
         reply: localLlmRes.reply,
+        onlineFetched: !!onlineData,
+        sources: onlineSources,
         suggestions: deriveSmartSuggestions(cleanMessage, localLlmRes.reply)
       };
     }
 
-    // 6. Comprehensive In-House Cognitive Knowledge Engine (Offline Fallback)
+    // 6. Direct Online Knowledge Synthesis (When LLMs are offline or unreachable)
+    if (onlineData) {
+      const onlineSynthesized = synthesizeOnlineResponse(cleanMessage, onlineData);
+      if (onlineSynthesized && onlineSynthesized.reply) {
+        return onlineSynthesized;
+      }
+    }
+
+    // 7. Comprehensive In-House Cognitive Knowledge Engine (Offline Fallback)
     const localBrainRes = queryAiBrain({
       message: cleanMessage,
       history,
@@ -470,6 +509,8 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       return {
         success: true,
         ...localBrainRes,
+        onlineFetched: false,
+        sources: [],
         suggestions: localBrainRes.suggestions || deriveSmartSuggestions(cleanMessage, localBrainRes.reply)
       };
     }

@@ -1737,7 +1737,9 @@ app.post('/api/ai/chat', optionalAuthenticateToken, async (req, res) => {
     res.json({
       success: true,
       reply: result.reply,
-      suggestions: result.suggestions
+      suggestions: result.suggestions,
+      onlineFetched: result.onlineFetched || false,
+      sources: result.sources || []
     });
   } catch (err) {
     console.error('AI Assistant error:', err);

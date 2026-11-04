@@ -802,7 +802,9 @@ class ApiClient(private val context: Context) {
 
     data class AiAssistantResponse(
         val reply: String,
-        val suggestions: List<String>
+        val suggestions: List<String>,
+        val onlineFetched: Boolean = false,
+        val sources: List<Pair<String, String>> = emptyList()
     )
 
     suspend fun askAiAssistant(
@@ -849,7 +851,20 @@ class ApiClient(private val context: Context) {
                         suggestions.add(suggestionsArr.getString(i))
                     }
                 }
-                Result.success(AiAssistantResponse(reply, suggestions))
+                val onlineFetched = jsonRes.optBoolean("onlineFetched", false)
+                val sourcesArr = jsonRes.optJSONArray("sources")
+                val sourcesList = mutableListOf<Pair<String, String>>()
+                if (sourcesArr != null) {
+                    for (i in 0 until sourcesArr.length()) {
+                        val sObj = sourcesArr.optJSONObject(i)
+                        if (sObj != null) {
+                            val title = sObj.optString("title", "Online Source")
+                            val url = sObj.optString("url", "")
+                            sourcesList.add(Pair(title, url))
+                        }
+                    }
+                }
+                Result.success(AiAssistantResponse(reply, suggestions, onlineFetched, sourcesList))
             } else {
                 Result.failure(Exception("AI Assistant query failed (${response.code})"))
             }

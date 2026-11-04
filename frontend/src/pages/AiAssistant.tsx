@@ -17,6 +17,8 @@ interface AiMessage {
   confidence?: number;
   category?: string;
   suggestions?: string[];
+  onlineFetched?: boolean;
+  sources?: Array<{ title: string; url: string; source?: string }>;
 }
 
 export function AiAssistant() {
@@ -141,7 +143,9 @@ export function AiAssistant() {
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         confidence: data.confidence,
         category: data.category,
-        suggestions: data.suggestions
+        suggestions: data.suggestions,
+        onlineFetched: data.onlineFetched,
+        sources: data.sources
       };
 
       setMessages(prev => [...prev, assistantMsg]);
@@ -255,10 +259,10 @@ export function AiAssistant() {
               <div className="flex items-center gap-2">
                 <h1 className="text-sm font-bold text-white">AI Defense Assistant</h1>
                 <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30 font-semibold">
-                  112 SOURCES
+                  LIVE ONLINE INTEL
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400">Zero External APIs &bull; Local Brain</p>
+              <p className="text-[10px] text-slate-400">Local Neural Brain &bull; Live Web Knowledge</p>
             </div>
           </div>
         </div>
@@ -303,6 +307,30 @@ export function AiAssistant() {
               )}
 
               <div>{renderFormattedText(m.text)}</div>
+
+              {m.onlineFetched && (
+                <div className="mt-2.5 pt-2 border-t border-cyan-500/20">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-[10px] text-cyan-300 font-semibold mb-2">
+                    <span>🌐 Live Online Intelligence</span>
+                  </div>
+                  {m.sources && m.sources.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {m.sources.map((s, sIdx) => (
+                        <a
+                          key={sIdx}
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[10px] text-cyan-300 border border-slate-700 hover:border-cyan-500/50 transition-colors"
+                        >
+                          <span>{s.title.slice(0, 28)}</span>
+                          <span className="text-slate-400">↗</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {m.category && (
                 <div className="mt-2.5 pt-1.5 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400">

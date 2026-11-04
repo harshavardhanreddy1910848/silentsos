@@ -137,7 +137,12 @@ class AiAssistantActivity : AppCompatActivity() {
         }
     }
 
-    private fun addBubble(messageContent: String, isUser: Boolean) {
+    private fun addBubble(
+        messageContent: String,
+        isUser: Boolean,
+        onlineFetched: Boolean = false,
+        sources: List<Pair<String, String>> = emptyList()
+    ) {
         val bubble = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             val bubbleParams = LinearLayout.LayoutParams(
@@ -161,8 +166,8 @@ class AiAssistantActivity : AppCompatActivity() {
 
         if (!isUser) {
             val headerLabel = TextView(this)
-            headerLabel.text = "⚡ SILENTSOS CONVERSATIONAL AI"
-            headerLabel.setTextColor(Color.parseColor("#38bdf8"))
+            headerLabel.text = if (onlineFetched) "🌐 LIVE ONLINE INTELLIGENCE ACTIVE" else "⚡ SILENTSOS CONVERSATIONAL AI"
+            headerLabel.setTextColor(if (onlineFetched) Color.parseColor("#34d399") else Color.parseColor("#38bdf8"))
             headerLabel.textSize = 9.5f
             headerLabel.typeface = Typeface.DEFAULT_BOLD
             headerLabel.setPadding(0, 0, 0, 8)
@@ -177,6 +182,40 @@ class AiAssistantActivity : AppCompatActivity() {
         tv.linksClickable = true
         Linkify.addLinks(tv, Linkify.WEB_URLS or Linkify.PHONE_NUMBERS)
         bubble.addView(tv)
+
+        // Render clickable online sources badges if retrieved from web
+        if (!isUser && sources.isNotEmpty()) {
+            val sourcesScroll = android.widget.HorizontalScrollView(this).apply {
+                isHorizontalScrollBarEnabled = false
+                setPadding(0, 14, 0, 0)
+            }
+            val sourcesRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+            }
+            for ((title, url) in sources) {
+                if (url.isNotEmpty()) {
+                    val btnSrc = AppCompatButton(this).apply {
+                        text = "🔗 " + if (title.length > 22) title.take(20) + "…" else title
+                        textSize = 9.5f
+                        isAllCaps = false
+                        setTextColor(Color.parseColor("#38bdf8"))
+                        setBackgroundResource(R.drawable.bg_badge_cyan)
+                        setPadding(18, 8, 18, 8)
+                        setOnClickListener {
+                            try {
+                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                            } catch (_) {}
+                        }
+                    }
+                    sourcesRow.addView(btnSrc, LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { marginEnd = 12 })
+                }
+            }
+            sourcesScroll.addView(sourcesRow)
+            bubble.addView(sourcesScroll)
+        }
 
         // Action buttons if providing police / hospital / emergency locations
         val lowerMsg = messageContent.lowercase()
@@ -262,7 +301,7 @@ class AiAssistantActivity : AppCompatActivity() {
                 tvAiThinking.visibility = View.GONE
                 res.onSuccess { aiRes ->
                     conversationHistory.add("assistant" to aiRes.reply)
-                    addBubble(aiRes.reply, isUser = false)
+                    addBubble(aiRes.reply, isUser = false, onlineFetched = aiRes.onlineFetched, sources = aiRes.sources)
                     if (aiRes.suggestions.isNotEmpty()) {
                         populateSuggestions(aiRes.suggestions)
                     }
