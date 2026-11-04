@@ -655,3 +655,4 @@ def get_mobile_test_cases():
 if __name__ == "__main__":
     cases = get_mobile_test_cases()
     print(f"Appium matrix ready with {len(cases)} unique test cases.")
+

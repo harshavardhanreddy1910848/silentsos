@@ -68,3 +68,4 @@ class WebAdminPage(WebBasePage):
     TAB_SETTINGS = (By.XPATH, "//button[contains(text(), 'Settings')]")
     RESOLVE_ALERT_BTN = (By.CSS_SELECTOR, "[data-testid='admin-resolve-alert']")
     USERS_TABLE = (By.ID, "admin-users-table")
+

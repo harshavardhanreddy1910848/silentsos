@@ -274,3 +274,4 @@ def create_excel_report(
     wb.save(output_path)
     print(f"✅ Successfully generated Excel report: {output_path} ({total_tests} test cases, {pass_rate:.1f}% pass rate)")
     return output_path
+

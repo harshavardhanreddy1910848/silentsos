@@ -9,6 +9,11 @@
         .header { border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
         h1 { margin: 0; font-size: 26px; color: #f8fafc; letter-spacing: -0.5px; }
         .subtitle { margin: 6px 0 0; color: #94a3b8; font-size: 14px; }
+        .actions { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; background: #1e293b; color: #38bdf8; border: 1px solid #38bdf844; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+        .btn:hover { background: #38bdf822; border-color: #38bdf8; }
+        .btn-primary { background: #2563eb; color: #ffffff; border-color: #3b82f6; }
+        .btn-primary:hover { background: #1d4ed8; }
         .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
         .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; }
         .card h4 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px; }
@@ -31,7 +36,7 @@
             <div class="subtitle">Consolidated Automation Test Results | Selenium, Appium, Load & DAST Testing</div>
         </div>
         <div style="text-align: right; color: #94a3b8; font-size: 13px;">
-            Execution Date: 2026-11-04 15:57:35 UTC<br>
+            Execution Date: 2026-11-04 16:12:42 UTC<br>
             Environment: Production-Grade CI Runner
         </div>
     </div>
@@ -39,6 +44,15 @@
     <div class="banner">
         <div class="banner-icon">✅</div>
         <div class="banner-text"><strong>DEPLOYMENT APPROVED:</strong> All 4 comprehensive test suites have passed with 100.0% success rate (1520/1520 test cases). The web application artifact is certified for production deployment.</div>
+    </div>
+
+    <div class="actions">
+        <a href="FINAL_TEST_SUMMARY.xlsx" download class="btn btn-primary">📥 Download Master Summary Excel (All 1,520 Cases)</a>
+        <a href="selenium/selenium_test_results.xlsx" download class="btn">🌐 Selenium Results (.xlsx)</a>
+        <a href="appium/appium_test_results.xlsx" download class="btn">📱 Appium Results (.xlsx)</a>
+        <a href="load-testing/load_test_results.xlsx" download class="btn">⚡ Load Test Results (.xlsx)</a>
+        <a href="dast-security/dast_test_results.xlsx" download class="btn">🛡️ DAST Results (.xlsx)</a>
+        <a href="dast-security/dast_security_report.html" class="btn">🔍 DAST Security Report (HTML)</a>
     </div>
 
     <div class="cards">
@@ -64,6 +78,7 @@
                 <th>Failed</th>
                 <th>Pass Rate</th>
                 <th>Status</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -77,6 +92,7 @@
             <td style="color:#10b981;"><strong>0</strong></td>
             <td><strong>100.0%</strong></td>
             <td><span style="background:#10b98122; color:#10b981; padding:4px 10px; border-radius:12px; font-weight:700;">PASS</span></td>
+            <td><a href="selenium/selenium_test_results.xlsx" download style="color:#38bdf8; text-decoration:none; font-weight:600;">📥 Download Excel</a></td>
         </tr>
         
         <tr>
@@ -88,6 +104,7 @@
             <td style="color:#10b981;"><strong>0</strong></td>
             <td><strong>100.0%</strong></td>
             <td><span style="background:#10b98122; color:#10b981; padding:4px 10px; border-radius:12px; font-weight:700;">PASS</span></td>
+            <td><a href="appium/appium_test_results.xlsx" download style="color:#38bdf8; text-decoration:none; font-weight:600;">📥 Download Excel</a></td>
         </tr>
         
         <tr>
@@ -99,6 +116,7 @@
             <td style="color:#10b981;"><strong>0</strong></td>
             <td><strong>100.0%</strong></td>
             <td><span style="background:#10b98122; color:#10b981; padding:4px 10px; border-radius:12px; font-weight:700;">PASS</span></td>
+            <td><a href="load-testing/load_test_results.xlsx" download style="color:#38bdf8; text-decoration:none; font-weight:600;">📥 Download Excel</a></td>
         </tr>
         
         <tr>
@@ -110,6 +128,7 @@
             <td style="color:#10b981;"><strong>0</strong></td>
             <td><strong>100.0%</strong></td>
             <td><span style="background:#10b98122; color:#10b981; padding:4px 10px; border-radius:12px; font-weight:700;">PASS</span></td>
+            <td><a href="dast-security/dast_test_results.xlsx" download style="color:#38bdf8; text-decoration:none; font-weight:600;">📥 Download Excel</a></td>
         </tr>
         
         </tbody>

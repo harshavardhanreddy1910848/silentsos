@@ -66,3 +66,4 @@ class AiAssistantPage(BasePage):
     SEND_BUTTON = ("id", "com.silentsos.app.debug:id/btnAiSend")
     MESSAGE_CONTAINER = ("id", "com.silentsos.app.debug:id/llAiMessageContainer")
     SUGGESTIONS_CONTAINER = ("id", "com.silentsos.app.debug:id/llAiSuggestions")
+

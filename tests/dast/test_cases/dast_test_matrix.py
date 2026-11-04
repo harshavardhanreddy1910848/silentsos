@@ -238,3 +238,4 @@ def get_dast_test_cases():
 if __name__ == "__main__":
     cases = get_dast_test_cases()
     print(f"DAST matrix ready with {len(cases)} unique test cases.")
+

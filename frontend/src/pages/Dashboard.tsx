@@ -504,6 +504,22 @@ export function Dashboard() {
               ESC *3
             </span>
           </button>
+
+          {/* QA Test Reports Live Button */}
+          <a
+            href="./reports/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View Consolidated Enterprise QA & Security Test Reports (1,520 Scenarios)"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/50 border border-indigo-500/40 hover:border-indigo-400 text-indigo-400 hover:text-indigo-300 text-xs font-mono font-bold transition-all shadow-sm group"
+          >
+            <Shield className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline">QA REPORTS</span>
+            <span className="text-[9px] px-1 py-0.5 rounded bg-indigo-900/60 text-indigo-200 border border-indigo-700 font-mono">
+              1,520 TESTS
+            </span>
+            <ExternalLink className="w-3 h-3 opacity-70" />
+          </a>
         </div>
 
         {/* Right: Telemetry & User Avatar */}

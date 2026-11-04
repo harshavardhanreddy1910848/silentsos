@@ -249,6 +249,22 @@ jobs:
         run: |
           npm run build
 
+      - name: 📥 Download Test Reports for Web Deployment
+        uses: actions/download-artifact@v4
+        with:
+          name: final-test-reports
+          path: final-test-reports/
+
+      - name: 📋 Integrate QA Reports & Excel Sheets into Web Distribution
+        run: |
+          mkdir -p frontend/dist/reports frontend/dist/test-cases
+          cp -r final-test-reports/reports/* frontend/dist/reports/ || true
+          cp -r final-test-reports/test-cases/* frontend/dist/test-cases/ || true
+          cp final-test-reports/reports/FINAL_TEST_SUMMARY.html frontend/dist/reports/index.html || true
+          cp final-test-reports/reports/FINAL_TEST_SUMMARY.html frontend/dist/reports.html || true
+          echo "Verified deployed report assets:"
+          ls -la frontend/dist/reports/
+
       - name: 🌐 Configure GitHub Pages
         uses: actions/configure-pages@v5
 
@@ -260,3 +276,4 @@ jobs:
       - name: 🚀 Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+

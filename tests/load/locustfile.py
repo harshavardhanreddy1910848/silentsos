@@ -60,3 +60,4 @@ class SilentSosWebUser(HttpUser):
     @task(2)
     def check_receiver_portal(self):
         self.client.get("/receiver/test-alert-id")
+

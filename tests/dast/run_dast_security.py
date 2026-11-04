@@ -200,3 +200,4 @@ def run_dast_security():
 
 if __name__ == "__main__":
     sys.exit(run_dast_security())
+

@@ -329,6 +329,10 @@ def bundle_reports():
     for s in suite_results:
         st_color = "#10b981" if s["failed"] == 0 else "#ef4444"
         badge = "PASS" if s["failed"] == 0 else "FAIL"
+        xlsx_link = f"{s['id']}/{s['id']}_test_results.xlsx" if s['id'] != 'load' else "load-testing/load_test_results.xlsx"
+        if s['id'] == 'dast':
+            xlsx_link = "dast-security/dast_test_results.xlsx"
+
         table_rows += f"""
         <tr>
             <td><strong>{s['name']}</strong></td>
@@ -339,6 +343,7 @@ def bundle_reports():
             <td style="color:{st_color};"><strong>{s['failed']}</strong></td>
             <td><strong>{s['pass_rate']:.1f}%</strong></td>
             <td><span style="background:{st_color}22; color:{st_color}; padding:4px 10px; border-radius:12px; font-weight:700;">{badge}</span></td>
+            <td><a href="{xlsx_link}" download style="color:#38bdf8; text-decoration:none; font-weight:600;">📥 Download Excel</a></td>
         </tr>
         """
 
@@ -353,6 +358,11 @@ def bundle_reports():
         .header {{ border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }}
         h1 {{ margin: 0; font-size: 26px; color: #f8fafc; letter-spacing: -0.5px; }}
         .subtitle {{ margin: 6px 0 0; color: #94a3b8; font-size: 14px; }}
+        .actions {{ display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }}
+        .btn {{ display: inline-flex; align-items: center; gap: 8px; background: #1e293b; color: #38bdf8; border: 1px solid #38bdf844; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.2s; }}
+        .btn:hover {{ background: #38bdf822; border-color: #38bdf8; }}
+        .btn-primary {{ background: #2563eb; color: #ffffff; border-color: #3b82f6; }}
+        .btn-primary:hover {{ background: #1d4ed8; }}
         .cards {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }}
         .card {{ background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; }}
         .card h4 {{ margin: 0 0 10px; font-size: 12px; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px; }}
@@ -385,6 +395,15 @@ def bundle_reports():
         <div class="banner-text"><strong>DEPLOYMENT APPROVED:</strong> All 4 comprehensive test suites have passed with 100.0% success rate ({grand_total}/{grand_total} test cases). The web application artifact is certified for production deployment.</div>
     </div>
 
+    <div class="actions">
+        <a href="FINAL_TEST_SUMMARY.xlsx" download class="btn btn-primary">📥 Download Master Summary Excel (All 1,520 Cases)</a>
+        <a href="selenium/selenium_test_results.xlsx" download class="btn">🌐 Selenium Results (.xlsx)</a>
+        <a href="appium/appium_test_results.xlsx" download class="btn">📱 Appium Results (.xlsx)</a>
+        <a href="load-testing/load_test_results.xlsx" download class="btn">⚡ Load Test Results (.xlsx)</a>
+        <a href="dast-security/dast_test_results.xlsx" download class="btn">🛡️ DAST Results (.xlsx)</a>
+        <a href="dast-security/dast_security_report.html" class="btn">🔍 DAST Security Report (HTML)</a>
+    </div>
+
     <div class="cards">
         {cards_html}
     </div>
@@ -401,6 +420,7 @@ def bundle_reports():
                 <th>Failed</th>
                 <th>Pass Rate</th>
                 <th>Status</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -414,6 +434,38 @@ def bundle_reports():
     with open(final_html_path, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"[OK] Consolidated HTML Summary saved to: {final_html_path}")
+
+    # Also mirror to frontend/public for GitHub Pages live deployment
+    import shutil
+    pub_reports_dir = os.path.join(BASE_DIR, "frontend", "public", "reports")
+    pub_testcases_dir = os.path.join(BASE_DIR, "frontend", "public", "test-cases")
+    os.makedirs(pub_reports_dir, exist_ok=True)
+    os.makedirs(pub_testcases_dir, exist_ok=True)
+
+    # Copy files
+    for item in os.listdir(os.path.join(BASE_DIR, "reports")):
+        src = os.path.join(BASE_DIR, "reports", item)
+        dst = os.path.join(pub_reports_dir, item)
+        if os.path.isdir(src):
+            if os.path.exists(dst):
+                shutil.rmtree(dst)
+            shutil.copytree(src, dst)
+        elif os.path.isfile(src):
+            shutil.copy2(src, dst)
+
+    # Copy master test cases
+    if os.path.exists(os.path.join(BASE_DIR, "test-cases")):
+        for item in os.listdir(os.path.join(BASE_DIR, "test-cases")):
+            src = os.path.join(BASE_DIR, "test-cases", item)
+            dst = os.path.join(pub_testcases_dir, item)
+            shutil.copy2(src, dst)
+
+    # Save index.html inside frontend/public/reports/ and frontend/public/reports.html
+    with open(os.path.join(pub_reports_dir, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html_content)
+    with open(os.path.join(BASE_DIR, "frontend", "public", "reports.html"), "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"[OK] Mirrored test reports to frontend/public/reports for GitHub Pages deployment.")
 
     # -------------------------------------------------------------------------
     # 3. WRITE TO GITHUB_STEP_SUMMARY
@@ -449,3 +501,4 @@ def bundle_reports():
 
 if __name__ == "__main__":
     sys.exit(bundle_reports())
+
