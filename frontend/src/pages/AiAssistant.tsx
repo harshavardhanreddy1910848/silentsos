@@ -26,13 +26,12 @@ export function AiAssistant() {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([
-    'What is artificial intelligence?',
-    'Explain Python programming.',
-    'What is cybersecurity?',
-    'How does GPS tracking work?',
-    'What are the features of SilentSOS?',
     'What should I do if someone is following me?',
-    'How can I stay safe when travelling alone?'
+    'How do I perform CPR on an adult?',
+    'How does SilentSOS Stealth Mode work?',
+    'How do covert gestures (palm raise & eye blink) work?',
+    'How does live GPS tracking broadcast to guardians?',
+    'What is a Zero FIR in India?'
   ]);
 
   const [messages, setMessages] = useState<AiMessage[]>(() => {
@@ -49,13 +48,12 @@ export function AiAssistant() {
       {
         role: 'assistant',
         text: `👋 Hello! I am your 24/7 **SilentSOS AI Assistant**.\n\n` +
-          `I operate **100% locally with zero external APIs**, ready to converse and assist you with:\n\n` +
+          `I operate **100% locally with zero external APIs**, ready to assist you with:\n\n` +
           `• **Personal Safety & Evasion:** What to do if followed, solo travel, night transit safety\n` +
           `• **Emergency First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n` +
           `• **Legal Rights in India:** Zero FIR under BNSS, women's rights, emergency helplines\n` +
-          `• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Fake Call escape simulator\n` +
-          `• **STEM & Problem Solving:** Python, algorithms, math calculations, and science\n\n` +
-          `What question or situation can I help you with today?`,
+          `• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Fake Call escape simulator, Covert Gestures & Auto-Capture\n\n` +
+          `What emergency, medical, or safety situation can I assist you with today?`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         category: 'Personal Safety & Defense',
         confidence: 100
@@ -332,7 +330,7 @@ export function AiAssistant() {
             type="text"
             value={aiInput}
             onChange={(e) => setAiInput(e.target.value)}
-            placeholder="Ask any question (e.g. AI, Python, GPS, Newton's laws, personal safety)..."
+            placeholder="Ask about personal safety, medical first aid, or SilentSOS features..."
             disabled={aiLoading}
             className="flex-1 bg-surfaceHighlight/60 border border-slate-800 focus:border-cyan-500 rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
           />

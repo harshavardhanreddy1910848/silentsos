@@ -17,99 +17,81 @@
 import http from 'http';
 import { queryAiBrain } from './ai/nlp_inference_engine.js';
 
-const SYSTEM_PROMPT = `You are an intelligent conversational AI assistant integrated into SilentSOS.
+const SYSTEM_PROMPT = `You are the SilentSOS Emergency, Medical & Personal Safety AI Assistant.
 
-Your primary responsibility is to understand the user's actual question and provide a directly relevant, accurate, useful, and understandable answer.
+Your primary mission is to provide authoritative, actionable, and compassionate assistance strictly focused on:
+1. SilentSOS Platform Operations, sensor telemetry, and controls (SOS triggers, optical gestures, auto-capture surveillance, live tracking, stealth mode, PIN security).
+2. Emergency Medical First Aid (hands-only CPR, choking Heimlich maneuver, severe bleeding control, burn care, trauma response).
+3. Personal Safety, crisis de-escalation, anti-stalking evasion, solo and night travel precautions, and women's emergency legal rights (Zero FIR, 112, 1091).
 
 Rules:
-- Answer the exact question asked by the user.
-- Support questions from different subjects and domains (e.g. computer science, physics, programming, mathematics, cybersecurity, GPS, biology, history, philosophy, general knowledge).
-- Do not restrict responses to women's safety or SilentSOS-related topics.
-- Do not force every question into a safety-related context.
-- Do not generate unrelated information.
-- Do not automatically select or answer predefined suggested inquiries.
-- Do not repeat previous answers for unrelated questions.
-- Understand natural language, spelling mistakes, abbreviations, and differently phrased questions.
-- If the question is ambiguous, ask for clarification.
-- If you do not know an answer, honestly acknowledge the limitation.
-- Provide step-by-step explanations when requested.
-- Use examples when they improve understanding.
+- Prioritize immediate personal safety and life-saving first aid above all else.
+- Maintain a calm, empathetic, and decisive tone.
+- Do not invent application features; stick strictly to SilentSOS capabilities and verified medical/emergency protocols.
+- For queries related to SilentSOS, emergency medical care, or personal defense, provide direct, step-by-step actionable advice.
+- If a query is unrelated to safety, medical, or SilentSOS operations, politely guide the user back to SilentSOS safety, emergency preparedness, and medical first-aid capabilities.
 - Maintain conversation context for relevant follow-up questions.
-- Do not allow previous conversation topics to override a new unrelated question.
-- Keep responses organized, readable, and relevant using GitHub-flavored markdown.
+- Format responses cleanly with GitHub-flavored markdown.
 
-For SilentSOS-specific questions, use the application's verified documentation and functionality:
-- SilentSOS is a rapid-response personal safety platform consisting of a React Web App and Kotlin Android Native App.
-- Core Features:
-  * Emergency SOS Dispatch: Instant trigger via central button (3s hold) or rapid device shake.
-  * Covert Optical Gesture Detection: Uses front camera to detect hand palm raising or eye blink patterns to silently trigger alarms.
-  * Auto-Capture Surveillance: Automatic photo burst (3-10 photos), HD rolling video loop, and ambient stereo microphone audio recording.
-  * Automated Multi-Media Evidence Dispatch: Dispatches email evidence package containing photos, video, audio, and live reverse-geocoded GPS coordinates to emergency guardian contacts.
-  * Live Receiver Portal: Allows authorized contacts to track user location on Google Maps in real-time.
-  * Stealth Mode: Disguises screen or turns it black while continuing background GPS tracking and surveillance.
-  * Safety PIN: 4-digit security PIN required to cancel active alarms.
-  * Fake Call Simulator: Generates realistic incoming call screen to exit risky social situations discreetly.
-  * Admin Governance: Dashboard for monitoring active alerts, users, feedback, and telemetry metrics.
-
-For general questions, provide general-purpose AI assistance.
-Never invent application features or claim to perform actions that are not implemented.`;
+SilentSOS Verified Platform Specifications:
+- SOS Dispatch: 3-second hold on central SOS button or rapid hardware shake.
+- Covert Optical Gestures: Front-camera Palm Raise (1.5s) or 3-blink Eye Blink pattern for silent hands-free triggers.
+- Auto-Capture Surveillance: Dual-camera photo burst (3-10 shots), rolling 1080p video loop buffer, and stereo microphone audio recording.
+- Automated Evidence Dispatch: Dispatches email evidence package containing photos, video, audio, and live reverse-geocoded GPS coordinates to emergency guardian contacts.
+- Live Receiver Portal: Real-time Google Maps telemetry link for trusted guardian contacts.
+- Stealth Mode: Black-screen disguise while silently maintaining GPS broadcasting and surveillance recording.
+- Safety PIN Anti-Tamper: 4-digit security PIN (default: 1234) required to cancel active alarms.
+- Fake Call Escape Simulator: Authentic incoming call screen to exit risky or uncomfortable social situations.`;
 
 /**
  * Generates 2-3 smart, contextually relevant follow-up questions based on the topic.
  */
 function deriveSmartSuggestions(query, answer) {
   const q = query.toLowerCase();
-  
-  if (q.includes('artificial intelligence') || q.includes(' ai ') || q.startsWith('ai ') || q.includes('machine learning')) {
+
+  if (q.includes('cpr') || q.includes('cardiac') || q.includes('chest compression') || q.includes('first aid') || q.includes('medical') || q.includes('bleed') || q.includes('chok') || q.includes('burn')) {
     return [
-      'How does machine learning differ from deep learning?',
-      'How does SilentSOS use computer vision for gesture detection?',
-      'What are neural networks?'
+      'How do I perform hands-only CPR on an adult?',
+      'How to treat severe arterial bleeding?',
+      'What are the steps for the Heimlich maneuver when someone is choking?'
     ];
   }
-  if (q.includes('python')) {
+  if (q.includes('gesture') || q.includes('palm') || q.includes('blink')) {
     return [
-      'Explain Python asyncio with a practical code example',
-      'What is the difference between lists and tuples in Python?',
-      'How do Python decorators work?'
-    ];
-  }
-  if (q.includes('cybersecurity') || q.includes('cyber security') || q.includes('encryption')) {
-    return [
-      'How does end-to-end encryption protect data?',
-      'What are the most common OWASP security vulnerabilities?',
-      'How does two-factor authentication work?'
-    ];
-  }
-  if (q.includes('gps') || q.includes('location') || q.includes('tracking')) {
-    return [
-      'What is the difference between GPS and Assisted GPS (A-GPS)?',
-      'How does SilentSOS broadcast live GPS coordinates to guardians?',
-      'How does trilateration calculate receiver coordinates?'
-    ];
-  }
-  if (q.includes('newton') || q.includes('physics') || q.includes('force') || q.includes('law of motion')) {
-    return [
-      'Explain Newton\'s First Law of Motion with an example',
-      'Explain Newton\'s Third Law of Motion (action-reaction)',
-      'How does friction affect acceleration?'
-    ];
-  }
-  if (q.includes('silentsos') || q.includes('app') || q.includes('feature') || q.includes('purpose')) {
-    return [
-      'How does Covert Gesture Detection work?',
-      'How does Auto-Capture Surveillance record evidence?',
+      'How does the Palm Raise gesture trigger an alert?',
+      'How does Eye Blink pattern detection work?',
       'How does Stealth Mode work in SilentSOS?'
     ];
   }
-  if (q.includes('follow') || q.includes('stalk') || q.includes('danger') || q.includes('unsafe')) {
+  if (q.includes('auto capture') || q.includes('surveillance') || q.includes('photo burst') || q.includes('video loop') || q.includes('audio recording')) {
+    return [
+      'How does Auto-Capture Surveillance record evidence?',
+      'How is evidence emailed to guardian contacts?',
+      'How does live GPS tracking work in SilentSOS?'
+    ];
+  }
+  if (q.includes('gps') || q.includes('location') || q.includes('tracking') || q.includes('coordinates')) {
+    return [
+      'How does SilentSOS broadcast live GPS coordinates to guardians?',
+      'How does live receiver tracking work on Google Maps?',
+      'How does Stealth Mode preserve GPS broadcasting?'
+    ];
+  }
+  if (q.includes('silentsos') || q.includes('app') || q.includes('feature') || q.includes('purpose') || q.includes('stealth') || q.includes('pin')) {
+    return [
+      'How does Stealth Mode work in SilentSOS?',
+      'How does Covert Optical Gesture Detection work?',
+      'How to change my 4-digit Safety PIN?'
+    ];
+  }
+  if (q.includes('follow') || q.includes('stalk') || q.includes('danger') || q.includes('unsafe') || q.includes('threat')) {
     return [
       'What should I do if they don\'t stop following me?',
       'How do I activate SilentSOS Stealth Mode quietly?',
       'What is a Zero FIR under Indian law?'
     ];
   }
-  if (q.includes('travel') || q.includes('solo') || q.includes('trip') || q.includes('hotel')) {
+  if (q.includes('travel') || q.includes('solo') || q.includes('trip') || q.includes('hotel') || q.includes('night') || q.includes('cab')) {
     return [
       'What about travelling at night?',
       'What precautions should I take when taking a taxi or cab alone?',
@@ -117,11 +99,11 @@ function deriveSmartSuggestions(query, answer) {
     ];
   }
 
-  // Dynamic contextual questions
+  // Safety & Emergency Default Suggestions
   return [
-    `Can you give a practical example of this?`,
-    `What are the key advantages and drawbacks?`,
-    `How does this apply in modern real-world scenarios?`
+    'What should I do if someone is following me?',
+    'How do I perform CPR on an adult?',
+    'How does SilentSOS Stealth Mode work?'
   ];
 }
 
