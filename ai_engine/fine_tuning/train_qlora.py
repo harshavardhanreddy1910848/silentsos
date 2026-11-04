@@ -13,7 +13,7 @@ import os
 import sys
 
 try:
-    import torch
+    import torch  # type: ignore
 except ImportError:
     torch = None
 
@@ -61,10 +61,10 @@ def train(base_model_name="Qwen/Qwen2.5-1.5B-Instruct", epochs=3, output_dir="./
     print(f"[+] Gradient Checkpointing: Enabled (drastically cuts memory for 4GB GPUs)")
 
     try:
-        from datasets import load_dataset
-        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
-        from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-        from trl import SFTTrainer
+        from datasets import load_dataset  # type: ignore
+        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments  # type: ignore
+        from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training  # type: ignore
+        from trl import SFTTrainer  # type: ignore
 
         # 4-bit Quantization Config for Low-VRAM
         bnb_config = BitsAndBytesConfig(
