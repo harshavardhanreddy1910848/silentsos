@@ -11,13 +11,24 @@ Compatible Base Models:
 
 import os
 import sys
-import torch
+
+try:
+    import torch
+except ImportError:
+    torch = None
 
 def verify_environment():
     print("=" * 60)
     print("SilentSOS QLoRA Model Training Environment Check")
     print("=" * 60)
     print(f"Python Version: {sys.version}")
+    if torch is None:
+        print("[-] PyTorch ('torch') is not installed in this Python environment.")
+        print("[-] To install PyTorch for QLoRA training on Python 3.10-3.12:")
+        print("    pip install torch transformers datasets peft bitsandbytes trl accelerate")
+        print("[-] Note: SilentSOS live inference runs on Ollama (llama3.2) and does not require torch.")
+        print("=" * 60)
+        return False
     cuda_available = torch.cuda.is_available()
     print(f"CUDA Available: {cuda_available}")
     if cuda_available:
@@ -26,6 +37,7 @@ def verify_environment():
     else:
         print("[-] Running in CPU mode (will use CPU offloading / fp32/bf16)")
     print("=" * 60)
+    return True
 
 def generate_training_command():
     return (
@@ -35,7 +47,8 @@ def generate_training_command():
     )
 
 def train(base_model_name="Qwen/Qwen2.5-1.5B-Instruct", epochs=3, output_dir="./trained_silentsos_lora"):
-    verify_environment()
+    if not verify_environment():
+        return
     dataset_path = os.path.join(os.path.dirname(__file__), "..", "datasets", "instruction_tuning_dataset.jsonl")
 
     if not os.path.exists(dataset_path):
