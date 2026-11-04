@@ -166,7 +166,7 @@ class AiAssistantActivity : AppCompatActivity() {
 
         if (!isUser) {
             val headerLabel = TextView(this)
-            headerLabel.text = if (onlineFetched) "🌐 LIVE ONLINE INTELLIGENCE ACTIVE" else "⚡ SILENTSOS CONVERSATIONAL AI"
+            headerLabel.text = if (onlineFetched) "🌐 ANALYZED FROM ONLINE KNOWLEDGE" else "⚡ SILENTSOS CONVERSATIONAL AI"
             headerLabel.setTextColor(if (onlineFetched) Color.parseColor("#34d399") else Color.parseColor("#38bdf8"))
             headerLabel.textSize = 9.5f
             headerLabel.typeface = Typeface.DEFAULT_BOLD

@@ -312,7 +312,7 @@ export function AiAssistant() {
               {m.onlineFetched && (
                 <div className="mt-2.5 pt-2 border-t border-cyan-500/20">
                   <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-[10px] text-cyan-300 font-semibold mb-2">
-                    <span>🌐 Live Online Intelligence</span>
+                    <span>🌐 Analyzed from Online Knowledge</span>
                   </div>
                   {m.sources && m.sources.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">

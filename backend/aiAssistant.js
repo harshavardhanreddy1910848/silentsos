@@ -31,7 +31,9 @@ SYSTEM INSTRUCTION & PREFERENCE HIERARCHY:
 
 2. FIRST PREFERENCE FOR OUT-OF-RANGE TOPICS (LIVE ONLINE RETRIEVAL):
    If the user asks a question that is OUT OF RANGE (general knowledge, science, programming, history, math, weather, or everyday topics outside SilentSOS/safety/medical):
-   GIVE FIRST PREFERENCE to fetching and synthesizing verified LIVE ONLINE facts. Provide a rich, accurate, and comprehensive explanation grounded in online search results, and include verified reference citations and links.
+   GIVE FIRST PREFERENCE to fetching and synthesizing verified LIVE ONLINE facts.
+   Analyze the retrieved facts thoroughly and give the user a clear, comprehensive answer explaining the topic.
+   CRITICAL LINK RULE: DO NOT provide, include, or cite URLs or links from online in your response UNLESS the user explicitly asks for links or sources (e.g. "give me the link", "share sources", "provide link"). If the user did NOT ask for links, analyze the online facts and provide a direct, informative answer without any links or URLs.
 
 Rules:
 - Prioritize immediate personal safety and life-saving first aid above all else.
@@ -443,6 +445,30 @@ export function isAppOrSafetyQuery(query) {
 }
 
 /**
+ * Detects whether the user explicitly asked for links or sources.
+ */
+export function userExplicitlyAskedForLinks(query) {
+  if (!query || typeof query !== 'string') return false;
+  const q = query.toLowerCase();
+  return q.includes('link') || q.includes('url') || q.includes('source') || q.includes('website') || q.includes('where can i read') || q.includes('provide the link') || q.includes('show link');
+}
+
+/**
+ * Strips URLs and markdown links from the reply if user didn't ask for links.
+ */
+export function stripOnlineLinksIfUnrequested(text, wantsLinks) {
+  if (wantsLinks || !text || typeof text !== 'string') return text;
+  return text
+    // Replace markdown links [Anchor Text](http://...) with just Anchor Text
+    .replace(/\[([^\]]+)\]\(https?:\/\/[^\)]+\)/g, '$1')
+    // Remove bare URLs
+    .replace(/https?:\/\/[^\s\)]+/g, '')
+    // Remove trailing Reference Sources / Links sections
+    .replace(/(?:###\s*(?:🔗|Verified)?\s*(?:Online Reference Sources|Reference Links|Reference Sources|Sources)[\s\S]*?$)/gi, '')
+    .trim();
+}
+
+/**
  * Master AI Query Handler
  */
 export async function generateAiAssistantReply({ message, history = [], user, settings, contacts = [], location = null }) {
@@ -460,7 +486,8 @@ export async function generateAiAssistantReply({ message, history = [], user, se
   }
 
   const lowerMsg = cleanMessage.toLowerCase();
-  console.log(`[AI Engine] Processing user query: "${cleanMessage.slice(0, 80)}" (History turns: ${history.length})`);
+  const wantsLinks = userExplicitlyAskedForLinks(cleanMessage);
+  console.log(`[AI Engine] Processing user query: "${cleanMessage.slice(0, 80)}" (History turns: ${history.length}, WantsLinks: ${wantsLinks})`);
 
   // 1. Instant Priority: Nearby Emergency Facilities (Police Stations & Hospitals)
   const facilityLookup = handleNearbyEmergencyLocations(lowerMsg, cleanMessage, location);
@@ -538,76 +565,83 @@ export async function generateAiAssistantReply({ message, history = [], user, se
     console.warn('[AI Engine] Online search pipeline skipped:', searchErr.message);
   }
 
-  const onlineSources = onlineData?.results?.map(r => ({ title: r.title, url: r.url, source: r.source })) || [];
+  const onlineSources = wantsLinks && onlineData?.results
+    ? onlineData.results.map(r => ({ title: r.title, url: r.url, source: r.source }))
+    : [];
 
   try {
     // A. Try Configured Gemini API
     const geminiRes = await tryGeminiApi(cleanMessage, history, groundingPrompt);
     if (geminiRes && geminiRes.reply) {
+      const cleanReply = stripOnlineLinksIfUnrequested(geminiRes.reply, wantsLinks);
       return {
         success: true,
         intent: 'cloud_llm_gemini',
         confidence: 99,
-        reply: geminiRes.reply,
+        reply: cleanReply,
         onlineFetched: !!onlineData,
         sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, geminiRes.reply)
+        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
       };
     }
 
     // B. Try Configured Groq API
     const groqRes = await tryGroqApi(cleanMessage, history, groundingPrompt);
     if (groqRes && groqRes.reply) {
+      const cleanReply = stripOnlineLinksIfUnrequested(groqRes.reply, wantsLinks);
       return {
         success: true,
         intent: 'cloud_llm_groq',
         confidence: 99,
-        reply: groqRes.reply,
+        reply: cleanReply,
         onlineFetched: !!onlineData,
         sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, groqRes.reply)
+        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
       };
     }
 
     // C. Try Configured OpenAI API
     const openAiRes = await tryOpenAiApi(cleanMessage, history, groundingPrompt);
     if (openAiRes && openAiRes.reply) {
+      const cleanReply = stripOnlineLinksIfUnrequested(openAiRes.reply, wantsLinks);
       return {
         success: true,
         intent: 'cloud_llm_openai',
         confidence: 99,
-        reply: openAiRes.reply,
+        reply: cleanReply,
         onlineFetched: !!onlineData,
         sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, openAiRes.reply)
+        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
       };
     }
 
     // D. Try Free High-Performance Neural LLM Engine (Pollinations AI)
     const neuralRes = await tryPollinationsAi(cleanMessage, history, groundingPrompt);
     if (neuralRes && neuralRes.reply) {
+      const cleanReply = stripOnlineLinksIfUnrequested(neuralRes.reply, wantsLinks);
       return {
         success: true,
         intent: 'cloud_neural_inference',
         confidence: 98,
-        reply: neuralRes.reply,
+        reply: cleanReply,
         onlineFetched: !!onlineData,
         sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, neuralRes.reply)
+        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
       };
     }
 
     // E. Try Local Ollama LLM
     const localLlmRes = await tryLocalOllama(cleanMessage, history, groundingPrompt);
     if (localLlmRes && localLlmRes.reply) {
+      const cleanReply = stripOnlineLinksIfUnrequested(localLlmRes.reply, wantsLinks);
       return {
         success: true,
         intent: 'local_ollama_inference',
         confidence: 95,
-        reply: localLlmRes.reply,
+        reply: cleanReply,
         onlineFetched: !!onlineData,
         sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, localLlmRes.reply)
+        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
       };
     }
 

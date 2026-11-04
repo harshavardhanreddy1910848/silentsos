@@ -193,19 +193,18 @@ export async function searchOnlineKnowledge(query) {
     }
 
     // Build context grounding block for LLM prompts
-    let groundingPrompt = '\n\n[VERIFIED LIVE ONLINE SEARCH RESULTS]:\n';
+    let groundingPrompt = '\n\n[VERIFIED LIVE ONLINE SEARCH FACTS]:\n';
     results.forEach((r, idx) => {
-      groundingPrompt += `[Source ${idx + 1}] (${r.source}) ${r.title}\n`;
+      groundingPrompt += `[Fact Source ${idx + 1}] (${r.source}) ${r.title}\n`;
       if (r.extract) groundingPrompt += `Summary: ${r.extract}\n`;
-      if (r.url) groundingPrompt += `Reference Link: ${r.url}\n`;
       if (r.relatedSnippets) {
         r.relatedSnippets.forEach(s => {
-          groundingPrompt += `• Related: ${s.title} - ${s.snippet} (${s.url})\n`;
+          groundingPrompt += `• Detail: ${s.title} - ${s.snippet}\n`;
         });
       }
       groundingPrompt += '\n';
     });
-    groundingPrompt += 'Incorporate these verified live online search facts accurately into your response and cite relevant links.\n';
+    groundingPrompt += 'CRITICAL REQUIREMENT: Analyze the online facts above and give a direct, clear, and well-synthesized answer related to the question. DO NOT provide or include URLs or links from online in your response UNLESS the user explicitly asks for links or sources.\n';
 
     return {
       hasOnlineData: true,
@@ -220,39 +219,54 @@ export async function searchOnlineKnowledge(query) {
 }
 
 /**
+ * Checks whether user explicitly requested links or URLs
+ */
+export function userExplicitlyAskedForLinks(query) {
+  if (!query || typeof query !== 'string') return false;
+  const q = query.toLowerCase();
+  return q.includes('link') || q.includes('url') || q.includes('source') || q.includes('website') || q.includes('where can i read') || q.includes('provide the link');
+}
+
+/**
  * Synthesizes a structured response directly from online search results
  * when cloud LLMs are unavailable or offline.
+ * Analyzes the data and provides the answer directly without links,
+ * providing links ONLY if explicitly requested.
  */
 export function synthesizeOnlineResponse(query, onlineData) {
   if (!onlineData || !onlineData.primarySource) return null;
 
   const primary = onlineData.primarySource;
   const otherSources = onlineData.results.slice(1);
+  const wantsLinks = userExplicitlyAskedForLinks(query);
 
-  let reply = `🌐 **Live Online Intelligence on "${primary.title}":**\n\n`;
+  let reply = `🌐 **Online Analysis: ${primary.title}**\n\n`;
 
   if (primary.extract) {
     reply += `${primary.extract}\n\n`;
   }
 
   if (primary.relatedSnippets && primary.relatedSnippets.length > 0) {
-    reply += `### 🔍 Key Online Highlights:\n`;
-    primary.relatedSnippets.slice(0, 2).forEach(s => {
+    reply += `### 🔍 Key Analysis & Details:\n`;
+    primary.relatedSnippets.forEach(s => {
       reply += `• **${s.title}:** ${s.snippet}\n`;
     });
     reply += '\n';
   }
 
-  reply += `### 🔗 Verified Online Reference Sources:\n`;
-  reply += `• [🌐 View Full Article on ${primary.source}](${primary.url})\n`;
+  // Only provide links if the user explicitly asked for them
+  if (wantsLinks) {
+    reply += `### 🔗 Reference Links:\n`;
+    reply += `• [${primary.source}](${primary.url})\n`;
+    otherSources.forEach(s => {
+      if (s.url && s.title) {
+        reply += `• [${s.title} (${s.source})](${s.url})\n`;
+      }
+    });
+    reply += '\n';
+  }
 
-  otherSources.forEach(s => {
-    if (s.url && s.title) {
-      reply += `• [🔗 Reference: ${s.title} (${s.source})](${s.url})\n`;
-    }
-  });
-
-  reply += `\n*Information retrieved in real time from public online registries.*`;
+  reply += `*Information analyzed from online knowledge registries.*`;
 
   const suggestions = [
     `Tell me more about ${primary.title.slice(0, 30)}`,
@@ -268,7 +282,7 @@ export function synthesizeOnlineResponse(query, onlineData) {
     onlineFetched: true,
     reply,
     suggestions,
-    sources: onlineData.results.map(r => ({ title: r.title, url: r.url, source: r.source }))
+    sources: wantsLinks ? onlineData.results.map(r => ({ title: r.title, url: r.url, source: r.source })) : []
   };
 }
 
