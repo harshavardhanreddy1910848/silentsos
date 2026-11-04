@@ -1715,7 +1715,7 @@ app.post('/api/feedback', optionalAuthenticateToken, async (req, res) => {
 // AI Safety Assistant Endpoint for Settings Screen (Web & Mobile)
 app.post('/api/ai/chat', optionalAuthenticateToken, async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, history, location } = req.body;
     if (!message || !message.trim()) {
       return res.status(400).json({ error: 'Message cannot be empty' });
     }
@@ -1730,7 +1730,8 @@ app.post('/api/ai/chat', optionalAuthenticateToken, async (req, res) => {
       user,
       settings,
       contacts,
-      history
+      history,
+      location
     });
 
     res.json({

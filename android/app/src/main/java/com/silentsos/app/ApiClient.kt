@@ -807,12 +807,20 @@ class ApiClient(private val context: Context) {
 
     suspend fun askAiAssistant(
         message: String,
-        history: List<Pair<String, String>> = emptyList()
+        history: List<Pair<String, String>> = emptyList(),
+        lat: Double? = null,
+        lng: Double? = null
     ): Result<AiAssistantResponse> = withContext(Dispatchers.IO) {
         try {
             val base = getBaseUrl()
             val json = JSONObject().apply {
                 put("message", message)
+                if (lat != null && lng != null) {
+                    put("location", JSONObject().apply {
+                        put("lat", lat)
+                        put("lng", lng)
+                    })
+                }
                 if (history.isNotEmpty()) {
                     val arr = JSONArray()
                     for ((role, text) in history) {

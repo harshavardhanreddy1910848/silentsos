@@ -135,6 +135,122 @@ function resolveConversationContext(history = [], currentQuery = '') {
 }
 
 // ============================================================================
+// 🚨 NEARBY EMERGENCY SERVICES & FACILITY LOCATIONS (POLICE & HOSPITALS)
+// ============================================================================
+export function handleNearbyEmergencyLocations(lowerQuery, rawQuery, location = null) {
+  const norm = lowerQuery.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ');
+
+  // Robust matching for police (including typos like 'policesttion')
+  const hasPolice = /police|policesttion|policestation|cop|cops|thana|chowki|patrol/i.test(norm);
+  // Robust matching for hospital (including typos like 'hospital', 'medical', 'clinic')
+  const hasHospital = /hospital|hospitals|clinic|doctor|medical|emergency room|trauma|dispensary/i.test(norm);
+  // Match intent for location/proximity/finding
+  const hasLocationIntent = /near|nearby|closest|close|location|locations|where|find|direction|directions|route|address|map|maps|reach/i.test(norm)
+    || norm.includes('nearest') || norm.includes('closest');
+
+  if (!hasLocationIntent && !norm.includes('police station') && !norm.includes('hospital')) {
+    return { matched: false };
+  }
+
+  if (!hasPolice && !hasHospital) {
+    return { matched: false };
+  }
+
+  const lat = location?.lat || location?.latitude;
+  const lng = location?.lng || location?.longitude;
+  const hasCoords = typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng);
+
+  const policeSearchUrl = hasCoords
+    ? `https://www.google.com/maps/search/police+station/@${lat},${lng},15z`
+    : `https://www.google.com/maps/search/police+station+near+me`;
+  const policeNavUrl = `https://www.google.com/maps/dir/?api=1&destination=police+station`;
+
+  const hospitalSearchUrl = hasCoords
+    ? `https://www.google.com/maps/search/hospitals+near+me/@${lat},${lng},15z`
+    : `https://www.google.com/maps/search/hospitals+near+me`;
+  const hospitalNavUrl = `https://www.google.com/maps/dir/?api=1&destination=hospital`;
+
+  // Combined Police + Hospital Request
+  if (hasPolice && hasHospital) {
+    return {
+      matched: true,
+      intent: 'emergency_facility_locations_combined',
+      category: 'Emergency Locations & Facilities',
+      reply: `🚨 **Nearby Emergency Facilities: Police Stations & 24/7 Hospitals**\n\n` +
+        (hasCoords ? `📍 *Using your live device coordinates (${lat.toFixed(4)}°, ${lng.toFixed(4)}°):*\n\n` : `📍 *Opening your real-time GPS location via Google Maps:*\n\n`) +
+        `### 🚔 1. Nearest Police Stations:\n` +
+        `• **Live Map Search:** [📍 Open Police Stations Near You in Google Maps](${policeSearchUrl})\n` +
+        `• **Direct Navigation:** [🧭 Get Turn-by-Turn Route to Closest Police Station](${policeNavUrl})\n` +
+        `• **Emergency Phone:** Dial **112** (Universal Emergency) or **100** for immediate police dispatch.\n` +
+        `• **Women's Police Helpline:** Dial **1091** (24/7 toll-free).\n\n` +
+        `### 🏥 2. Nearest 24/7 Hospitals & Trauma Centers:\n` +
+        `• **Live Map Search:** [🏥 Open Emergency Hospitals Near You in Google Maps](${hospitalSearchUrl})\n` +
+        `• **Direct Navigation:** [🧭 Get Turn-by-Turn Route to Closest Hospital](${hospitalNavUrl})\n` +
+        `• **Ambulance Dispatch:** Dial **108** or **102** for priority emergency medical ambulance transport.\n\n` +
+        `### 🛡️ Critical Safety Precautions:\n` +
+        `1. **If Actively Pursued or Unsafe:** Head towards the nearest police station along lit, populated streets. Share your live location with your emergency contacts via SilentSOS.\n` +
+        `2. **If Experiencing Severe Medical Distress:** Request ambulance dispatch immediately via **108** or **112** rather than driving unassisted.\n` +
+        `3. **SilentSOS Telemetry:** Keep live tracking activated so guardians can follow your real-time journey.`,
+      suggestions: [
+        'How do I call 112 emergency dispatch?',
+        'What should I do if someone is following me?',
+        'How does Stealth Mode work in SilentSOS?'
+      ]
+    };
+  }
+
+  // Police Station Only
+  if (hasPolice) {
+    return {
+      matched: true,
+      intent: 'police_station_locations',
+      category: 'Emergency Law Enforcement Locations',
+      reply: `🚔 **Nearest Police Stations & Law Enforcement Centers:**\n\n` +
+        (hasCoords ? `📍 *Using your live GPS location (${lat.toFixed(4)}°, ${lng.toFixed(4)}°):*\n\n` : `📍 *Opening your real-time location via Google Maps:*\n\n`) +
+        `• **Live Map Search:** [📍 Click Here: View Nearest Police Stations on Google Maps](${policeSearchUrl})\n` +
+        `• **Turn-by-Turn Directions:** [🧭 Start Navigation to Nearest Police Station](${policeNavUrl})\n\n` +
+        `### 📞 Emergency Dispatch Numbers:\n` +
+        `• **112:** All-in-One Universal Police & Disaster Response.\n` +
+        `• **100:** National Police Emergency Control Room.\n` +
+        `• **1091:** 24/7 Dedicated Women's Police Helpline.\n\n` +
+        `### 🛡️ Tactical Safety Tips When Moving to Police Station:\n` +
+        `1. **Stick to Illuminated Roads:** Never take dark shortcuts or unlit alleys.\n` +
+        `2. **Stay on the Line:** Call **112** or a trusted guardian contact and keep them on speaker while walking or driving.\n` +
+        `3. **Your Legal Right:** Under BNSS Section 173 (**Zero FIR**), any police station in India is legally mandated to accept your complaint regardless of jurisdictional boundaries.`,
+      suggestions: [
+        'What is a Zero FIR in India?',
+        'What should I do if someone is following me?',
+        'How does live GPS tracking broadcast to guardians?'
+      ]
+    };
+  }
+
+  // Hospital Only
+  return {
+    matched: true,
+    intent: 'hospital_locations',
+    category: 'Emergency Medical Care Locations',
+    reply: `🏥 **Nearest 24/7 Hospitals & Emergency Trauma Centers:**\n\n` +
+      (hasCoords ? `📍 *Using your live GPS location (${lat.toFixed(4)}°, ${lng.toFixed(4)}°):*\n\n` : `📍 *Opening your real-time location via Google Maps:*\n\n`) +
+      `• **Live Map Search:** [🏥 Click Here: View Nearest Hospitals & Emergency Rooms on Google Maps](${hospitalSearchUrl})\n` +
+      `• **Turn-by-Turn Directions:** [🧭 Start Navigation to Nearest Hospital](${hospitalNavUrl})\n\n` +
+      `### 📞 Emergency Medical Helplines:\n` +
+      `• **108:** Free 24/7 National Emergency Ambulance & Trauma Dispatch.\n` +
+      `• **102:** Specialized Maternity, Infant & Medical Patient Transport.\n` +
+      `• **112:** Universal Emergency Dispatch for critical medical coordination.\n\n` +
+      `### 🩺 Urgent First Aid Advice:\n` +
+      `• **Severe Bleeding:** Apply direct, firm pressure on the wound using a clean cloth until medical personnel take over.\n` +
+      `• **Chest Pain / Collapse:** Begin immediate hands-only CPR (100–120 compressions per minute) and dial 108 immediately.\n` +
+      `• If moving independently is hazardous, stay stationary and wait for the ambulance crew.`,
+    suggestions: [
+      'How do I perform CPR on an adult?',
+      'How to treat severe bleeding?',
+      'How does live GPS tracking work in SilentSOS?'
+    ]
+  };
+}
+
+// ============================================================================
 // 1. TACTICAL PERSONAL DEFENSE & CRISIS INTELLIGENCE
 // ============================================================================
 function handleTacticalSafety(lowerQuery, rawQuery, context, userName, settings) {
@@ -787,7 +903,7 @@ function handleDynamicAdaptiveAnswer(rawQuery, lowerQuery, context, userName) {
 // ============================================================================
 // MAIN QUERY DISPATCHER (queryAiBrain)
 // ============================================================================
-export function queryAiBrain({ message, history = [], user, settings, contacts = [] }) {
+export function queryAiBrain({ message, history = [], user, settings, contacts = [], location = null }) {
   if (!message || typeof message !== 'string') {
     return {
       success: false,
@@ -804,7 +920,11 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
   const context = resolveConversationContext(history, rawQuery);
   const effectiveLowerQuery = context.mergedQuery.toLowerCase();
 
-  // 2. Personal Safety & Crisis Intelligence (Highest Priority)
+  // 2. Nearby Emergency Facilities (Police Stations & Hospitals)
+  const facilityRes = handleNearbyEmergencyLocations(effectiveLowerQuery, rawQuery, location);
+  if (facilityRes.matched) return { success: true, ...facilityRes };
+
+  // 3. Personal Safety & Crisis Intelligence (Highest Priority)
   const safetyRes = handleTacticalSafety(effectiveLowerQuery, rawQuery, context, userName, settings);
   if (safetyRes.matched) return { success: true, ...safetyRes };
 

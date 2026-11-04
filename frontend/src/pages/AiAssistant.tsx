@@ -26,11 +26,11 @@ export function AiAssistant() {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([
+    'Where is the nearest police station?',
+    'Where is the nearest hospital?',
     'What should I do if someone is following me?',
     'How do I perform CPR on an adult?',
     'How does SilentSOS Stealth Mode work?',
-    'How do covert gestures (palm raise & eye blink) work?',
-    'How does live GPS tracking broadcast to guardians?',
     'What is a Zero FIR in India?'
   ]);
 
@@ -101,6 +101,23 @@ export function AiAssistant() {
     setAiLoading(true);
 
     try {
+      // Query browser geolocation with quick timeout to personalize emergency police/hospital links
+      let userLocation: { lat: number; lng: number } | null = null;
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        try {
+          await new Promise<void>((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                resolve();
+              },
+              () => resolve(),
+              { timeout: 1500, enableHighAccuracy: true }
+            );
+          });
+        } catch (_) {}
+      }
+
       const token = localStorage.getItem('silentsos_token') || sessionStorage.getItem('silentsos_token');
       const res = await fetch(`${API_BASE}/ai/chat`, {
         method: 'POST',
@@ -110,7 +127,8 @@ export function AiAssistant() {
         },
         body: JSON.stringify({
           message: text,
-          history: messages.slice(-8).map(m => ({ role: m.role, text: m.text }))
+          history: messages.slice(-8).map(m => ({ role: m.role, text: m.text })),
+          location: userLocation
         })
       });
 
@@ -179,11 +197,29 @@ export function AiAssistant() {
         );
       }
 
-      // Regular paragraph with bold markup
-      const formatted = para.split(/(\*\*.*?\*\*)/g).map((segment, sIdx) => {
+      // Regular paragraph with bold markup and markdown links [label](url)
+      const formatted = para.split(/(\*\*.*?\*\*|\[.*?\]\(https?:\/\/.*?\))/g).map((segment, sIdx) => {
         if (segment.startsWith('**') && segment.endsWith('**')) {
           return <strong key={sIdx} className="font-semibold text-white">{segment.slice(2, -2)}</strong>;
         }
+
+        const linkMatch = segment.match(/^\[(.*?)\]\((https?:\/\/.*?)\)$/);
+        if (linkMatch) {
+          const [, label, url] = linkMatch;
+          return (
+            <a
+              key={sIdx}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 my-1 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/50 text-cyan-200 hover:text-white transition-all font-semibold text-xs shadow-sm shadow-cyan-950/50 cursor-pointer"
+            >
+              <span>{label}</span>
+              <span className="text-[10px] text-cyan-400">↗</span>
+            </a>
+          );
+        }
+
         return segment;
       });
 

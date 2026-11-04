@@ -1,8 +1,11 @@
 package com.silentsos.app
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
+import android.text.util.Linkify
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -21,6 +24,7 @@ class AiAssistantActivity : AppCompatActivity() {
 
     private lateinit var apiClient: ApiClient
     private lateinit var sessionManager: SessionManager
+    private lateinit var locationHelper: LocationHelper
     private lateinit var scrollAiMessages: ScrollView
     private lateinit var llAiMessageContainer: LinearLayout
     private lateinit var tvAiThinking: TextView
@@ -39,6 +43,7 @@ class AiAssistantActivity : AppCompatActivity() {
 
         apiClient = ApiClient(this)
         sessionManager = SessionManager(this)
+        locationHelper = LocationHelper(this)
 
         scrollAiMessages = findViewById(R.id.scrollAiMessages)
         llAiMessageContainer = findViewById(R.id.llAiMessageContainer)
@@ -98,11 +103,11 @@ class AiAssistantActivity : AppCompatActivity() {
 
     private fun resetSuggestions() {
         val defaultSuggestions = listOf(
+            "Where is the nearest police station?",
+            "Where is the nearest hospital?",
             "What should I do if someone is following me?",
             "How to perform CPR on an adult?",
             "How does SilentSOS Stealth Mode work?",
-            "How do covert gestures (palm raise & eye blink) work?",
-            "How does live GPS tracking broadcast to guardians?",
             "What is a Zero FIR in India?"
         )
         populateSuggestions(defaultSuggestions)
@@ -169,7 +174,70 @@ class AiAssistantActivity : AppCompatActivity() {
         tv.setTextColor(Color.WHITE)
         tv.textSize = 12.5f
         tv.setLineSpacing(4f, 1.15f)
+        tv.linksClickable = true
+        Linkify.addLinks(tv, Linkify.WEB_URLS or Linkify.PHONE_NUMBERS)
         bubble.addView(tv)
+
+        // Action buttons if providing police / hospital / emergency locations
+        val lowerMsg = messageContent.lowercase()
+        val hasPolice = lowerMsg.contains("police")
+        val hasHospital = lowerMsg.contains("hospital")
+        if (!isUser && (hasPolice || hasHospital)) {
+            val btnRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 16, 0, 0)
+            }
+
+            if (hasPolice) {
+                val btnPolice = AppCompatButton(this).apply {
+                    text = "📍 Police Map"
+                    textSize = 10.5f
+                    setTextColor(Color.WHITE)
+                    setBackgroundResource(R.drawable.bg_badge_cyan)
+                    setPadding(20, 10, 20, 10)
+                    setOnClickListener {
+                        val uri = Uri.parse("https://www.google.com/maps/search/police+station+near+me")
+                        startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    }
+                }
+                btnRow.addView(btnPolice, LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { marginEnd = 12 })
+            }
+
+            if (hasHospital) {
+                val btnHosp = AppCompatButton(this).apply {
+                    text = "🏥 Hospital Map"
+                    textSize = 10.5f
+                    setTextColor(Color.WHITE)
+                    setBackgroundResource(R.drawable.bg_badge_cyan)
+                    setPadding(20, 10, 20, 10)
+                    setOnClickListener {
+                        val uri = Uri.parse("https://www.google.com/maps/search/hospitals+near+me")
+                        startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    }
+                }
+                btnRow.addView(btnHosp, LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { marginEnd = 12 })
+            }
+
+            val btnCall = AppCompatButton(this).apply {
+                text = "📞 Dial 112"
+                textSize = 10.5f
+                setTextColor(Color.WHITE)
+                setBackgroundResource(R.drawable.bg_badge_cyan)
+                setPadding(20, 10, 20, 10)
+                setOnClickListener {
+                    startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:112")))
+                }
+            }
+            btnRow.addView(btnCall)
+
+            bubble.addView(btnRow)
+        }
 
         llAiMessageContainer.addView(bubble)
         scrollAiMessages.post {
@@ -185,27 +253,37 @@ class AiAssistantActivity : AppCompatActivity() {
         // Add user turn to conversation history
         conversationHistory.add("user" to queryText)
 
-        lifecycleScope.launch {
-            val res = apiClient.askAiAssistant(queryText, conversationHistory.takeLast(6))
-            tvAiThinking.visibility = View.GONE
-            res.onSuccess { aiRes ->
-                conversationHistory.add("assistant" to aiRes.reply)
-                addBubble(aiRes.reply, isUser = false)
-                if (aiRes.suggestions.isNotEmpty()) {
-                    populateSuggestions(aiRes.suggestions)
-                }
-            }.onFailure {
-                val (offlineReply, offlineSuggestions) = getLocalOfflineSafetyAdvice(queryText, conversationHistory)
-                conversationHistory.add("assistant" to offlineReply)
-                addBubble(offlineReply, isUser = false)
-                if (offlineSuggestions.isNotEmpty()) {
-                    populateSuggestions(offlineSuggestions)
+        locationHelper.getSingleAccurateLocation { loc ->
+            val lat = loc?.latitude
+            val lng = loc?.longitude
+
+            lifecycleScope.launch {
+                val res = apiClient.askAiAssistant(queryText, conversationHistory.takeLast(6), lat, lng)
+                tvAiThinking.visibility = View.GONE
+                res.onSuccess { aiRes ->
+                    conversationHistory.add("assistant" to aiRes.reply)
+                    addBubble(aiRes.reply, isUser = false)
+                    if (aiRes.suggestions.isNotEmpty()) {
+                        populateSuggestions(aiRes.suggestions)
+                    }
+                }.onFailure {
+                    val (offlineReply, offlineSuggestions) = getLocalOfflineSafetyAdvice(queryText, conversationHistory, lat, lng)
+                    conversationHistory.add("assistant" to offlineReply)
+                    addBubble(offlineReply, isUser = false)
+                    if (offlineSuggestions.isNotEmpty()) {
+                        populateSuggestions(offlineSuggestions)
+                    }
                 }
             }
         }
     }
 
-    private fun getLocalOfflineSafetyAdvice(query: String, history: List<Pair<String, String>>): Pair<String, List<String>> {
+    private fun getLocalOfflineSafetyAdvice(
+        query: String,
+        history: List<Pair<String, String>>,
+        lat: Double? = null,
+        lng: Double? = null
+    ): Pair<String, List<String>> {
         val q = query.trim().lowercase()
         val currentPin = sessionManager.safetyPin.ifEmpty { "1234" }
 
@@ -213,6 +291,46 @@ class AiAssistantActivity : AppCompatActivity() {
         val previousTurns = history.map { it.second.lowercase() }.joinToString(" ")
         val isTravelContext = previousTurns.contains("travel") || previousTurns.contains("trip") || previousTurns.contains("hotel") || previousTurns.contains("transit")
         val isStalkerContext = previousTurns.contains("follow") || previousTurns.contains("stalk") || previousTurns.contains("behind me")
+
+        // 0. Nearby Emergency Facilities: Police Station & Hospital Locations
+        val hasPolice = q.contains("police") || q.contains("cop") || q.contains("thana") || q.contains("chowki")
+        val hasHospital = q.contains("hospital") || q.contains("medical") || q.contains("doctor") || q.contains("clinic")
+        val hasLoc = q.contains("location") || q.contains("near") || q.contains("where") || q.contains("closest") || q.contains("find")
+
+        if ((hasPolice || hasHospital) && (hasLoc || q.contains("station"))) {
+            val coordsStr = if (lat != null && lng != null) "@${lat},${lng},15z" else "near+me"
+            if (hasPolice && hasHospital) {
+                return Pair(
+                    "🚨 **Nearby Emergency Facilities: Police Stations & 24/7 Hospitals:**\n\n" +
+                    "• **Nearest Police Stations:** https://www.google.com/maps/search/police+station/$coordsStr\n" +
+                    "• **Nearest 24/7 Hospitals:** https://www.google.com/maps/search/hospitals+near+me/$coordsStr\n\n" +
+                    "📞 **Emergency Contact Numbers:**\n" +
+                    "• Police: Dial **112** (Universal) or **100**\n" +
+                    "• Ambulance / Trauma: Dial **108** or **102**\n" +
+                    "• Women Helpline: Dial **1091**\n\n" +
+                    "Tap the buttons below to open Google Maps or dial immediately.",
+                    listOf("How to call 112 emergency?", "What to do if followed?", "How does Stealth Mode work?")
+                )
+            }
+            if (hasPolice) {
+                return Pair(
+                    "🚔 **Nearest Police Stations & Law Enforcement Centers:**\n\n" +
+                    "• **Open in Google Maps:** https://www.google.com/maps/search/police+station/$coordsStr\n" +
+                    "• **Universal Police Dispatch:** Dial **112** or **100**\n" +
+                    "• **Women Helpline:** Dial **1091**\n\n" +
+                    "**Safety Rule:** Under BNSS Section 173 (Zero FIR), any police station in India is legally mandated to register your emergency complaint.",
+                    listOf("What is a Zero FIR in India?", "What should I do if followed?", "How does live tracking work?")
+                )
+            }
+            return Pair(
+                "🏥 **Nearest 24/7 Hospitals & Emergency Medical Centers:**\n\n" +
+                "• **Open in Google Maps:** https://www.google.com/maps/search/hospitals+near+me/$coordsStr\n" +
+                "• **Emergency Ambulance Dispatch:** Dial **108** or **102**\n" +
+                "• **Universal Emergency:** Dial **112**\n\n" +
+                "**Urgent Guidance:** For severe bleeding, apply firm direct pressure with a clean cloth. For cardiac collapse, start hands-only CPR immediately.",
+                listOf("How to perform CPR on an adult?", "How to treat severe bleeding?", "How does live GPS tracking work?")
+            )
+        }
 
         // 1. Being Followed / Stalking
         if (q.contains("following me") || q.contains("someone following") || q.contains("being followed") || q.contains("stalk") || (isStalkerContext && (q.contains("stop") || q.contains("close") || q.contains("run")))) {

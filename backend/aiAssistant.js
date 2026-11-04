@@ -15,7 +15,7 @@
  */
 
 import http from 'http';
-import { queryAiBrain } from './ai/nlp_inference_engine.js';
+import { queryAiBrain, handleNearbyEmergencyLocations } from './ai/nlp_inference_engine.js';
 
 const SYSTEM_PROMPT = `You are the SilentSOS Emergency, Medical & Personal Safety AI Assistant.
 
@@ -89,6 +89,20 @@ function deriveSmartSuggestions(query, answer) {
       'What should I do if they don\'t stop following me?',
       'How do I activate SilentSOS Stealth Mode quietly?',
       'What is a Zero FIR under Indian law?'
+    ];
+  }
+  if (q.includes('police') || q.includes('cop') || q.includes('thana') || q.includes('station')) {
+    return [
+      'Where is the nearest police station?',
+      'How do I call 112 emergency police dispatch?',
+      'What is a Zero FIR in India?'
+    ];
+  }
+  if (q.includes('hospital') || q.includes('clinic') || q.includes('doctor') || q.includes('emergency room') || q.includes('ambulance') || q.includes('trauma')) {
+    return [
+      'Where is the nearest 24/7 hospital?',
+      'How to request emergency ambulance dispatch (108)?',
+      'How to treat severe bleeding while waiting for ambulance?'
     ];
   }
   if (q.includes('travel') || q.includes('solo') || q.includes('trip') || q.includes('hotel') || q.includes('night') || q.includes('cab')) {
@@ -355,21 +369,31 @@ async function tryLocalOllama(message, history = []) {
 /**
  * Master AI Query Handler
  */
-export async function generateAiAssistantReply({ message, history = [], user, settings, contacts = [] }) {
+export async function generateAiAssistantReply({ message, history = [], user, settings, contacts = [], location = null }) {
   const cleanMessage = (message || '').trim();
   if (!cleanMessage) {
     return {
       success: false,
       reply: 'Please provide a question or request.',
       suggestions: [
-        'What is artificial intelligence?',
-        'How does GPS tracking work?',
-        'What are the features of SilentSOS?'
+        'Where is the nearest police station?',
+        'Where is the nearest hospital?',
+        'How does Stealth Mode work in SilentSOS?'
       ]
     };
   }
 
   console.log(`[AI Engine] Processing user query: "${cleanMessage.slice(0, 80)}" (History turns: ${history.length})`);
+
+  // Instant Priority: Nearby Emergency Facilities (Police Stations & Hospitals)
+  const facilityLookup = handleNearbyEmergencyLocations(cleanMessage.toLowerCase(), cleanMessage, location);
+  if (facilityLookup.matched) {
+    return {
+      success: true,
+      ...facilityLookup,
+      suggestions: facilityLookup.suggestions || deriveSmartSuggestions(cleanMessage, facilityLookup.reply)
+    };
+  }
 
   try {
     // 1. Try Configured Gemini API
@@ -438,7 +462,8 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       history,
       user,
       settings,
-      contacts
+      contacts,
+      location
     });
 
     if (localBrainRes && localBrainRes.reply) {
