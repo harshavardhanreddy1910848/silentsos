@@ -18,40 +18,37 @@ import http from 'http';
 import { queryAiBrain, handleNearbyEmergencyLocations } from './ai/nlp_inference_engine.js';
 import { searchOnlineKnowledge, synthesizeOnlineResponse } from './ai/online_search_service.js';
 
-const SYSTEM_PROMPT = `You are the SilentSOS Emergency, Medical & Personal Safety AI Assistant.
+const SYSTEM_PROMPT = `You are the SilentSOS Emergency, Medical & Personal Safety AI Assistant powered by local Ollama llama3.2 inference.
 
-SYSTEM INSTRUCTION & PREFERENCE HIERARCHY:
-1. FIRST PREFERENCE FOR OUR APP & HOW IT WORKS:
-   If the user asks about our application, how it works, what it does, its features, or how it operates across Web and Android:
-   GIVE ABSOLUTE FIRST PREFERENCE to explaining our SilentSOS platform and how it works step-by-step in BOTH the Android Mobile Application and the Web Application.
-   Detail:
-   - Android Native Application: SOS button (3s hold), accelerometer shake trigger, covert optical palm raise and eye blink gestures, auto-capture surveillance (photo bursts, 1080p video loop, microphone audio), automated evidence email dispatch, stealth mode black screen disguise, 4-digit PIN anti-tamper disarm, and fake call escape simulator.
-   - Web Application: Live guardian receiver portal on Google Maps, emergency SOS dispatch console, AI defense assistant, evidence vault, emergency contacts management.
-   - End-to-end emergency flow: Trigger -> Auto-Capture -> Email Dispatch -> Live Google Maps Tracking -> PIN Resolution.
+You specialize strictly in these THREE mission-critical areas:
+1. MEDICAL ASSISTANCE:
+   - First aid information (hands-only CPR, choking Heimlich maneuver, severe bleeding control, burn treatment, trauma triage).
+   - Basic medical emergency response and health awareness.
+   - Clear medical boundary: You are an emergency safety assistant, not a doctor. Never diagnose medical conditions or prescribe medication. Direct users to call 108/112 or consult certified healthcare professionals.
 
-2. FIRST PREFERENCE FOR OUT-OF-RANGE TOPICS (LIVE ONLINE RETRIEVAL):
-   If the user asks a question that is OUT OF RANGE (general knowledge, science, programming, history, math, weather, or everyday topics outside SilentSOS/safety/medical):
-   GIVE FIRST PREFERENCE to fetching and synthesizing verified LIVE ONLINE facts.
-   Analyze the retrieved facts thoroughly and give the user a clear, comprehensive answer explaining the topic.
-   CRITICAL LINK RULE: DO NOT provide, include, or cite URLs or links from online in your response UNLESS the user explicitly asks for links or sources (e.g. "give me the link", "share sources", "provide link"). If the user did NOT ask for links, analyze the online facts and provide a direct, informative answer without any links or URLs.
+2. WOMEN'S PROTECTION:
+   - Women's personal defense, stalking evasion, solo and night travel precautions.
+   - Harassment support, anti-eve-teasing protocols, domestic abuse resources (181 helpline, NCW support).
+   - Legal protections in India: Section 173 of BNSS (Zero FIR: mandatory registration by any police station nationwide), Women's Helpline (1091), Universal Emergency (112).
 
-Rules:
+3. PERSONAL SAFETY & SILENTSOS CONTROLS:
+   - Emergency preparedness, accident response, de-escalation in threatening social situations.
+   - SilentSOS Platform Features:
+     • SOS Dispatch: 3-second hold on central SOS button or rapid phone shake.
+     • Covert Optical Gestures: Front-camera Palm Raise (1.5s) or 3-Blink eye pattern for silent hands-free triggers.
+     • Auto-Capture Surveillance: Dual photo burst, rolling 1080p continuous video loop, ambient microphone audio.
+     • Automated Evidence Dispatch: Dispatches email evidence package (photos, video, audio, reverse-geocoded GPS) to emergency contacts.
+     • Live Receiver Portal: Real-time Google Maps telemetry link for trusted guardian contacts.
+     • Stealth Mode: Black-screen disguise while silently maintaining GPS broadcasting and surveillance recording.
+     • Safety PIN: 4-digit security PIN (default: 1234) required to cancel active alarms.
+     • Fake Call: Realistic incoming call screen to exit risky or uncomfortable social situations.
+
+Rules & Guidelines:
 - Prioritize immediate personal safety and life-saving first aid above all else.
 - Maintain a calm, empathetic, and decisive tone.
-- Do not invent application features; stick strictly to SilentSOS capabilities and verified medical/emergency protocols.
-- For queries related to SilentSOS, emergency medical care, or personal defense, provide direct, step-by-step actionable advice.
-- Maintain conversation context for relevant follow-up questions.
 - Format responses cleanly with GitHub-flavored markdown.
-
-SilentSOS Verified Platform Specifications:
-- SOS Dispatch: 3-second hold on central SOS button or rapid hardware shake.
-- Covert Optical Gestures: Front-camera Palm Raise (1.5s) or 3-blink Eye Blink pattern for silent hands-free triggers.
-- Auto-Capture Surveillance: Dual-camera photo burst (3-10 shots), rolling 1080p video loop buffer, and stereo microphone audio recording.
-- Automated Evidence Dispatch: Dispatches email evidence package containing photos, video, audio, and live reverse-geocoded GPS coordinates to emergency guardian contacts.
-- Live Receiver Portal: Real-time Google Maps telemetry link for trusted guardian contacts.
-- Stealth Mode: Black-screen disguise while silently maintaining GPS broadcasting and surveillance recording.
-- Safety PIN Anti-Tamper: 4-digit security PIN (default: 1234) required to cancel active alarms.
-- Fake Call Escape Simulator: Authentic incoming call screen to exit risky or uncomfortable social situations.`;
+- For immediate emergencies, provide basic safety instructions without waiting.
+- Do NOT provide, include, or cite URLs or links from online in your response UNLESS the user explicitly asks for links or sources. If the user did NOT ask for links, analyze the facts and provide a direct, informative answer with zero links.`;
 
 /**
  * Generates 2-3 smart, contextually relevant follow-up questions based on the topic.
@@ -330,39 +327,58 @@ async function tryPollinationsAi(message, history = [], groundingPrompt = '') {
 /**
  * 5. Local Ollama Runtime (localhost:11434)
  */
+/**
+ * 5. Primary Engine: Local Ollama Runtime (localhost:11434, llama3.2)
+ * Connects directly to the user's locally installed Ollama instance without paid APIs.
+ */
 async function tryLocalOllama(message, history = [], groundingPrompt = '') {
-  return new Promise((resolve) => {
-    const systemContent = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
-    const payload = JSON.stringify({
-      model: 'qwen2.5:latest',
-      messages: [
-        { role: 'system', content: systemContent },
-        ...history.slice(-4).map(h => ({ role: h.role, content: h.text || h.content || '' })),
-        { role: 'user', content: message }
-      ],
-      stream: false
-    });
+  const host = process.env.OLLAMA_HOST || '127.0.0.1';
+  const port = process.env.OLLAMA_PORT || 11434;
+  const model = process.env.OLLAMA_MODEL || 'llama3.2';
 
+  const systemContent = groundingPrompt ? `${SYSTEM_PROMPT}\n\n${groundingPrompt}` : SYSTEM_PROMPT;
+  const messages = [
+    { role: 'system', content: systemContent },
+    ...history.slice(-6).map(h => ({
+      role: h.role === 'assistant' ? 'assistant' : 'user',
+      content: h.text || h.content || ''
+    })),
+    { role: 'user', content: message }
+  ];
+
+  const payload = JSON.stringify({
+    model: model,
+    messages: messages,
+    stream: false,
+    options: {
+      temperature: 0.7,
+      top_p: 0.9
+    }
+  });
+
+  return new Promise((resolve) => {
     const req = http.request({
-      hostname: '127.0.0.1',
-      port: 11434,
+      hostname: host,
+      port: Number(port),
       path: '/api/chat',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload)
       },
-      timeout: 1500
+      timeout: 30000
     }, (res) => {
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
         try {
           const parsed = JSON.parse(data);
-          if (parsed?.message?.content) {
+          const reply = parsed?.message?.content;
+          if (reply && reply.trim()) {
             resolve({
-              reply: parsed.message.content.trim(),
-              source: 'Local Ollama LLM'
+              reply: reply.trim(),
+              source: `Local Ollama (${parsed.model || model})`,
+              model: parsed.model || model
             });
             return;
           }
@@ -371,8 +387,13 @@ async function tryLocalOllama(message, history = [], groundingPrompt = '') {
       });
     });
 
-    req.on('error', () => resolve(null));
+    req.on('error', (err) => {
+      console.warn(`[AI Engine] Local Ollama service unreachable at http://${host}:${port} (${err.message})`);
+      resolve(null);
+    });
+
     req.on('timeout', () => {
+      console.warn('[AI Engine] Local Ollama request timed out after 30 seconds');
       req.destroy();
       resolve(null);
     });
@@ -489,6 +510,34 @@ export async function generateAiAssistantReply({ message, history = [], user, se
   const wantsLinks = userExplicitlyAskedForLinks(cleanMessage);
   console.log(`[AI Engine] Processing user query: "${cleanMessage.slice(0, 80)}" (History turns: ${history.length}, WantsLinks: ${wantsLinks})`);
 
+  // 0. Immediate Crisis & Life-Threatening Danger Check (Respond immediately without waiting for AI generation)
+  const isImmediateCrisis = lowerMsg.includes('help me right now') ||
+    lowerMsg.includes('immediate danger') ||
+    lowerMsg.includes('someone is breaking in') ||
+    lowerMsg.includes('being attacked') ||
+    lowerMsg.includes('someone is outside my door') ||
+    lowerMsg.includes('in danger right now');
+
+  if (isImmediateCrisis) {
+    return {
+      success: true,
+      intent: 'immediate_emergency_safety_instructions',
+      category: 'Immediate Emergency Action',
+      confidence: 100,
+      reply: `🚨 **IMMEDIATE EMERGENCY SAFETY PROTOCOL:**\n\n` +
+        `1. **Call Emergency Services NOW:** Dial **112** (Universal Emergency) or **100 / 1091** (Women's Helpline).\n` +
+        `2. **Trigger SilentSOS Alarm:** Press and hold the glowing central SOS button for 3 seconds or rapidly shake your phone 3 times.\n` +
+        `3. **Lock Yourself In or Escape:** Barricade doors, turn off lights, or move immediately toward well-lit public areas.\n` +
+        `4. **Activate Stealth Mode:** If an aggressor is nearby, enable Stealth Mode to keep your screen dark while satellite GPS and audio recording stream to your guardians.\n\n` +
+        `*Do not attempt to confront an aggressor. Focus on physical safety and summoning emergency responders.*`,
+      suggestions: [
+        'How to call 112 emergency dispatch?',
+        'How does SilentSOS Stealth Mode work?',
+        'Where is the nearest police station?'
+      ]
+    };
+  }
+
   // 1. Instant Priority: Nearby Emergency Facilities (Police Stations & Hospitals)
   const facilityLookup = handleNearbyEmergencyLocations(lowerMsg, cleanMessage, location);
   if (facilityLookup.matched) {
@@ -526,34 +575,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
     }
   }
 
-  // 3. Determine if query is in-range (Safety/Medical/SilentSOS Controls) vs OUT OF RANGE (External/General Knowledge)
-  const isInRangeSafetyOrMedical = isAppOrSafetyQuery(cleanMessage);
-
-  // If in-range (specific safety evasion, medical first aid, or SilentSOS telemetry):
-  // Check our specialized internal brain first
-  if (isInRangeSafetyOrMedical) {
-    const directBrainRes = queryAiBrain({
-      message: cleanMessage,
-      history,
-      user,
-      settings,
-      contacts,
-      location
-    });
-
-    if (directBrainRes && directBrainRes.reply && directBrainRes.intent !== 'conversational_empathy') {
-      return {
-        success: true,
-        ...directBrainRes,
-        onlineFetched: false,
-        sources: [],
-        suggestions: directBrainRes.suggestions || deriveSmartSuggestions(cleanMessage, directBrainRes.reply)
-      };
-    }
-  }
-
-  // 4. FIRST PREFERENCE FOR OUT-OF-RANGE TOPICS: LIVE ONLINE WEB RETRIEVAL
-  // If the query is out-of-range, search online first
+  // 3. Online Grounding Search (if query requests online facts or external knowledge)
   let onlineData = null;
   let groundingPrompt = '';
   try {
@@ -570,82 +592,46 @@ export async function generateAiAssistantReply({ message, history = [], user, se
     : [];
 
   try {
-    // A. Try Configured Gemini API
-    const geminiRes = await tryGeminiApi(cleanMessage, history, groundingPrompt);
-    if (geminiRes && geminiRes.reply) {
-      const cleanReply = stripOnlineLinksIfUnrequested(geminiRes.reply, wantsLinks);
-      return {
-        success: true,
-        intent: 'cloud_llm_gemini',
-        confidence: 99,
-        reply: cleanReply,
-        onlineFetched: !!onlineData,
-        sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
-      };
-    }
-
-    // B. Try Configured Groq API
-    const groqRes = await tryGroqApi(cleanMessage, history, groundingPrompt);
-    if (groqRes && groqRes.reply) {
-      const cleanReply = stripOnlineLinksIfUnrequested(groqRes.reply, wantsLinks);
-      return {
-        success: true,
-        intent: 'cloud_llm_groq',
-        confidence: 99,
-        reply: cleanReply,
-        onlineFetched: !!onlineData,
-        sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
-      };
-    }
-
-    // C. Try Configured OpenAI API
-    const openAiRes = await tryOpenAiApi(cleanMessage, history, groundingPrompt);
-    if (openAiRes && openAiRes.reply) {
-      const cleanReply = stripOnlineLinksIfUnrequested(openAiRes.reply, wantsLinks);
-      return {
-        success: true,
-        intent: 'cloud_llm_openai',
-        confidence: 99,
-        reply: cleanReply,
-        onlineFetched: !!onlineData,
-        sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
-      };
-    }
-
-    // D. Try Free High-Performance Neural LLM Engine (Pollinations AI)
-    const neuralRes = await tryPollinationsAi(cleanMessage, history, groundingPrompt);
-    if (neuralRes && neuralRes.reply) {
-      const cleanReply = stripOnlineLinksIfUnrequested(neuralRes.reply, wantsLinks);
-      return {
-        success: true,
-        intent: 'cloud_neural_inference',
-        confidence: 98,
-        reply: cleanReply,
-        onlineFetched: !!onlineData,
-        sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
-      };
-    }
-
-    // E. Try Local Ollama LLM
+    // 4. PRIMARY INFERENCE ENGINE: Local Ollama llama3.2
+    // Secure internal integration (Windows 11 host @ http://127.0.0.1:11434)
     const localLlmRes = await tryLocalOllama(cleanMessage, history, groundingPrompt);
     if (localLlmRes && localLlmRes.reply) {
-      const cleanReply = stripOnlineLinksIfUnrequested(localLlmRes.reply, wantsLinks);
+      let finalReply = stripOnlineLinksIfUnrequested(localLlmRes.reply, wantsLinks);
+
+      // If Llama 3.2 produced a canned refusal on a critical first aid emergency query,
+      // augment with verified bystander emergency instructions:
+      const lowerReply = finalReply.toLowerCase();
+      const isRefusal = (lowerReply.includes('cannot provide medical advice') || lowerReply.includes('consult a healthcare professional') || lowerReply.includes('not a medical professional')) &&
+        (lowerMsg.includes('cpr') || lowerMsg.includes('chok') || lowerMsg.includes('bleed') || lowerMsg.includes('burn') || lowerMsg.includes('first aid'));
+
+      if (isRefusal) {
+        const brainRes = queryAiBrain({
+          message: cleanMessage,
+          history,
+          user,
+          settings,
+          contacts,
+          location
+        });
+        if (brainRes && brainRes.reply) {
+          finalReply = `${finalReply}\n\n---\n📋 **Immediate Bystander First Aid Protocol (Emergency Guidance):**\n${brainRes.reply}`;
+        }
+      }
+
       return {
         success: true,
-        intent: 'local_ollama_inference',
-        confidence: 95,
-        reply: cleanReply,
+        intent: 'local_ollama_llama3_2',
+        confidence: 98,
+        reply: finalReply,
+        source: localLlmRes.source || 'Local Ollama (llama3.2)',
+        model: localLlmRes.model || 'llama3.2',
         onlineFetched: !!onlineData,
         sources: onlineSources,
-        suggestions: deriveSmartSuggestions(cleanMessage, cleanReply)
+        suggestions: deriveSmartSuggestions(cleanMessage, finalReply)
       };
     }
 
-    // F. Direct Online Knowledge Synthesis (When LLMs are offline or unreachable)
+    // 5. SECONDARY FALLBACK: Direct Online Knowledge Synthesis (if Ollama paused and online data available)
     if (onlineData) {
       const onlineSynthesized = synthesizeOnlineResponse(cleanMessage, onlineData);
       if (onlineSynthesized && onlineSynthesized.reply) {
@@ -653,7 +639,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       }
     }
 
-    // G. Comprehensive In-House Cognitive Knowledge Engine (Offline Fallback)
+    // 6. TERTIARY FALLBACK: Comprehensive In-House Cognitive Knowledge Engine (Offline Emergency Core)
     const localBrainRes = queryAiBrain({
       message: cleanMessage,
       history,

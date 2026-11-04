@@ -1739,12 +1739,61 @@ app.post('/api/ai/chat', optionalAuthenticateToken, async (req, res) => {
       reply: result.reply,
       suggestions: result.suggestions,
       onlineFetched: result.onlineFetched || false,
-      sources: result.sources || []
+      sources: result.sources || [],
+      source: result.source || 'Local Ollama (llama3.2)',
+      model: result.model || 'llama3.2'
     });
   } catch (err) {
     console.error('AI Assistant error:', err);
     res.status(500).json({ error: 'Failed to process AI assistant message: ' + err.message });
   }
+});
+
+// AI Service Status Endpoint (Reports Local Ollama status to Web & Android)
+app.get('/api/ai/status', async (req, res) => {
+  const host = process.env.OLLAMA_HOST || '127.0.0.1';
+  const port = process.env.OLLAMA_PORT || 11434;
+  const targetModel = process.env.OLLAMA_MODEL || 'llama3.2';
+
+  const checkOllama = () => new Promise((resolve) => {
+    const reqOllama = http.request({
+      hostname: host,
+      port: Number(port),
+      path: '/api/tags',
+      method: 'GET',
+      timeout: 2000
+    }, (resp) => {
+      let data = '';
+      resp.on('data', chunk => { data += chunk; });
+      resp.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const models = (parsed.models || []).map(m => m.name);
+          resolve({ online: true, models });
+        } catch {
+          resolve({ online: true, models: [] });
+        }
+      });
+    });
+    reqOllama.on('error', () => resolve({ online: false, models: [] }));
+    reqOllama.on('timeout', () => { reqOllama.destroy(); resolve({ online: false, models: [] }); });
+    reqOllama.end();
+  });
+
+  const ollamaStatus = await checkOllama();
+  res.json({
+    success: true,
+    engine: 'Ollama Local LLM',
+    endpoint: `http://${host}:${port}`,
+    configuredModel: targetModel,
+    ollamaOnline: ollamaStatus.online,
+    availableModels: ollamaStatus.models,
+    specializedAreas: [
+      'Medical Assistance (First aid, CPR, emergency guidance)',
+      'Women\'s Protection (Self-defense, Zero FIR, 1091/181 helpline)',
+      'Personal Safety (SilentSOS controls, Stealth mode, accident response)'
+    ]
+  });
 });
 
 // 🔒 PROTECTED ROUTES: Require token authorization header
