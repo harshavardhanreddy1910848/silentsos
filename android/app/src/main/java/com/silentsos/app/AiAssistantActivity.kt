@@ -371,7 +371,73 @@ class AiAssistantActivity : AppCompatActivity() {
             )
         }
 
-        // 1. Being Followed / Stalking
+        // 1. FIRST PREFERENCE: SilentSOS App Operations & How It Works (Android & Web)
+        val isAppHowItWorks = q.contains("how it works") || q.contains("how does it work") ||
+            q.contains("how does this work") || q.contains("how does the app work") ||
+            q.contains("how does our app work") || q.contains("how our app works") ||
+            q.contains("tell me about our app") || q.contains("tell me about the app") ||
+            q.contains("explain our app") || q.contains("explain the app") ||
+            q.contains("what is this app") || q.contains("what is our app") ||
+            q.contains("what does this app do") || q.contains("how to use this app") ||
+            q.contains("how to use our app") || q.contains("how does silentsos work") ||
+            q.contains("features of silentsos") || q.contains("how it works in android and web") ||
+            q.contains("how does android app work") || q.contains("how does web app work") ||
+            q.contains("about silentsos") || q.contains("what is silentsos") ||
+            q.contains("purpose of silentsos") || q.contains("how does the system work") ||
+            q.contains("how to trigger alert") || q == "silentsos" || q == "app" || q == "our app"
+
+        if (isAppHowItWorks) {
+            return Pair(
+                "🛡️ **SilentSOS Women's Safety Platform — Complete System & How It Works:**\n\n" +
+                "SilentSOS is an enterprise-grade emergency dispatch, evidence preservation, and covert personal defense system available as both a **Native Android Application** and a **Web Application**.\n\n" +
+                "---\n\n" +
+                "### 📱 1. Native Android Application (On-Device Mobile Operations)\n" +
+                "The Android mobile app is engineered for rapid, hands-free emergency execution in physical crises:\n" +
+                "• **SOS Triggers:**\n" +
+                "  - **3-Second Hold:** Press and hold the central glowing SOS button to dispatch an emergency alarm without accidental clicks.\n" +
+                "  - **Hardware Accelerometer Shake:** Rapidly shake the phone 3–4 times to trigger the alarm without unlocking or looking at the screen.\n" +
+                "  - **Covert Optical Gestures:** Front-camera computer vision detects a 1.5s open Palm Raise or 3-Blink eye pattern to silently trigger an alarm completely hands-free.\n" +
+                "• **Auto-Capture Surveillance:**\n" +
+                "  - Captures a rapid 5–10 photo burst from front and rear cameras.\n" +
+                "  - Records a rolling continuous 1080p HD video loop.\n" +
+                "  - Records high-fidelity microphone ambient audio with noise reduction.\n" +
+                "• **Automated Evidence Email Dispatch:**\n" +
+                "  - Instantly compiles photos, video, audio recordings, and reverse-geocoded GPS street coordinates into an encrypted evidence package emailed to all trusted guardian contacts.\n" +
+                "• **Stealth Mode (Black Screen Disguise):**\n" +
+                "  - Simulates a completely black, powered-off screen while silently broadcasting satellite GPS coordinates and surveillance audio in the background.\n" +
+                "• **Safety PIN Anti-Tamper Disarm:**\n" +
+                "  - Aggressors cannot cancel, silence, or exit the alert without entering your personal 4-digit Safety PIN (default: `1234`).\n" +
+                "• **Fake Call Escape Simulator:**\n" +
+                "  - Triggers an authentic incoming phone call with ringtone and caller voice to gracefully exit risky or awkward social situations.\n\n" +
+                "---\n\n" +
+                "### 🌐 2. Web Application (Cloud Telemetry, Guardian Receiver Portal & Admin)\n" +
+                "The Web application serves as the cloud management, dispatch telemetry, and guardian tracking hub:\n" +
+                "• **Live Guardian Receiver Portal:**\n" +
+                "  - Emergency contacts receive a secure live link showing the user's real-time movements on Google Maps with updated GPS coordinates.\n" +
+                "• **Emergency SOS Dispatch Console:**\n" +
+                "  - Web users can trigger immediate alarms, locate nearest 24/7 police stations and hospitals, and dial 112 emergency services with one click.\n" +
+                "• **AI Defense Assistant:**\n" +
+                "  - 24/7 conversational safety and emergency intelligence engine answering safety questions, first-aid protocols, legal protections, and live online knowledge retrieval.\n" +
+                "• **Evidence Vault & Incident Logs:**\n" +
+                "  - Secure dashboard storing timestamped audio clips, photos, and incident coordinates for legal evidence.\n" +
+                "• **Emergency Contacts Management:**\n" +
+                "  - Add, verify, and prioritize trusted guardians with phone numbers and emails for instant dispatch.\n\n" +
+                "---\n\n" +
+                "### ⚡ 3. End-to-End Emergency Workflow\n" +
+                "1. **Trigger:** User activates SOS via button hold, phone shake, or optical gesture.\n" +
+                "2. **Surveillance:** Camera bursts, video loops, and microphone audio are captured automatically.\n" +
+                "3. **Dispatch:** Guardians immediately receive email evidence and live Google Maps tracking links.\n" +
+                "4. **Assistance:** AI Assistant provides instant guidance to nearest police stations and hospitals.\n" +
+                "5. **Safe Resolution:** Disarmed only when the user enters their 4-digit Safety PIN.",
+                listOf(
+                    "How does Stealth Mode work in SilentSOS?",
+                    "How does Auto-Capture Surveillance record evidence?",
+                    "Where is the nearest police station?"
+                )
+            )
+        }
+
+        // 2. Being Followed / Stalking
         if (q.contains("following me") || q.contains("someone following") || q.contains("being followed") || q.contains("stalk") || (isStalkerContext && (q.contains("stop") || q.contains("close") || q.contains("run")))) {
             return Pair(
                 "If you think someone is following you, **prioritize your immediate physical safety above everything else**:\n\n" +

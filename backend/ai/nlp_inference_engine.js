@@ -639,43 +639,72 @@ function handleLegalAndRights(lowerQuery, rawQuery) {
 // 6. SILENTSOS CONTROLS & SYSTEM HARNESS
 // ============================================================================
 function handleSilentSosControls(lowerQuery, rawQuery, settings) {
-  // Purpose & Comprehensive Features of SilentSOS
-  if (lowerQuery.includes('purpose of silentsos') || lowerQuery.includes('what is silentsos') || 
+  // First Preference: Our App & How It Works across Android and Web
+  const isAppHowItWorks = lowerQuery.includes('purpose of silentsos') || lowerQuery.includes('what is silentsos') || 
       lowerQuery.includes('features of silentsos') || lowerQuery.includes('what are the features of silentsos') ||
-      lowerQuery.includes('what does silentsos do') || lowerQuery.includes('about silentsos') || lowerQuery === 'silentsos') {
+      lowerQuery.includes('what does silentsos do') || lowerQuery.includes('about silentsos') ||
+      lowerQuery.includes('how it works') || lowerQuery.includes('how does it work') ||
+      lowerQuery.includes('how does this work') || lowerQuery.includes('how does the app work') ||
+      lowerQuery.includes('how does our app work') || lowerQuery.includes('how our app works') ||
+      lowerQuery.includes('tell me about our app') || lowerQuery.includes('tell me about the app') ||
+      lowerQuery.includes('explain our app') || lowerQuery.includes('explain the app') ||
+      lowerQuery.includes('what is this app') || lowerQuery.includes('what is our app') ||
+      lowerQuery.includes('how to use this app') || lowerQuery.includes('how to use our app') ||
+      lowerQuery.includes('how does silentsos work') || lowerQuery.includes('how it works in android and web') ||
+      lowerQuery.includes('how does android app work') || lowerQuery.includes('how does web app work') ||
+      lowerQuery.includes('how does the system work') || lowerQuery.includes('app details') ||
+      lowerQuery.includes('how to trigger alert') || lowerQuery === 'silentsos' || lowerQuery === 'app' || lowerQuery === 'our app';
+
+  if (isAppHowItWorks) {
     return {
       matched: true,
-      intent: 'silentsos_overview_and_features',
-      category: 'SilentSOS Platform Documentation',
-      reply: `🛡️ **SilentSOS Platform Overview & Architecture:**\n\n` +
-        `**Purpose:** SilentSOS is a mission-critical personal safety and rapid emergency dispatch platform designed specifically for women, solo commuters, and vulnerable individuals. It enables users to trigger alarms, record evidence, and summon help covertly without alerting an aggressor.\n\n` +
-        `### 🚀 Complete Core Features:\n` +
-        `1. **Instant SOS Dispatch Console:**\n` +
-        `   • Central emergency button requiring a continuous 3-second hold to avoid accidental triggers.\n` +
-        `   • Rapid hardware shake detection to trigger alarms when the screen cannot be accessed.\n` +
-        `2. **Covert Optical Gesture Detection:**\n` +
-        `   • Uses on-device front camera computer vision (TensorFlow / MediaPipe).\n` +
-        `   • Raising an open palm or executing a specific rapid eye-blink pattern automatically triggers an alert hands-free.\n` +
-        `3. **Auto-Capture Multi-Media Surveillance:**\n` +
-        `   • **Photo Burst:** Captures 5 to 10 dual-facing rapid photos.\n` +
-        `   • **Continuous HD Video Loop:** Records rolling buffered video clips.\n` +
-        `   • **Surveillance Audio:** Records high-fidelity microphone acoustic buffers with ambient noise filtering.\n` +
-        `4. **Automated Evidence Package Dispatch:**\n` +
-        `   • Immediately dispatches an email to all emergency guardian contacts containing attached photos, video container, and recorded microphone audio along with live reverse-geocoded GPS coordinates.\n` +
-        `5. **Live Receiver Tracking Portal:**\n` +
-        `   • Emergency contacts receive a secure live link showing real-time GPS telemetry and tracking on Google Maps.\n` +
-        `6. **Stealth Mode (Black Screen Disguise):**\n` +
-        `   • Simulates a powered-off black screen while covertly maintaining GPS broadcasting and surveillance recording.\n` +
-        `7. **Safety PIN Anti-Tamper Protection:**\n` +
-        `   • Once an alert is active, it cannot be silenced, swiped away, or closed without entering a personal 4-digit PIN (default \`1234\`).\n` +
-        `8. **Fake Call Escape Simulator:**\n` +
-        `   • Generates an authentic incoming phone call with realistic voice audio to exit uncomfortable or threatening social situations.\n` +
-        `9. **Admin Governance & Live Monitoring:**\n` +
-        `   • Full web and mobile administration portal for monitoring emergency incidents, user management, and system health.`,
+      intent: 'silentsos_app_how_it_works',
+      category: 'SilentSOS Platform Architecture & Documentation',
+      reply: `🛡️ **SilentSOS Women's Safety Platform — Complete System & How It Works:**\n\n` +
+        `SilentSOS is an enterprise-grade emergency dispatch, evidence preservation, and covert personal defense system available as both a **Native Android Application** and a **Web Application**.\n\n` +
+        `---\n\n` +
+        `### 📱 1. Native Android Application (On-Device Mobile Operations)\n` +
+        `The Android mobile app is engineered for rapid, hands-free emergency execution in physical crises:\n` +
+        `• **SOS Triggers:**\n` +
+        `  - **3-Second Hold:** Press and hold the central glowing SOS button to dispatch an emergency alarm without accidental clicks.\n` +
+        `  - **Hardware Accelerometer Shake:** Rapidly shake the phone 3–4 times to trigger the alarm without unlocking or looking at the screen.\n` +
+        `  - **Covert Optical Gestures:** Front-camera computer vision detects a 1.5s open Palm Raise or 3-Blink eye pattern to silently trigger an alarm completely hands-free.\n` +
+        `• **Auto-Capture Surveillance:**\n` +
+        `  - Captures a rapid 5–10 photo burst from front and rear cameras.\n` +
+        `  - Records a rolling continuous 1080p HD video loop.\n` +
+        `  - Records high-fidelity microphone ambient audio with noise reduction.\n` +
+        `• **Automated Evidence Email Dispatch:**\n` +
+        `  - Instantly compiles photos, video, audio recordings, and reverse-geocoded GPS street coordinates into an encrypted evidence package emailed to all trusted guardian contacts.\n` +
+        `• **Stealth Mode (Black Screen Disguise):**\n` +
+        `  - Simulates a completely black, powered-off screen while silently broadcasting satellite GPS coordinates and surveillance audio in the background.\n` +
+        `• **Safety PIN Anti-Tamper Disarm:**\n` +
+        `  - Aggressors cannot cancel, silence, or exit the alert without entering your personal 4-digit Safety PIN (default: \`1234\`).\n` +
+        `• **Fake Call Escape Simulator:**\n` +
+        `  - Triggers an authentic incoming phone call with ringtone and caller voice to gracefully exit risky or awkward social situations.\n\n` +
+        `---\n\n` +
+        `### 🌐 2. Web Application (Cloud Telemetry, Guardian Receiver Portal & Admin)\n` +
+        `The Web application serves as the cloud management, dispatch telemetry, and guardian tracking hub:\n` +
+        `• **Live Guardian Receiver Portal:**\n` +
+        `  - Emergency contacts receive a secure live link showing the user's real-time movements on Google Maps with updated GPS coordinates.\n` +
+        `• **Emergency SOS Dispatch Console:**\n` +
+        `  - Web users can trigger immediate alarms, locate nearest 24/7 police stations and hospitals, and dial 112 emergency services with one click.\n` +
+        `• **AI Defense Assistant:**\n` +
+        `  - 24/7 conversational safety and emergency intelligence engine answering safety questions, first-aid protocols, legal protections, and live online knowledge retrieval.\n` +
+        `• **Evidence Vault & Incident Logs:**\n` +
+        `  - Secure dashboard storing timestamped audio clips, photos, and incident coordinates for legal evidence.\n` +
+        `• **Emergency Contacts Management:**\n` +
+        `  - Add, verify, and prioritize trusted guardians with phone numbers and emails for instant dispatch.\n\n` +
+        `---\n\n` +
+        `### ⚡ 3. End-to-End Emergency Workflow\n` +
+        `1. **Trigger:** User activates SOS via button hold, phone shake, or optical gesture.\n` +
+        `2. **Surveillance:** Camera bursts, video loops, and microphone audio are captured automatically.\n` +
+        `3. **Dispatch:** Guardians immediately receive email evidence and live Google Maps tracking links.\n` +
+        `4. **Assistance:** AI Assistant provides instant guidance to nearest police stations and hospitals.\n` +
+        `5. **Safe Resolution:** Disarmed only when the user enters their 4-digit Safety PIN.`,
       suggestions: [
         'How does Stealth Mode work in SilentSOS?',
-        'How does Covert Gesture Detection work?',
-        'How does Auto-Capture Surveillance record evidence?'
+        'How does Auto-Capture Surveillance record evidence?',
+        'Where is the nearest police station?'
       ]
     };
   }
@@ -924,21 +953,21 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
   const facilityRes = handleNearbyEmergencyLocations(effectiveLowerQuery, rawQuery, location);
   if (facilityRes.matched) return { success: true, ...facilityRes };
 
-  // 3. Personal Safety & Crisis Intelligence (Highest Priority)
+  // 3. First Preference: SilentSOS App Operations, Features & How It Works
+  const controlRes = handleSilentSosControls(effectiveLowerQuery, rawQuery, settings);
+  if (controlRes.matched) return { success: true, ...controlRes };
+
+  // 4. Personal Safety & Crisis Intelligence (Highest Priority)
   const safetyRes = handleTacticalSafety(effectiveLowerQuery, rawQuery, context, userName, settings);
   if (safetyRes.matched) return { success: true, ...safetyRes };
 
-  // 3. Medical First Aid & Health Triage
+  // 5. Medical First Aid & Health Triage
   const medicalRes = handleMedicalAndHealth(effectiveLowerQuery, rawQuery);
   if (medicalRes.matched) return { success: true, ...medicalRes };
 
-  // 4. Legal Rights, Helplines & Indian Legislation
+  // 6. Legal Rights, Helplines & Indian Legislation
   const legalRes = handleLegalAndRights(effectiveLowerQuery, rawQuery);
   if (legalRes.matched) return { success: true, ...legalRes };
-
-  // 5. SilentSOS Controls & System Features
-  const controlRes = handleSilentSosControls(effectiveLowerQuery, rawQuery, settings);
-  if (controlRes.matched) return { success: true, ...controlRes };
 
   // 6. SilentSOS Emergency GPS Telemetry
   const gpsRes = handleSilentSosGpsTelemetry(effectiveLowerQuery, rawQuery);

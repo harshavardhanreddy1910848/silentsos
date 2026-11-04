@@ -28,12 +28,12 @@ export function AiAssistant() {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([
+    'How does our app work in Web and Android?',
     'Where is the nearest police station?',
     'Where is the nearest hospital?',
-    'What should I do if someone is following me?',
-    'How do I perform CPR on an adult?',
-    'How does SilentSOS Stealth Mode work?',
-    'What is a Zero FIR in India?'
+    'How does Stealth Mode work in SilentSOS?',
+    'How does Auto-Capture Surveillance record evidence?',
+    'What should I do if someone is following me?'
   ]);
 
   const [messages, setMessages] = useState<AiMessage[]>(() => {
@@ -50,12 +50,13 @@ export function AiAssistant() {
       {
         role: 'assistant',
         text: `👋 Hello! I am your 24/7 **SilentSOS AI Assistant**.\n\n` +
-          `I operate **100% locally with zero external APIs**, ready to assist you with:\n\n` +
+          `I am ready to assist you across both **Web & Android** with:\n\n` +
+          `• **SilentSOS Platform Operations:** How our app works, SOS 3s hold, accelerometer shake, covert palm/blink gestures, auto-capture evidence & stealth mode\n` +
           `• **Personal Safety & Evasion:** What to do if followed, solo travel, night transit safety\n` +
-          `• **Emergency First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n` +
-          `• **Legal Rights in India:** Zero FIR under BNSS, women's rights, emergency helplines\n` +
-          `• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Fake Call escape simulator, Covert Gestures & Auto-Capture\n\n` +
-          `What emergency, medical, or safety situation can I assist you with today?`,
+          `• **Emergency Medical First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n` +
+          `• **Legal Rights & Helplines:** Zero FIR under BNSS, emergency police (112) & women helplines (1091)\n` +
+          `• **Live Online Intelligence:** Real-time web retrieval for out-of-range topics\n\n` +
+          `What can I assist you with today?`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         category: 'Personal Safety & Defense',
         confidence: 100

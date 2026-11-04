@@ -271,3 +271,4 @@ export function synthesizeOnlineResponse(query, onlineData) {
     sources: onlineData.results.map(r => ({ title: r.title, url: r.url, source: r.source }))
   };
 }
+

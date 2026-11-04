@@ -20,17 +20,24 @@ import { searchOnlineKnowledge, synthesizeOnlineResponse } from './ai/online_sea
 
 const SYSTEM_PROMPT = `You are the SilentSOS Emergency, Medical & Personal Safety AI Assistant.
 
-Your primary mission is to provide authoritative, actionable, and compassionate assistance strictly focused on:
-1. SilentSOS Platform Operations, sensor telemetry, and controls (SOS triggers, optical gestures, auto-capture surveillance, live tracking, stealth mode, PIN security).
-2. Emergency Medical First Aid (hands-only CPR, choking Heimlich maneuver, severe bleeding control, burn care, trauma response).
-3. Personal Safety, crisis de-escalation, anti-stalking evasion, solo and night travel precautions, and women's emergency legal rights (Zero FIR, 112, 1091).
+SYSTEM INSTRUCTION & PREFERENCE HIERARCHY:
+1. FIRST PREFERENCE FOR OUR APP & HOW IT WORKS:
+   If the user asks about our application, how it works, what it does, its features, or how it operates across Web and Android:
+   GIVE ABSOLUTE FIRST PREFERENCE to explaining our SilentSOS platform and how it works step-by-step in BOTH the Android Mobile Application and the Web Application.
+   Detail:
+   - Android Native Application: SOS button (3s hold), accelerometer shake trigger, covert optical palm raise and eye blink gestures, auto-capture surveillance (photo bursts, 1080p video loop, microphone audio), automated evidence email dispatch, stealth mode black screen disguise, 4-digit PIN anti-tamper disarm, and fake call escape simulator.
+   - Web Application: Live guardian receiver portal on Google Maps, emergency SOS dispatch console, AI defense assistant, evidence vault, emergency contacts management.
+   - End-to-end emergency flow: Trigger -> Auto-Capture -> Email Dispatch -> Live Google Maps Tracking -> PIN Resolution.
+
+2. FIRST PREFERENCE FOR OUT-OF-RANGE TOPICS (LIVE ONLINE RETRIEVAL):
+   If the user asks a question that is OUT OF RANGE (general knowledge, science, programming, history, math, weather, or everyday topics outside SilentSOS/safety/medical):
+   GIVE FIRST PREFERENCE to fetching and synthesizing verified LIVE ONLINE facts. Provide a rich, accurate, and comprehensive explanation grounded in online search results, and include verified reference citations and links.
 
 Rules:
 - Prioritize immediate personal safety and life-saving first aid above all else.
 - Maintain a calm, empathetic, and decisive tone.
 - Do not invent application features; stick strictly to SilentSOS capabilities and verified medical/emergency protocols.
 - For queries related to SilentSOS, emergency medical care, or personal defense, provide direct, step-by-step actionable advice.
-- If a query is unrelated to safety, medical, or SilentSOS operations, politely guide the user back to SilentSOS safety, emergency preparedness, and medical first-aid capabilities.
 - Maintain conversation context for relevant follow-up questions.
 - Format responses cleanly with GitHub-flavored markdown.
 
@@ -374,6 +381,68 @@ async function tryLocalOllama(message, history = [], groundingPrompt = '') {
 }
 
 /**
+ * Detects whether the query specifically inquires about our SilentSOS app,
+ * its features, architecture, or how it works across Web and Android.
+ */
+export function isAppOverviewQuery(query) {
+  if (!query || typeof query !== 'string') return false;
+  const q = query.toLowerCase().trim();
+  const patterns = [
+    'how it works',
+    'how does it work',
+    'how does this work',
+    'how do you work',
+    'how does the app work',
+    'how does our app work',
+    'how our app works',
+    'tell me about our app',
+    'tell me about the app',
+    'explain our app',
+    'explain the app',
+    'what is this app',
+    'what is our app',
+    'what does this app do',
+    'how to use this app',
+    'how to use our app',
+    'how does silentsos work',
+    'features of silentsos',
+    'how does it work in android and web',
+    'how does android app work',
+    'how does web app work',
+    'what is silentsos',
+    'purpose of silentsos',
+    'about silentsos',
+    'what can this app do',
+    'how does the system work',
+    'app features',
+    'app details',
+    'how to trigger alert'
+  ];
+  return patterns.some(p => q.includes(p)) || q === 'silentsos' || q === 'app' || q === 'our app';
+}
+
+/**
+ * Detects whether the query belongs to the core SilentSOS domain
+ * (App features, emergency triggers, medical first aid, legal rights, or safety de-escalation).
+ */
+export function isAppOrSafetyQuery(query) {
+  if (!query || typeof query !== 'string') return false;
+  const q = query.toLowerCase().trim();
+  const keywords = [
+    'silentsos', 'silent sos', 'our app', 'this app', 'how it works', 'how does it work', 'how to use',
+    'sos', 'stealth', 'gesture', 'palm', 'blink', 'auto capture', 'surveillance',
+    'photo burst', 'video loop', 'audio record', 'microphone', 'evidence', 'vault',
+    'gps', 'tracking', 'location', 'coordinates', 'pin', 'fake call',
+    'police', 'hospital', 'doctor', 'ambulance', '112', '1091', '108', '181', 'zero fir', 'fir',
+    'cpr', 'choking', 'heimlich', 'bleeding', 'bleed', 'burn', 'burns', 'first aid', 'cardiac', 'chest compression',
+    'following me', 'followed', 'stalk', 'stalking', 'danger', 'unsafe', 'threat', 'help me', 'emergency',
+    'solo travel', 'travel', 'travelling', 'traveling', 'night travel', 'cab', 'taxi', 'hotel', 'harass', 'harassment',
+    'guardian', 'guardians', 'contact', 'contacts', 'receiver', 'anti-tamper', 'women safety', 'women\'s safety'
+  ];
+  return keywords.some(kw => q.includes(kw));
+}
+
+/**
  * Master AI Query Handler
  */
 export async function generateAiAssistantReply({ message, history = [], user, settings, contacts = [], location = null }) {
@@ -383,17 +452,18 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       success: false,
       reply: 'Please provide a question or request.',
       suggestions: [
+        'How does SilentSOS work in Android and Web?',
         'Where is the nearest police station?',
-        'Where is the nearest hospital?',
-        'How does Stealth Mode work in SilentSOS?'
+        'Where is the nearest hospital?'
       ]
     };
   }
 
+  const lowerMsg = cleanMessage.toLowerCase();
   console.log(`[AI Engine] Processing user query: "${cleanMessage.slice(0, 80)}" (History turns: ${history.length})`);
 
-  // Instant Priority: Nearby Emergency Facilities (Police Stations & Hospitals)
-  const facilityLookup = handleNearbyEmergencyLocations(cleanMessage.toLowerCase(), cleanMessage, location);
+  // 1. Instant Priority: Nearby Emergency Facilities (Police Stations & Hospitals)
+  const facilityLookup = handleNearbyEmergencyLocations(lowerMsg, cleanMessage, location);
   if (facilityLookup.matched) {
     return {
       success: true,
@@ -402,7 +472,61 @@ export async function generateAiAssistantReply({ message, history = [], user, se
     };
   }
 
-  // 0. Live Real-Time Online Knowledge Search
+  // 2. FIRST PREFERENCE FOR OUR APP & HOW IT WORKS:
+  // If user inquires about our app, how it works, what it does, or how it operates across Web & Android:
+  const isAppHowItWorks = isAppOverviewQuery(cleanMessage);
+  if (isAppHowItWorks) {
+    const appBrainRes = queryAiBrain({
+      message: cleanMessage,
+      history,
+      user,
+      settings,
+      contacts,
+      location
+    });
+    if (appBrainRes && appBrainRes.reply) {
+      return {
+        success: true,
+        ...appBrainRes,
+        onlineFetched: false,
+        sources: [],
+        suggestions: appBrainRes.suggestions || [
+          'How does Stealth Mode work in SilentSOS?',
+          'How does Auto-Capture Surveillance record evidence?',
+          'Where is the nearest police station?'
+        ]
+      };
+    }
+  }
+
+  // 3. Determine if query is in-range (Safety/Medical/SilentSOS Controls) vs OUT OF RANGE (External/General Knowledge)
+  const isInRangeSafetyOrMedical = isAppOrSafetyQuery(cleanMessage);
+
+  // If in-range (specific safety evasion, medical first aid, or SilentSOS telemetry):
+  // Check our specialized internal brain first
+  if (isInRangeSafetyOrMedical) {
+    const directBrainRes = queryAiBrain({
+      message: cleanMessage,
+      history,
+      user,
+      settings,
+      contacts,
+      location
+    });
+
+    if (directBrainRes && directBrainRes.reply && directBrainRes.intent !== 'conversational_empathy') {
+      return {
+        success: true,
+        ...directBrainRes,
+        onlineFetched: false,
+        sources: [],
+        suggestions: directBrainRes.suggestions || deriveSmartSuggestions(cleanMessage, directBrainRes.reply)
+      };
+    }
+  }
+
+  // 4. FIRST PREFERENCE FOR OUT-OF-RANGE TOPICS: LIVE ONLINE WEB RETRIEVAL
+  // If the query is out-of-range, search online first
   let onlineData = null;
   let groundingPrompt = '';
   try {
@@ -417,7 +541,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
   const onlineSources = onlineData?.results?.map(r => ({ title: r.title, url: r.url, source: r.source })) || [];
 
   try {
-    // 1. Try Configured Gemini API
+    // A. Try Configured Gemini API
     const geminiRes = await tryGeminiApi(cleanMessage, history, groundingPrompt);
     if (geminiRes && geminiRes.reply) {
       return {
@@ -431,7 +555,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       };
     }
 
-    // 2. Try Configured Groq API
+    // B. Try Configured Groq API
     const groqRes = await tryGroqApi(cleanMessage, history, groundingPrompt);
     if (groqRes && groqRes.reply) {
       return {
@@ -445,7 +569,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       };
     }
 
-    // 3. Try Configured OpenAI API
+    // C. Try Configured OpenAI API
     const openAiRes = await tryOpenAiApi(cleanMessage, history, groundingPrompt);
     if (openAiRes && openAiRes.reply) {
       return {
@@ -459,7 +583,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       };
     }
 
-    // 4. Try Free High-Performance Neural LLM Engine (Pollinations AI)
+    // D. Try Free High-Performance Neural LLM Engine (Pollinations AI)
     const neuralRes = await tryPollinationsAi(cleanMessage, history, groundingPrompt);
     if (neuralRes && neuralRes.reply) {
       return {
@@ -473,7 +597,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       };
     }
 
-    // 5. Try Local Ollama LLM
+    // E. Try Local Ollama LLM
     const localLlmRes = await tryLocalOllama(cleanMessage, history, groundingPrompt);
     if (localLlmRes && localLlmRes.reply) {
       return {
@@ -487,7 +611,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       };
     }
 
-    // 6. Direct Online Knowledge Synthesis (When LLMs are offline or unreachable)
+    // F. Direct Online Knowledge Synthesis (When LLMs are offline or unreachable)
     if (onlineData) {
       const onlineSynthesized = synthesizeOnlineResponse(cleanMessage, onlineData);
       if (onlineSynthesized && onlineSynthesized.reply) {
@@ -495,7 +619,7 @@ export async function generateAiAssistantReply({ message, history = [], user, se
       }
     }
 
-    // 7. Comprehensive In-House Cognitive Knowledge Engine (Offline Fallback)
+    // G. Comprehensive In-House Cognitive Knowledge Engine (Offline Fallback)
     const localBrainRes = queryAiBrain({
       message: cleanMessage,
       history,
