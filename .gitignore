@@ -48,6 +48,12 @@ Thumbs.db
 */.gradle/
 *.apk
 *.aab
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
 local.properties
 */local.properties
 

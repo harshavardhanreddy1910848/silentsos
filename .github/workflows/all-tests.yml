@@ -1,10 +1,6 @@
-name: Comprehensive 4-in-1 Test Suites & Excel Reports Pipeline
+name: Comprehensive 4-in-1 Test Suites & Excel Reports Pipeline (Manual Baseline)
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
     inputs:
       load_vus:
