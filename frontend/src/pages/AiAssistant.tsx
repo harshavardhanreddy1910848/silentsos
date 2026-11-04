@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../AppContext';
 import {
   ArrowLeft,
   Bot,
@@ -22,17 +23,16 @@ export function AiAssistant() {
   const navigate = useNavigate();
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
 
-  const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
-
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([
+    'What is artificial intelligence?',
+    'Explain Python programming.',
+    'What is cybersecurity?',
+    'How does GPS tracking work?',
+    'What are the features of SilentSOS?',
     'What should I do if someone is following me?',
-    'How can I stay safe when travelling alone?',
-    'I feel unsafe right now.',
-    'How does Stealth Mode work in SilentSOS?',
-    'How do I perform CPR?',
-    'What is a Zero FIR in India?'
+    'How can I stay safe when travelling alone?'
   ]);
 
   const [messages, setMessages] = useState<AiMessage[]>(() => {
@@ -287,7 +287,7 @@ export function AiAssistant() {
         {aiLoading && (
           <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-surfaceHighlight/60 border border-slate-800 text-cyan-400 text-xs w-fit">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
-            <span className="font-medium">Formulating tactical response from local knowledge base...</span>
+            <span className="font-medium">Formulating intelligent response...</span>
           </div>
         )}
 
@@ -332,7 +332,7 @@ export function AiAssistant() {
             type="text"
             value={aiInput}
             onChange={(e) => setAiInput(e.target.value)}
-            placeholder="Ask AI defense assistant (e.g. 'What is a Zero FIR?', 'CPR steps')..."
+            placeholder="Ask any question (e.g. AI, Python, GPS, Newton's laws, personal safety)..."
             disabled={aiLoading}
             className="flex-1 bg-surfaceHighlight/60 border border-slate-800 focus:border-cyan-500 rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
           />

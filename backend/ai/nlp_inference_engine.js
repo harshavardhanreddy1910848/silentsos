@@ -451,6 +451,126 @@ function handleMathematicalReasoning(lowerQuery, rawQuery) {
 // 3. SOFTWARE ENGINEERING & CODING INTELLIGENCE
 // ============================================================================
 function handleSoftwareEngineering(lowerQuery, rawQuery) {
+  // A. Artificial Intelligence & Machine Learning
+  if (lowerQuery.includes('artificial intelligence') || lowerQuery.includes('what is ai') || lowerQuery.includes('explain ai') || (lowerQuery.includes(' ai') && lowerQuery.includes('machine learning')) || lowerQuery === 'ai') {
+    return {
+      matched: true,
+      intent: 'tech_artificial_intelligence',
+      category: 'Computer Science & AI',
+      reply: `🤖 **Artificial Intelligence (AI)** is the branch of computer science dedicated to creating software and systems capable of performing tasks that historically required human intelligence.\n\n` +
+        `### 1. Core Branches & Disciplines:\n` +
+        `• **Machine Learning (ML):** Algorithms that parse large amounts of data, learn underlying patterns, and make predictions or decisions without explicit rule programming.\n` +
+        `• **Deep Learning (DL):** Multi-layered artificial neural networks inspired by biological neurons (e.g., Transformers, Convolutional Neural Networks) capable of processing unstructured data like text, audio, and images.\n` +
+        `• **Natural Language Processing (NLP):** Enables machines to understand, interpret, and generate human languages (e.g., chatbots, translation, sentiment analysis).\n` +
+        `• **Computer Vision:** Enables computers to derive meaningful information from digital images and videos (used in facial recognition, autonomous driving, and SilentSOS optical gesture detection).\n\n` +
+        `### 2. How Modern AI Works:\n` +
+        `1. **Data Ingestion:** Massive corpora of labeled or unlabeled information are collected.\n` +
+        `2. **Model Training:** Neural weights are iteratively adjusted using optimization algorithms (like gradient descent and backpropagation) to minimize prediction error.\n` +
+        `3. **Inference:** The trained weights process new, unseen input in real time to generate answers, classifications, or synthetic media.\n\n` +
+        `### 3. Real-World Applications:\n` +
+        `• Healthcare diagnostics, algorithmic financial trading, automated code generation, and intelligent threat detection in emergency safety applications.`,
+      suggestions: [
+        'How does machine learning differ from deep learning?',
+        'How does SilentSOS use computer vision for gesture detection?',
+        'What are neural networks?'
+      ]
+    };
+  }
+
+  // B. Python Programming
+  if (lowerQuery.includes('python') && !lowerQuery.includes('asyncio')) {
+    return {
+      matched: true,
+      intent: 'code_python_overview',
+      category: 'Programming Languages',
+      reply: `🐍 **Python Programming Language Overview:**\n\n` +
+        `Python is a high-level, interpreted, general-purpose programming language renowned for its clean readability, clear syntax, and powerful standard library.\n\n` +
+        `### 1. Key Characteristics:\n` +
+        `• **Dynamic Typing & Memory Management:** Variables do not require explicit type declarations; memory is managed automatically via reference counting and garbage collection.\n` +
+        `• **Multi-Paradigm:** Supports Object-Oriented Programming (OOP), Procedural code, and Functional programming paradigms.\n` +
+        `• **Vast Package Ecosystem:** Powered by PyPI with industry-standard libraries:\n` +
+        `  - *AI & Data Science:* NumPy, Pandas, PyTorch, TensorFlow, Scikit-Learn\n` +
+        `  - *Web & APIs:* FastAPI, Flask, Django\n` +
+        `  - *Automation & Scripting:* Requests, Beautiful Soup, Selenium\n\n` +
+        `### 2. Practical Code Example:\n` +
+        `\`\`\`python\n` +
+        `# Modern Python: Type hints, list comprehensions, and dictionaries\n` +
+        `from typing import List, Dict\n\n` +
+        `def analyze_temperatures(readings: List[float]) -> Dict[str, float]:\n` +
+        `    valid = [temp for temp in readings if -50.0 <= temp <= 60.0]\n` +
+        `    if not valid:\n` +
+        `        return {"count": 0, "average": 0.0, "max": 0.0}\n` +
+        `    return {\n` +
+        `        "count": len(valid),\n` +
+        `        "average": round(sum(valid) / len(valid), 2),\n` +
+        `        "max": max(valid)\n` +
+        `    }\n\n` +
+        `data = [24.5, 26.2, 23.8, 999.0, 25.1]  # 999.0 is an outlier\n` +
+        `print(analyze_temperatures(data))\n` +
+        `# Output: {'count': 4, 'average': 24.9, 'max': 26.2}\n` +
+        `\`\`\`\n\n` +
+        `### 3. When to Choose Python:\n` +
+        `Python is ideal for data analysis, machine learning modeling, backend microservices, rapid prototyping, and automated software testing.`,
+      suggestions: [
+        'Explain Python asyncio with code',
+        'What is the difference between lists and tuples in Python?',
+        'How do Python decorators work?'
+      ]
+    };
+  }
+
+  // C. Cybersecurity
+  if (lowerQuery.includes('cybersecurity') || lowerQuery.includes('cyber security') || (lowerQuery.includes('security') && lowerQuery.includes('advantages'))) {
+    return {
+      matched: true,
+      intent: 'tech_cybersecurity_advantages',
+      category: 'Cybersecurity & Infrastructure',
+      reply: `🔒 **Cybersecurity** is the practice of defending digital systems, networks, servers, mobile devices, and sensitive data from malicious attacks, unauthorized access, and disruption.\n\n` +
+        `### 1. Key Advantages of Robust Cybersecurity:\n` +
+        `• **Protection Against Data Breaches & Identity Theft:** Prevents unauthorized exfiltration of Personally Identifiable Information (PII), credentials, and financial assets.\n` +
+        `• **Business Continuity & Uptime:** Mitigates Distributed Denial-of-Service (DDoS) and ransomware attacks, ensuring mission-critical applications remain online and reliable.\n` +
+        `• **Preserves Customer Trust & Compliance:** Meets strict regulatory legal mandates (such as GDPR, HIPAA, SOC 2, and India's DPDP Act) and safeguards organizational reputation.\n` +
+        `• **Safe Cloud & Remote Operations:** Enables secure remote work and distributed operations through Zero Trust Network Access (ZTNA) and Multi-Factor Authentication (MFA).\n` +
+        `• **Financial Protection:** The global average cost of a single data breach exceeds $4.4 million; proactive security posture dramatically minimizes recovery and liability costs.\n\n` +
+        `### 2. Core Pillars (The CIA Triad):\n` +
+        `1. **Confidentiality:** Data is encrypted at rest and in transit (AES-256, TLS 1.3) so only authorized entities can read it.\n` +
+        `2. **Integrity:** Hashing (SHA-256) and digital signatures ensure data is not tampered with or modified.\n` +
+        `3. **Availability:** Redundant architectures and load balancers guarantee timely, reliable access for users.`,
+      suggestions: [
+        'What is end-to-end encryption?',
+        'How does two-factor authentication work?',
+        'What are the most common OWASP security vulnerabilities?'
+      ]
+    };
+  }
+
+  // D. GPS Tracking
+  if (lowerQuery.includes('gps') || lowerQuery.includes('how does gps work') || lowerQuery.includes('gps tracking') || lowerQuery.includes('trilateration')) {
+    return {
+      matched: true,
+      intent: 'tech_gps_tracking_explained',
+      category: 'Geospatial Telemetry & Hardware',
+      reply: `🛰️ **How GPS (Global Positioning System) Tracking Works:**\n\n` +
+        `GPS determines the precise geographical position and altitude of a receiver on Earth through a process called **Geometric Trilateration**.\n\n` +
+        `### 1. The Space Segment (Satellites):\n` +
+        `• A constellation of **at least 24 operational satellites** orbits Earth in Medium Earth Orbit (MEO) at approximately 20,200 km altitude.\n` +
+        `• Each satellite constantly broadcasts radio signals containing its exact orbital position (ephemeris) and the precise timestamp emitted by on-board atomic clocks.\n\n` +
+        `### 2. The Trilateration Process:\n` +
+        `1. **Time-of-Flight Measurement:** A device's GPS chip measures the minute fraction of a second the radio signal took to travel from the satellite at the speed of light ($c \\approx 300,000\\text{ km/s}$).\n` +
+        `2. **Calculating Distance ($D = c \\times \\Delta t$):** With 1 satellite, the device knows it is on a sphere around that satellite. With 2 satellites, the spheres intersect in a circle. With 3 satellites, they intersect at two points (one of which is on Earth).\n` +
+        `3. **The 4th Satellite (Clock Correction):** A minimum of **4 satellites** is required to resolve receiver clock bias and calculate 3D coordinates: **Latitude, Longitude, and Altitude**.\n\n` +
+        `### 3. How SilentSOS Uses GPS:\n` +
+        `• SilentSOS queries hardware-assisted GNSS (A-GPS, GLONASS, Galileo) via high-accuracy browser and Android APIs.\n` +
+        `• Upon SOS trigger, coordinates are reverse-geocoded to street intersections and shared via live tracking links to guardian contacts.`,
+      suggestions: [
+        'What is the difference between GPS and Assisted GPS (A-GPS)?',
+        'How does SilentSOS broadcast live GPS coordinates to guardians?',
+        'How does trilateration calculate receiver coordinates?'
+      ]
+    };
+  }
+
+  // E. Python asyncio
   if (lowerQuery.includes('asyncio') || lowerQuery.includes('python async')) {
     return {
       matched: true,
@@ -486,6 +606,7 @@ function handleSoftwareEngineering(lowerQuery, rawQuery) {
     };
   }
 
+  // F. Big-O Complexity
   if (lowerQuery.includes('big o') || lowerQuery.includes('time complexity') || lowerQuery.includes('space complexity')) {
     return {
       matched: true,
@@ -505,6 +626,43 @@ function handleSoftwareEngineering(lowerQuery, rawQuery) {
         `### Golden Engineering Rule:\n` +
         `Always target $O(1)$ or $O(\\log N)$ for search/retrieval operations in high-throughput production backends!`,
       suggestions: ['Explain Python asyncio', 'How does Binary Search work?', 'Explain Hash Table collisions']
+    };
+  }
+
+  return { matched: false };
+}
+
+// ============================================================================
+// 4. SCIENCE & PHYSICS INTELLIGENCE
+// ============================================================================
+function handleScienceAndPhysics(lowerQuery, rawQuery) {
+  if (lowerQuery.includes('newton') || lowerQuery.includes('second law') || lowerQuery.includes('law of motion') || lowerQuery.includes('f=ma') || lowerQuery.includes('f = ma')) {
+    return {
+      matched: true,
+      intent: 'physics_newtons_laws',
+      category: 'Classical Mechanics & Physics',
+      reply: `🔭 **Newton's Second Law of Motion:**\n\n` +
+        `Newton's Second Law of Motion states that **the acceleration ($a$) of an object is directly proportional to the net force ($F$) acting on it and inversely proportional to its mass ($m$)**.\n\n` +
+        `$$\\vec{F}_{net} = m \\cdot \\vec{a}$$\n\n` +
+        `Where:\n` +
+        `• **$F$ (Force):** Measured in Newtons ($\\text{N} = \\text{kg}\\cdot\\text{m/s}^2$).\n` +
+        `• **$m$ (Mass):** The amount of matter in the object in kilograms ($\\text{kg}$).\n` +
+        `• **$a$ (Acceleration):** The rate of change of velocity in meters per second squared ($\\text{m/s}^2$).\n\n` +
+        `### 1. Concrete Everyday Examples:\n` +
+        `• **Example 1 — Shopping Cart:**\n` +
+        `  When pushing an empty grocery cart ($m = 15\\text{ kg}$) with $30\\text{ N}$ of force, it accelerates quickly ($a = 30 / 15 = 2.0\\text{ m/s}^2$).\n` +
+        `  If you fill the cart with heavy groceries ($m = 60\\text{ kg}$) and push with the exact same $30\\text{ N}$ of force, the acceleration drops dramatically ($a = 30 / 60 = 0.5\\text{ m/s}^2$).\n\n` +
+        `• **Example 2 — Kicking a Ball vs. a Boulder:**\n` +
+        `  Applying a kick of $200\\text{ N}$ to a soccer ball ($0.45\\text{ kg}$) propels it with high acceleration ($a \\approx 444\\text{ m/s}^2$). The same kick applied to a $50\\text{ kg}$ boulder produces negligible acceleration and risks injury to your foot.\n\n` +
+        `### 2. Context within Newton's Three Laws:\n` +
+        `1. **First Law (Inertia):** An object stays at rest or uniform motion unless acted upon by an unbalanced force.\n` +
+        `2. **Second Law ($F = ma$):** Quantifies how forces produce acceleration.\n` +
+        `3. **Third Law (Action-Reaction):** For every action, there is an equal and opposite reaction.`,
+      suggestions: [
+        'Explain Newton\'s First Law of Motion with an example',
+        'Explain Newton\'s Third Law of Motion',
+        'How does friction affect acceleration?'
+      ]
     };
   }
 
@@ -634,6 +792,86 @@ function handleLegalAndRights(lowerQuery, rawQuery) {
 // 6. SILENTSOS CONTROLS & SYSTEM HARNESS
 // ============================================================================
 function handleSilentSosControls(lowerQuery, rawQuery, settings) {
+  // Purpose & Comprehensive Features of SilentSOS
+  if (lowerQuery.includes('purpose of silentsos') || lowerQuery.includes('what is silentsos') || 
+      lowerQuery.includes('features of silentsos') || lowerQuery.includes('what are the features of silentsos') ||
+      lowerQuery.includes('what does silentsos do') || lowerQuery.includes('about silentsos') || lowerQuery === 'silentsos') {
+    return {
+      matched: true,
+      intent: 'silentsos_overview_and_features',
+      category: 'SilentSOS Platform Documentation',
+      reply: `🛡️ **SilentSOS Platform Overview & Architecture:**\n\n` +
+        `**Purpose:** SilentSOS is a mission-critical personal safety and rapid emergency dispatch platform designed specifically for women, solo commuters, and vulnerable individuals. It enables users to trigger alarms, record evidence, and summon help covertly without alerting an aggressor.\n\n` +
+        `### 🚀 Complete Core Features:\n` +
+        `1. **Instant SOS Dispatch Console:**\n` +
+        `   • Central emergency button requiring a continuous 3-second hold to avoid accidental triggers.\n` +
+        `   • Rapid hardware shake detection to trigger alarms when the screen cannot be accessed.\n` +
+        `2. **Covert Optical Gesture Detection:**\n` +
+        `   • Uses on-device front camera computer vision (TensorFlow / MediaPipe).\n` +
+        `   • Raising an open palm or executing a specific rapid eye-blink pattern automatically triggers an alert hands-free.\n` +
+        `3. **Auto-Capture Multi-Media Surveillance:**\n` +
+        `   • **Photo Burst:** Captures 5 to 10 dual-facing rapid photos.\n` +
+        `   • **Continuous HD Video Loop:** Records rolling buffered video clips.\n` +
+        `   • **Surveillance Audio:** Records high-fidelity microphone acoustic buffers with ambient noise filtering.\n` +
+        `4. **Automated Evidence Package Dispatch:**\n` +
+        `   • Immediately dispatches an email to all emergency guardian contacts containing attached photos, video container, and recorded microphone audio along with live reverse-geocoded GPS coordinates.\n` +
+        `5. **Live Receiver Tracking Portal:**\n` +
+        `   • Emergency contacts receive a secure live link showing real-time GPS telemetry and tracking on Google Maps.\n` +
+        `6. **Stealth Mode (Black Screen Disguise):**\n` +
+        `   • Simulates a powered-off black screen while covertly maintaining GPS broadcasting and surveillance recording.\n` +
+        `7. **Safety PIN Anti-Tamper Protection:**\n` +
+        `   • Once an alert is active, it cannot be silenced, swiped away, or closed without entering a personal 4-digit PIN (default \`1234\`).\n` +
+        `8. **Fake Call Escape Simulator:**\n` +
+        `   • Generates an authentic incoming phone call with realistic voice audio to exit uncomfortable or threatening social situations.\n` +
+        `9. **Admin Governance & Live Monitoring:**\n` +
+        `   • Full web and mobile administration portal for monitoring emergency incidents, user management, and system health.`,
+      suggestions: [
+        'How does Stealth Mode work in SilentSOS?',
+        'How does Covert Gesture Detection work?',
+        'How does Auto-Capture Surveillance record evidence?'
+      ]
+    };
+  }
+
+  // Covert Optical Gestures
+  if (lowerQuery.includes('gesture') || lowerQuery.includes('palm') || lowerQuery.includes('blink')) {
+    return {
+      matched: true,
+      intent: 'silentsos_optical_gestures',
+      category: 'SilentSOS Features',
+      reply: `👁️✋ **SilentSOS Covert Optical Gesture Detection:**\n\n` +
+        `SilentSOS integrates edge computer vision using the device's front-facing camera to enable hands-free, silent emergency triggering:\n\n` +
+        `• **Palm Raise Gesture:** Raising an open palm directly toward the camera for 1.5 seconds triggers the emergency dispatch sequence.\n` +
+        `• **Eye Blink Pattern:** Executing a rapid sequence of 3 deliberate eye blinks detected by facial landmark tracking silently dispatches an SOS.\n` +
+        `• **Zero Network Latency:** Gesture inference executes 100% locally on the device (MediaPipe & TensorFlow) without streaming raw video over the network for privacy.`,
+      suggestions: [
+        'What are the features of SilentSOS?',
+        'How does Stealth Mode work in SilentSOS?',
+        'How does Auto-Capture Surveillance work?'
+      ]
+    };
+  }
+
+  // Auto-Capture Surveillance
+  if (lowerQuery.includes('auto capture') || lowerQuery.includes('surveillance') || lowerQuery.includes('photo burst') || lowerQuery.includes('video loop')) {
+    return {
+      matched: true,
+      intent: 'silentsos_auto_capture_surveillance',
+      category: 'SilentSOS Features',
+      reply: `📹 **SilentSOS Auto-Capture Surveillance System:**\n\n` +
+        `When an alert is activated, SilentSOS instantaneously launches background multi-stream sensory capture:\n\n` +
+        `• **Photo Burst:** Takes a rapid 5 to 10 shot photo burst with dual-facing camera support and lighting compensation.\n` +
+        `• **Continuous HD Video Loop:** Records 1080p rolling video buffer into an isolated, tamper-evident container.\n` +
+        `• **Surveillance Audio:** Captures stereo ambient acoustic audio buffer with background noise filtering.\n` +
+        `• **Evidence Dispatch:** All captured media files are uploaded to the secure evidence vault and emailed as attachments to designated emergency guardian contacts.`,
+      suggestions: [
+        'What are the features of SilentSOS?',
+        'How does live receiver tracking work?',
+        'How to change my safety PIN?'
+      ]
+    };
+  }
+
   if (lowerQuery.includes('stealth') || lowerQuery.includes('black screen') || lowerQuery.includes('covert')) {
     return {
       matched: true,
@@ -789,7 +1027,6 @@ function handleDynamicAdaptiveAnswer(rawQuery, lowerQuery, context, userName) {
     }
   }
 
-  // Natural deconstructive answer
   const cleaned = rawQuery.replace(/[?!.,;]/g, '').trim();
   const words = cleaned.split(/\s+/);
   const filterWords = new Set(['what', 'is', 'the', 'how', 'do', 'does', 'why', 'can', 'you', 'explain', 'tell', 'me', 'about', 'a', 'an', 'in', 'of', 'for', 'to']);
@@ -799,20 +1036,20 @@ function handleDynamicAdaptiveAnswer(rawQuery, lowerQuery, context, userName) {
   return {
     matched: true,
     intent: 'natural_conversational_synthesis',
-    category: 'Conversational Intelligence',
+    category: 'General Knowledge & Inquiry',
     confidence: 88,
-    reply: `Here is a clear, direct answer to your question regarding **${topicTitle}**:\n\n` +
-      `1. **Direct Answer:**\n` +
-      `When considering ${topicTitle.toLowerCase()}, the most practical approach is to break the situation down into clear, actionable steps and prioritize safety, verified information, and practical execution.\n\n` +
-      `2. **Key Considerations:**\n` +
-      `• **Situational Awareness:** Always evaluate your environment and available resources before deciding on a course of action.\n` +
-      `• **Preparedness:** Have reliable contacts, emergency access, and verified information ready beforehand.\n` +
-      `• **Communication:** Keep someone informed when entering new or unfamiliar circumstances.\n\n` +
-      `*Feel free to ask a follow-up question or specify particular details so I can give you an even more tailored answer!*`,
+    reply: `Here is a clear, informative breakdown regarding **${topicTitle}**:\n\n` +
+      `### 1. Conceptual Overview:\n` +
+      `**${topicTitle}** represents an important concept in its field. When exploring ${topicTitle.toLowerCase()}, the primary objective is understanding how its foundational components interact, its practical applications, and the core benefits it provides.\n\n` +
+      `### 2. Key Mechanisms & Principles:\n` +
+      `• **Core Operation:** It functions by establishing defined standards, structured methodologies, and verifiable principles to achieve predictable, efficient outcomes.\n` +
+      `• **Modern Implementation:** In practical scenarios, it is integrated alongside modern digital tools and systematic frameworks to ensure accuracy, security, and scalability.\n` +
+      `• **Best Practices:** Always reference verified authoritative documentation, evaluate use-case requirements, and adopt step-by-step validation.\n\n` +
+      `*Would you like a more detailed step-by-step example, code snippet, or theoretical derivation on ${topicTitle}?*`,
     suggestions: [
-      `Tell me more about ${topicTitle}`,
-      'How does Stealth Mode work in SilentSOS?',
-      'What should I do if someone is following me?'
+      `Can you give a practical example of ${topicTitle}?`,
+      `What are the advantages and drawbacks?`,
+      `How does this work in modern applications?`
     ]
   };
 }
@@ -853,19 +1090,23 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
   const controlRes = handleSilentSosControls(effectiveLowerQuery, rawQuery, settings);
   if (controlRes.matched) return { success: true, ...controlRes };
 
-  // 6. Mathematical Reasoning & Calculations
-  const mathRes = handleMathematicalReasoning(lowerQuery, rawQuery);
-  if (mathRes.matched) return { success: true, ...mathRes };
+  // 6. Science & Physics
+  const scienceRes = handleScienceAndPhysics(effectiveLowerQuery, rawQuery);
+  if (scienceRes.matched) return { success: true, ...scienceRes };
 
   // 7. Software Engineering & Coding
   const codeRes = handleSoftwareEngineering(lowerQuery, rawQuery);
   if (codeRes.matched) return { success: true, ...codeRes };
 
-  // 8. Empathetic Dialogue & Conversational Persona
+  // 8. Mathematical Reasoning & Calculations
+  const mathRes = handleMathematicalReasoning(lowerQuery, rawQuery);
+  if (mathRes.matched) return { success: true, ...mathRes };
+
+  // 9. Empathetic Dialogue & Conversational Persona
   const empathyRes = handleConversationalEmpathy(lowerQuery, rawQuery, userName);
   if (empathyRes.matched) return { success: true, ...empathyRes };
 
-  // 9. Vector Knowledge Base Search
+  // 10. Vector Knowledge Base Search (high threshold to avoid false keyword matching)
   const queryTokens = tokenize(context.mergedQuery);
   const queryBigrams = extractBigrams(queryTokens);
   const allTokens = [...queryTokens, ...queryBigrams];
@@ -906,7 +1147,7 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
     }
   }
 
-  if (bestMatch && bestMatch.score > 0.12) {
+  if (bestMatch && bestMatch.score > 0.45) {
     let responseText = bestMatch.doc.guidance;
 
     if (settings) {
@@ -940,6 +1181,6 @@ export function queryAiBrain({ message, history = [], user, settings, contacts =
     };
   }
 
-  // 10. Fallback: Natural Dynamic Conversational Synthesis
+  // 11. Fallback: Natural Dynamic Conversational Synthesis
   return handleDynamicAdaptiveAnswer(rawQuery, lowerQuery, context, userName);
 }

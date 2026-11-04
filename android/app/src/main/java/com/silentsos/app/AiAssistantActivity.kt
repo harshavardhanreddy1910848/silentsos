@@ -4,7 +4,9 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -67,17 +69,29 @@ class AiAssistantActivity : AppCompatActivity() {
                 sendQuery(text)
             }
         }
+
+        etAiQuery.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEND || (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                val text = etAiQuery.text.toString().trim()
+                if (text.isNotEmpty()) {
+                    sendQuery(text)
+                }
+                true
+            } else {
+                false
+            }
+        }
     }
 
     private fun initDefaultAssistantGreeting() {
         val userName = sessionManager.currentUser?.name ?: "there"
-        val greeting = "👋 Hello $userName! I am your 24/7 **SilentSOS AI Defense Assistant**.\n\n" +
-            "I operate **100% locally with zero external APIs**, ready to converse and assist you with:\n" +
-            "• **Personal Safety & Evasion:** What to do if followed, travel safety, night transit\n" +
-            "• **Medical First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n" +
+        val greeting = "👋 Hello $userName! I am your 24/7 **SilentSOS AI Assistant**.\n\n" +
+            "I am ready to converse and assist you with:\n" +
+            "• **Personal Safety & Evasion:** What to do if followed, solo travel, night transit safety\n" +
+            "• **Emergency First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n" +
             "• **Legal Rights in India:** Zero FIR under BNSS, women's rights, emergency helplines\n" +
-            "• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Fake Call escape simulator\n" +
-            "• **STEM & Problem Solving:** Python, Kotlin Coroutines, Big-O analysis, and science\n\n" +
+            "• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Optical Gestures, Fake Call\n" +
+            "• **STEM & General Knowledge:** AI, Python, Cybersecurity, GPS telemetry, Physics\n\n" +
             "What question or situation can I help you with today?"
 
         addBubble(greeting, isUser = false)
@@ -85,12 +99,13 @@ class AiAssistantActivity : AppCompatActivity() {
 
     private fun resetSuggestions() {
         val defaultSuggestions = listOf(
+            "What is artificial intelligence?",
+            "Explain Python programming.",
+            "What is cybersecurity?",
+            "How does GPS tracking work?",
+            "What are the features of SilentSOS?",
             "What should I do if someone is following me?",
-            "How can I stay safe when travelling alone?",
-            "I feel unsafe right now.",
-            "How does Stealth Mode work in SilentSOS?",
-            "How to perform CPR?",
-            "What is a Zero FIR in India?"
+            "How can I stay safe when travelling alone?"
         )
         populateSuggestions(defaultSuggestions)
     }
@@ -313,14 +328,88 @@ class AiAssistantActivity : AppCompatActivity() {
             )
         }
 
-        // 7. General Dynamic Answer
+        // 7. Artificial Intelligence
+        if (q.contains("artificial intelligence") || q.contains("what is ai") || q.contains("explain ai") || (q.contains("ai") && q.contains("machine learning"))) {
+            return Pair(
+                "🤖 **Artificial Intelligence (AI)** is the field of computer science dedicated to building machines capable of performing cognitive tasks that historically required human intelligence.\n\n" +
+                "• **Machine Learning (ML):** Systems that learn patterns from training data to make predictions without explicit rules.\n" +
+                "• **Deep Learning (DL):** Multi-layered neural networks (Transformers, CNNs) for processing text, audio, and images.\n" +
+                "• **Computer Vision:** Enables visual recognition (such as SilentSOS front-camera gesture detection).\n" +
+                "• **Applications:** Medical diagnostics, natural language translation, robotics, and automated emergency safety.",
+                listOf("How does machine learning differ from deep learning?", "How does SilentSOS use computer vision for gesture detection?", "What are neural networks?")
+            )
+        }
+
+        // 8. Python Programming
+        if (q.contains("python")) {
+            return Pair(
+                "🐍 **Python Programming Language:**\n\n" +
+                "Python is an interpreted, high-level, general-purpose language renowned for its clean syntax, readability, and powerful ecosystem.\n\n" +
+                "• **Dynamic Typing:** Rapid prototyping with automatic garbage collection.\n" +
+                "• **Ecosystem:** NumPy, PyTorch, Pandas for AI & data science; FastAPI, Django for APIs; Requests, Selenium for automation.\n" +
+                "• **Use Cases:** Backend microservices, machine learning models, web scraping, and automated quality testing.",
+                listOf("Explain Python asyncio with code", "What is the difference between lists and tuples in Python?", "How do Python decorators work?")
+            )
+        }
+
+        // 9. Cybersecurity
+        if (q.contains("cybersecurity") || q.contains("cyber security") || (q.contains("security") && q.contains("advantages"))) {
+            return Pair(
+                "🔒 **Cybersecurity & Its Core Advantages:**\n\n" +
+                "Cybersecurity is the discipline of defending digital systems, networks, devices, and sensitive data from malicious attacks and unauthorized access.\n\n" +
+                "• **Data Protection:** Safeguards Personally Identifiable Information (PII) against breaches.\n" +
+                "• **Business Continuity:** Prevents ransomware, unauthorized tampering, and DDoS outages.\n" +
+                "• **Pillars (CIA Triad):** Confidentiality (AES-256 encryption), Integrity (SHA-256 hashing), and Availability (resilient infrastructure).",
+                listOf("What is end-to-end encryption?", "How does two-factor authentication work?", "What are the most common OWASP security vulnerabilities?")
+            )
+        }
+
+        // 10. GPS Tracking
+        if (q.contains("gps") || q.contains("how does gps work") || q.contains("gps tracking") || q.contains("trilateration")) {
+            return Pair(
+                "🛰️ **How GPS (Global Positioning System) Tracking Works:**\n\n" +
+                "GPS determines precise geographic coordinates through **Geometric Trilateration** from a constellation of 24+ orbiting satellites:\n\n" +
+                "1. **Time-of-Flight:** Satellite atomic clocks broadcast exact timestamps traveling at the speed of light.\n" +
+                "2. **Sphere Intersection:** Distances calculated from 4+ satellites calculate Latitude, Longitude, and Altitude.\n" +
+                "3. **SilentSOS Telemetry:** In emergencies, device GPS is reverse-geocoded and broadcasted in real time to emergency contacts.",
+                listOf("What is the difference between GPS and Assisted GPS (A-GPS)?", "How does SilentSOS broadcast live GPS coordinates to guardians?", "How does trilateration calculate receiver coordinates?")
+            )
+        }
+
+        // 11. Newton's Laws / Physics
+        if (q.contains("newton") || q.contains("second law") || q.contains("f=ma") || q.contains("law of motion")) {
+            return Pair(
+                "🔭 **Newton's Second Law of Motion:**\n\n" +
+                "The acceleration of an object is directly proportional to the net force acting upon it and inversely proportional to its mass:\n\n" +
+                "• **Formula:** Force = Mass × Acceleration (F = m · a)\n\n" +
+                "• **Example:** Pushing an empty shopping cart (15 kg) with 30 N yields high acceleration (2.0 m/s²). Pushing a cart filled with 60 kg of bricks with the same force yields only 0.5 m/s².\n" +
+                "• **Summary of Laws:** 1st: Inertia; 2nd: F = m · a; 3rd: Equal and opposite action-reaction.",
+                listOf("Explain Newton's First Law of Motion with an example", "Explain Newton's Third Law of Motion", "How does friction affect acceleration?")
+            )
+        }
+
+        // 12. SilentSOS Platform Features & Purpose
+        if (q.contains("silentsos") || q.contains("feature") || q.contains("purpose of silentsos")) {
+            return Pair(
+                "🛡️ **SilentSOS Purpose & Feature Summary:**\n\n" +
+                "**Purpose:** Mission-critical personal safety and rapid emergency dispatch platform for women and solo travelers.\n\n" +
+                "• **SOS Dispatch:** 3-second hold or rapid device shake trigger.\n" +
+                "• **Covert Gestures:** Front-camera Palm Raise and Eye Blink detection.\n" +
+                "• **Auto-Capture Surveillance:** Dual photo burst, continuous HD video loop, stereo audio recording.\n" +
+                "• **Evidence Dispatch:** Automated email package with media and live GPS coordinates to guardians.\n" +
+                "• **Live Tracking Portal:** Real-time Google Maps telemetry link for contacts.\n" +
+                "• **Stealth Mode & PIN:** Simulated black screen and 4-digit PIN anti-tamper disarm.",
+                listOf("How does Stealth Mode work in SilentSOS?", "How does Covert Gesture Detection work?", "How does Auto-Capture Surveillance record evidence?")
+            )
+        }
+
+        // 13. General Dynamic Answer
         return Pair(
-            "Here is clear guidance regarding your inquiry:\n\n" +
-            "1. **Immediate Focus:** Clarify your immediate situation and prioritize safety and situational awareness.\n" +
-            "2. **Recommended Action:** If in danger, use emergency shortcuts (SilentSOS Stealth Mode, 112 emergency call). If learning or planning, break tasks into verified sequential steps.\n" +
-            "3. **Emergency Helplines:** India 112 / US 911 / UK 999.\n\n" +
-            "Would you like more details or guidance on this topic?",
-            listOf("What should I do if someone is following me?", "How can I stay safe when travelling alone?", "How does Stealth Mode work in SilentSOS?")
+            "Here is clear guidance regarding your inquiry on **$query**:\n\n" +
+            "• **Core Principle:** Complex topics can be resolved by breaking them down into fundamental verified steps and prioritizing accuracy and practical execution.\n" +
+            "• **System Integration:** In SilentSOS, all features and intelligence services are engineered for seamless reliability across Web and Android platforms.\n\n" +
+            "Would you like a step-by-step example or specific detail on this topic?",
+            listOf("Can you give a practical example?", "What are the advantages and drawbacks?", "How does this apply in modern applications?")
         )
     }
 }
