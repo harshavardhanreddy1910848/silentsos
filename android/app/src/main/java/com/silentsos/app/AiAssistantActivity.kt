@@ -204,7 +204,7 @@ class AiAssistantActivity : AppCompatActivity() {
                         setOnClickListener {
                             try {
                                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                            } catch (_) {}
+                            } catch (_: Exception) {}
                         }
                     }
                     sourcesRow.addView(btnSrc, LinearLayout.LayoutParams(
