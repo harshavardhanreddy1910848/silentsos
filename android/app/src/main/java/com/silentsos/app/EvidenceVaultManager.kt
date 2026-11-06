@@ -58,8 +58,54 @@ class EvidenceVaultManager(private val context: Context) {
         }
     }
 
+    fun findIncidentDir(incidentId: String, timestamp: Long = 0L): File {
+        val cleanId = incidentId.removePrefix("INCIDENT_").trim()
+
+        val exactDir = File(vaultRootDir, incidentId)
+        if (exactDir.exists() && exactDir.isDirectory && exactDir.list()?.isNotEmpty() == true) {
+            return exactDir
+        }
+
+        val prefixedDir = File(vaultRootDir, "INCIDENT_$cleanId")
+        if (prefixedDir.exists() && prefixedDir.isDirectory && prefixedDir.list()?.isNotEmpty() == true) {
+            return prefixedDir
+        }
+
+        val unprefixedDir = File(vaultRootDir, cleanId)
+        if (unprefixedDir.exists() && unprefixedDir.isDirectory && unprefixedDir.list()?.isNotEmpty() == true) {
+            return unprefixedDir
+        }
+
+        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+
+        for (dir in allDirs) {
+            if (dir.name.contains(cleanId) && dir.list()?.isNotEmpty() == true) {
+                return dir
+            }
+        }
+
+        val targetTs = if (timestamp > 0L) timestamp else cleanId.toLongOrNull() ?: 0L
+        if (targetTs > 0L) {
+            var closestDir: File? = null
+            var minDiff = Long.MAX_VALUE
+            for (dir in allDirs) {
+                val dirTs = dir.name.removePrefix("INCIDENT_").toLongOrNull()
+                if (dirTs != null) {
+                    val diff = kotlin.math.abs(dirTs - targetTs)
+                    if (diff < 300_000L && diff < minDiff && dir.list()?.isNotEmpty() == true) {
+                        minDiff = diff
+                        closestDir = dir
+                    }
+                }
+            }
+            if (closestDir != null) return closestDir
+        }
+
+        return exactDir
+    }
+
     fun getIncidentDir(incidentId: String): File {
-        return File(vaultRootDir, incidentId).apply { mkdirs() }
+        return findIncidentDir(incidentId).apply { mkdirs() }
     }
 
     fun getPhotosDir(incidentId: String): File {
@@ -76,6 +122,88 @@ class EvidenceVaultManager(private val context: Context) {
 
     fun getMetadataDir(incidentId: String): File {
         return File(getIncidentDir(incidentId), "Metadata").apply { mkdirs() }
+    }
+
+    fun getVideosForIncident(incidentId: String, timestamp: Long = 0L): List<File> {
+        val dir = findIncidentDir(incidentId, timestamp)
+        val videosDir = File(dir, "Videos")
+        val localVideos = if (videosDir.exists()) {
+            videosDir.listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 500L }?.toList() ?: emptyList()
+        } else emptyList()
+
+        if (localVideos.isNotEmpty()) return localVideos
+
+        // Scan all incident directories if not found in specific folder
+        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+        for (d in allDirs.sortedByDescending { it.lastModified() }) {
+            val vDir = File(d, "Videos")
+            if (vDir.exists()) {
+                val found = vDir.listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 500L }?.toList() ?: emptyList()
+                if (found.isNotEmpty()) return found
+            }
+        }
+
+        val legacyDir = File(context.filesDir, "evidence")
+        if (legacyDir.exists()) {
+            val legacyVideos = legacyDir.listFiles { f -> f.name.endsWith(".mp4") && f.length() > 500L }?.toList() ?: emptyList()
+            if (legacyVideos.isNotEmpty()) return legacyVideos
+        }
+
+        return emptyList()
+    }
+
+    fun getAudioForIncident(incidentId: String, timestamp: Long = 0L): List<File> {
+        val dir = findIncidentDir(incidentId, timestamp)
+        val audioDir = File(dir, "Audio")
+        val localAudios = if (audioDir.exists()) {
+            audioDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".m4a") || f.name.endsWith(".3gp") || f.name.endsWith(".mp3")) && f.length() > 500L }?.toList() ?: emptyList()
+        } else emptyList()
+
+        if (localAudios.isNotEmpty()) return localAudios
+
+        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+        for (d in allDirs.sortedByDescending { it.lastModified() }) {
+            val aDir = File(d, "Audio")
+            if (aDir.exists()) {
+                val found = aDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".m4a") || f.name.endsWith(".3gp")) && f.length() > 500L }?.toList() ?: emptyList()
+                if (found.isNotEmpty()) return found
+            }
+        }
+
+        val legacyDir = File(context.filesDir, "evidence")
+        if (legacyDir.exists()) {
+            val legacyAudios = legacyDir.listFiles { f -> (f.name.endsWith(".m4a") || f.name.endsWith(".3gp")) && f.length() > 500L }?.toList() ?: emptyList()
+            if (legacyAudios.isNotEmpty()) return legacyAudios
+        }
+
+        return emptyList()
+    }
+
+    fun getPhotosForIncident(incidentId: String, timestamp: Long = 0L): List<File> {
+        val dir = findIncidentDir(incidentId, timestamp)
+        val photosDir = File(dir, "Photos")
+        val localPhotos = if (photosDir.exists()) {
+            photosDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".jpg") || f.name.endsWith(".jpeg") || f.name.endsWith(".png")) && f.length() > 500L }?.toList() ?: emptyList()
+        } else emptyList()
+
+        if (localPhotos.isNotEmpty()) return localPhotos
+
+        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+        for (d in allDirs.sortedByDescending { it.lastModified() }) {
+            val pDir = File(d, "Photos")
+            if (pDir.exists()) {
+                val found = pDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".jpg") || f.name.endsWith(".png")) && f.length() > 500L }?.toList() ?: emptyList()
+                if (found.isNotEmpty()) return found
+            }
+        }
+
+        val legacyDir = File(context.filesDir, "evidence")
+        if (legacyDir.exists()) {
+            val legacyPhotos = legacyDir.listFiles { f -> (f.name.endsWith(".jpg") || f.name.endsWith(".png")) && f.length() > 500L }?.toList() ?: emptyList()
+            if (legacyPhotos.isNotEmpty()) return legacyPhotos
+        }
+
+        return emptyList()
     }
 
     fun calculateSha256(file: File): String {

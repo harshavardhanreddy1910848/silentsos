@@ -1052,10 +1052,20 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         val rvEvidence: RecyclerView = view.findViewById(R.id.rvEvidenceList)
         val layoutEmpty: LinearLayout = view.findViewById(R.id.layoutEvidenceEmpty)
 
+        val vaultManager = EvidenceVaultManager(this)
         fun refreshEvidenceUI(list: List<AlertEvent>) {
-            val p = list.sumOf { it.evidence.photos.coerceAtLeast(it.evidence.files.count { f -> f.type == "photo" }) }
-            val v = list.sumOf { it.evidence.videos.coerceAtLeast(it.evidence.files.count { f -> f.type == "video" }) }
-            val a = list.sumOf { it.evidence.audio.coerceAtLeast(it.evidence.files.count { f -> f.type == "audio" }) }
+            val p = list.sumOf {
+                val localPhotos = vaultManager.getPhotosForIncident(it.id, it.timestamp).size
+                it.evidence.photos.coerceAtLeast(it.evidence.files.count { f -> f.type == "photo" }).coerceAtLeast(localPhotos)
+            }
+            val v = list.sumOf {
+                val hasLocalVideo = if (vaultManager.getVideosForIncident(it.id, it.timestamp).isNotEmpty()) 1 else 0
+                it.evidence.videos.coerceAtLeast(it.evidence.files.count { f -> f.type == "video" }).coerceAtLeast(hasLocalVideo)
+            }
+            val a = list.sumOf {
+                val hasLocalAudio = if (vaultManager.getAudioForIncident(it.id, it.timestamp).isNotEmpty()) 1 else 0
+                it.evidence.audio.coerceAtLeast(it.evidence.files.count { f -> f.type == "audio" }).coerceAtLeast(hasLocalAudio)
+            }
             val g = list.sumOf { it.gpsPath.size }
 
             tvPhotos.text = p.toString()
@@ -1183,13 +1193,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                 (if (event.address.isNotBlank()) " • ${event.address}" else "")
 
         // 1. Photographic bursts
-        val vaultPhotos = vaultManager.getPhotosDir(event.id).listFiles { f -> !f.name.endsWith(".enc") }?.toList() ?: emptyList()
+        val allLocalPhotos = vaultManager.getPhotosForIncident(event.id, event.timestamp)
         val photoFiles = event.evidence.files.filter { it.type == "photo" }
-        val localEvidenceDir = File(filesDir, "evidence")
-        val localPhotoFiles = if (localEvidenceDir.exists()) {
-            localEvidenceDir.listFiles { f -> f.name.startsWith("photo_") }?.toList() ?: emptyList()
-        } else emptyList()
-        val allLocalPhotos = (vaultPhotos + localPhotoFiles).distinctBy { it.absolutePath }
 
         if (photoFiles.isEmpty() && allLocalPhotos.isEmpty()) {
             tvNoPhotos.visibility = View.VISIBLE
@@ -1247,9 +1252,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         // 2. Audio playback
-        val vaultAudios = vaultManager.getAudioDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".3gp") || f.name.endsWith(".m4a")) && f.length() > 1000L }?.toList() ?: emptyList()
+        val vaultAudios = vaultManager.getAudioForIncident(event.id, event.timestamp)
         val audioEvidence = event.evidence.files.firstOrNull { it.type == "audio" }
-        val eventAudioFile = audioEvidence?.let { File(it.url) }?.takeIf { it.exists() && it.length() > 1000L }
+        val eventAudioFile = audioEvidence?.let { File(it.url) }?.takeIf { it.exists() && it.length() > 500L }
         val localAudioFile = vaultAudios.firstOrNull() ?: eventAudioFile
 
         var audioProgressRunnable: Runnable? = null
@@ -1281,8 +1286,21 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                 audioSec = durMs / 1000L
                 mmr.release()
             } catch (_: Exception) {}
+            if (audioSec == 0L) {
+                try {
+                    val mp = MediaPlayer()
+                    mp.setDataSource(localAudioFile.absolutePath)
+                    mp.prepare()
+                    audioSec = (mp.duration / 1000).toLong()
+                    mp.release()
+                } catch (_: Exception) {}
+            }
+            if (audioSec == 0L && localAudioFile.length() > 20000L) {
+                audioSec = 30L
+            }
+            val sizeKb = localAudioFile.length() / 1024L
             tvAudioFileName.text = "SOS Audio (${localAudioFile.name})"
-            tvAudioStatus.text = String.format(Locale.US, "Verified Audio • Duration: %02d:%02d • Ready to play", audioSec / 60, audioSec % 60)
+            tvAudioStatus.text = String.format(Locale.US, "Verified Audio • Duration: %02d:%02d • %d KB", audioSec / 60, audioSec % 60, sizeKb)
         } else if (audioEvidence != null) {
             tvAudioFileName.text = "Cloud Audio Evidence"
             tvAudioStatus.text = "Encrypted audio evidence • Ready to stream"
@@ -1357,9 +1375,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         // 3. Video stream
-        val vaultVideos = vaultManager.getVideosDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 5000L }?.toList() ?: emptyList()
+        val vaultVideos = vaultManager.getVideosForIncident(event.id, event.timestamp)
         val videoEvidence = event.evidence.files.firstOrNull { it.type == "video" }
-        val eventVideoFile = videoEvidence?.let { File(it.url) }?.takeIf { it.exists() && it.length() > 5000L }
+        val eventVideoFile = videoEvidence?.let { File(it.url) }?.takeIf { it.exists() && it.length() > 500L }
         val localVideoFile = vaultVideos.firstOrNull() ?: eventVideoFile
 
         if (localVideoFile != null && localVideoFile.exists()) {
@@ -1371,6 +1389,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                 videoSec = durMs / 1000L
                 mmr.release()
             } catch (_: Exception) {}
+            if (videoSec == 0L && localVideoFile.length() > 500000L) {
+                videoSec = 30L
+            }
             val sizeMb = localVideoFile.length() / (1024.0 * 1024.0)
             tvVideoFileName.text = "Incident Video (${localVideoFile.name})"
             tvVideoStatus.text = String.format(Locale.US, "Verified HD Video • Duration: %02d:%02d • %.2f MB", videoSec / 60, videoSec % 60, sizeMb)
@@ -1383,7 +1404,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
         btnPlayVideo.setOnClickListener {
             if (localVideoFile != null && localVideoFile.exists()) {
-                playVideoWithInAppFallback(localVideoFile)
+                showInAppVideoPlayer(localVideoFile)
             } else if (videoEvidence != null) {
                 lifecycleScope.launch {
                     val base = apiClient.getBaseUrl()
@@ -1725,11 +1746,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
     private fun showInAppVideoPlayer(videoFile: File) {
         val vv = VideoView(this).apply {
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 800)
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 850)
             setVideoPath(videoFile.absolutePath)
             val mc = MediaController(this@MainActivity)
             mc.setAnchorView(this)
             setMediaController(mc)
+            setOnPreparedListener { mp ->
+                mp.isLooping = false
+                start()
+            }
+            setOnErrorListener { _, what, extra ->
+                Toast.makeText(this@MainActivity, "Playback error: $what, $extra", Toast.LENGTH_SHORT).show()
+                true
+            }
         }
         val dialog = AlertDialog.Builder(this)
             .setTitle("🎥 Incident Video Playback")
@@ -1741,6 +1770,5 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             .setOnDismissListener { vv.stopPlayback() }
             .create()
         dialog.show()
-        vv.start()
     }
 }

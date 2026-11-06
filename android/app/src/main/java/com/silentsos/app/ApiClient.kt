@@ -545,11 +545,15 @@ class ApiClient(private val context: Context) {
         lng: Double,
         type: String = "Emergency",
         address: String = "",
-        contacts: List<Contact> = emptyList()
+        contacts: List<Contact> = emptyList(),
+        alertId: String? = null
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val base = getBaseUrl()
             val json = JSONObject().apply {
+                if (!alertId.isNullOrBlank()) {
+                    put("id", alertId)
+                }
                 put("type", type)
                 put("location", JSONObject().apply {
                     put("lat", lat)

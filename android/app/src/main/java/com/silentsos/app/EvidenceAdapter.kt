@@ -49,9 +49,17 @@ class EvidenceAdapter(
             tvDate.text = dateFormat.format(Date(event.timestamp))
             tvLocation.text = "📍 ${String.format(Locale.US, "%.4f", event.lat)}° N, ${String.format(Locale.US, "%.4f", event.lng)}° E ${if (event.address.isNotBlank()) "(${event.address})" else ""}"
 
+            val vaultManager = EvidenceVaultManager(itemView.context)
+            val localVideos = vaultManager.getVideosForIncident(event.id, event.timestamp)
+            val localAudios = vaultManager.getAudioForIncident(event.id, event.timestamp)
+            val localPhotos = vaultManager.getPhotosForIncident(event.id, event.timestamp)
+
             val pCount = event.evidence.photos.coerceAtLeast(event.evidence.files.count { it.type == "photo" })
+                .coerceAtLeast(localPhotos.size)
             val aCount = event.evidence.audio.coerceAtLeast(event.evidence.files.count { it.type == "audio" })
+                .coerceAtLeast(if (localAudios.isNotEmpty()) 1 else 0)
             val vCount = event.evidence.videos.coerceAtLeast(event.evidence.files.count { it.type == "video" })
+                .coerceAtLeast(if (localVideos.isNotEmpty()) 1 else 0)
 
             tvBadgePhotos.text = "📷 $pCount Photos"
             tvBadgeAudio.text = "🎤 $aCount Audio"

@@ -2029,7 +2029,9 @@ app.post('/api/alerts', async (req, res) => {
     return res.status(400).json({ error: 'Location access is required to trigger an SOS alert. Please ensure location services are enabled.' });
   }
 
-  const id = Date.now().toString();
+  const id = (req.body.id && typeof req.body.id === 'string' && req.body.id.trim()) 
+    ? req.body.id.trim() 
+    : Date.now().toString();
   const initialLat = location.lat;
   const initialLng = location.lng;
 

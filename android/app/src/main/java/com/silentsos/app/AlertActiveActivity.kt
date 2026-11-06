@@ -205,7 +205,7 @@ class AlertActiveActivity : AppCompatActivity() {
                         }
                     }
                 }
-                val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", alertContacts)
+                val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", alertContacts, incidentId)
                 val sId = triggerRes.getOrNull()
                 if (sId != null) {
                     activeServerAlertId = sId
@@ -466,7 +466,7 @@ class AlertActiveActivity : AppCompatActivity() {
         }
 
         val serverAlertId = activeServerAlertId ?: run {
-            val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", contacts)
+            val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", contacts, incidentId)
             val id = triggerRes.getOrNull() ?: incidentId
             activeServerAlertId = id
             id
