@@ -206,8 +206,11 @@ class AiAssistantActivity : AppCompatActivity() {
 
     private fun resetConversation() {
         if (isLoading) return
+        val count = messages.size
         messages.clear()
-        chatAdapter.notifyDataSetChanged()
+        if (count > 0) {
+            chatAdapter.notifyItemRangeRemoved(0, count)
+        }
         scrollAiWelcome.visibility = View.VISIBLE
         rvAiMessages.visibility = View.GONE
         etAiInput.setText("")

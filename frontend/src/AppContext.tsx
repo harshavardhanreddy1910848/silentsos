@@ -6,14 +6,23 @@ const getMediaBase = () => {
     return import.meta.env.VITE_API_BASE.replace(/\/$/, '');
   }
   if (typeof window !== 'undefined') {
-    // Standalone local Vite dev server without reverse proxy
-    if (window.location.hostname === 'localhost' && window.location.port === '5173') {
-      return 'http://localhost:3001';
+    // Standalone local Vite dev server on port 5173 (localhost, 127.0.0.1, or local LAN IP)
+    if (window.location.port === '5173') {
+      return `http://${window.location.hostname}:3001`;
     }
     // Vercel dev or production deployment on same origin
     return window.location.origin;
   }
   return '';
+};
+
+export const safeJson = async (res: Response) => {
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { error: text || `Server returned HTTP ${res.status} (${res.statusText || 'Unable to connect'})` };
+  }
 };
 
 export const MEDIA_BASE = getMediaBase();
@@ -105,7 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = await safeJson(res);
         setState({
           isSetupComplete: data.user.isSetupComplete,
           userName: data.user.name,
@@ -223,7 +232,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || 'Login failed');
     }
@@ -236,7 +245,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name })
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || 'Registration failed');
     }
@@ -249,7 +258,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || 'Failed to dispatch security token');
     }
@@ -262,7 +271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, token: tokenStr })
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || 'Failed to verify security token');
     }
@@ -278,7 +287,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       body: JSON.stringify({ email })
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || 'Failed to dispatch test alert');
     }
@@ -291,7 +300,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || 'Failed to dispatch verification email');
     }
@@ -304,7 +313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, token })
     });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.error || 'Password reset failed');
     }
