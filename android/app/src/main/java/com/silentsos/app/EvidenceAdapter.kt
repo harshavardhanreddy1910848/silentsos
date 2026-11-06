@@ -13,7 +13,7 @@ import java.util.Locale
 class EvidenceAdapter(
     private var events: List<AlertEvent>,
     private val onItemClick: (AlertEvent) -> Unit,
-    private val onItemDelete: (AlertEvent) -> Unit
+    private val onItemDelete: (AlertEvent) -> Unit,
 ) : RecyclerView.Adapter<EvidenceAdapter.EvidenceViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())

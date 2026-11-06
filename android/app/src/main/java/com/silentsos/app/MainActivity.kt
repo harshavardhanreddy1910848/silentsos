@@ -737,7 +737,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
                     lifecycleScope.launch {
                         val alertId = "SURV_BURST_${System.currentTimeMillis()}"
-                        val capturedFiles = cameraEvidenceManager.captureBurstPhotos(curLat, curLng, alertId)
+                        val capturedFiles = cameraEvidenceManager.captureBurstPhotos(curLat, curLng, alertId, textureViewFinder)
 
                         if (capturedFiles.isNotEmpty()) {
                             val bmp = BitmapFactory.decodeFile(capturedFiles[0].absolutePath)

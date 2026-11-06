@@ -6,6 +6,9 @@ import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Build
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
@@ -65,6 +68,19 @@ class MediaEvidenceRecorder(private val context: Context) {
         } catch (e: Exception) {
             return null
         }
+    }
+
+    suspend fun recordAudioForDuration(
+        durationSeconds: Int = 30,
+        onProgress: ((Int) -> Unit)? = null
+    ): File? = withContext(Dispatchers.IO) {
+        val startedFile = startAudioRecording()
+        for (i in 1..durationSeconds) {
+            delay(1000)
+            onProgress?.invoke(i)
+        }
+        val finalFile = stopAudioRecording() ?: startedFile
+        finalFile
     }
 
     fun stopAudioRecording(): File? {

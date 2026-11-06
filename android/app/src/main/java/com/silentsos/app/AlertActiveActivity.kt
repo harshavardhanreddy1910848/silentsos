@@ -1,9 +1,13 @@
 package com.silentsos.app
 
+import android.hardware.camera2.CameraCharacteristics
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.view.Surface
+import android.view.TextureView
 import android.view.View
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -12,10 +16,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 
 class AlertActiveActivity : AppCompatActivity() {
 
@@ -35,6 +42,11 @@ class AlertActiveActivity : AppCompatActivity() {
     private lateinit var tvSmsStatus: TextView
     private lateinit var tvEvidenceStatus: TextView
     private lateinit var tvServerSyncStatus: TextView
+
+    private var textureViewAlertCamera: TextureView? = null
+    private var tvCameraStatusBadge: TextView? = null
+    private var tvCameraTimer: TextView? = null
+    private var layoutEvidenceCamera: FrameLayout? = null
 
     private lateinit var btnBroadcastWhatsApp: AppCompatButton
     private lateinit var btnCallPolice: AppCompatButton
@@ -81,6 +93,11 @@ class AlertActiveActivity : AppCompatActivity() {
         tvEvidenceStatus = findViewById(R.id.tvEvidenceStatus)
         tvServerSyncStatus = findViewById(R.id.tvServerSyncStatus)
 
+        textureViewAlertCamera = findViewById(R.id.textureViewAlertCamera)
+        tvCameraStatusBadge = findViewById(R.id.tvCameraStatusBadge)
+        tvCameraTimer = findViewById(R.id.tvCameraTimer)
+        layoutEvidenceCamera = findViewById(R.id.layoutEvidenceCamera)
+
         btnBroadcastWhatsApp = findViewById(R.id.btnBroadcastWhatsApp)
         btnCallPolice = findViewById(R.id.btnCallPolice)
         btnStopAlert = findViewById(R.id.btnStopAlert)
@@ -123,59 +140,29 @@ class AlertActiveActivity : AppCompatActivity() {
     private fun dispatchSosDistress() {
         if (isAlertDispatched) return
         isAlertDispatched = true
+
         layoutCountdown.visibility = View.GONE
         layoutActiveDetails.visibility = View.VISIBLE
 
+        val alertId = "ALERT_${System.currentTimeMillis()}"
+        activeAlertId = alertId
         val dispatchType = intent.getStringExtra("EXTRA_DISPATCH_TYPE") ?: "Emergency SOS"
-        activeAlertId = "alert_${System.currentTimeMillis()}"
 
-        // 1. Start Persistent Native Foreground Service
-        SosForegroundService.start(this, "🚨 $dispatchType active. Dispatching alerts...")
+        // 1. Native SMS Dispatch immediately to all offline emergency contacts
+        val contacts = sessionManager.getContacts()
+        val smsCount = EmergencyDispatcher.dispatchAllEmergencyChannels(this, contacts, currentLat, currentLng, alertId)
+        tvSmsStatus.text = "📱 Native Emergency SMS: Dispatched ($smsCount sent)"
 
-        // 2. Start Native Audio Recording Immediately
-        val audioSessionFile = try {
-            mediaRecorder.startAudioRecording()
-        } catch (_: Exception) {
-            null
-        }
-        tvEvidenceStatus.text = "🎙️ Microphones, Cameras & Sensors: Vault Capture Armed"
+        // 2. Continuous Emergency Notification and GPS Location Broadcasting
+        SosForegroundService.start(this, "Broadcasting live distress signal & 30s evidence...")
 
-        // 3. Immediately launch autonomous evidence capture & email dispatch in background
-        lifecycleScope.launch(Dispatchers.IO) {
-            captureEvidenceAndDispatch(activeAlertId, dispatchType, audioSessionFile)
+        // 3. Autonomous Parallel Evidence Capture: Photos, 30s Video & 30s Audio
+        val initialAudio = mediaRecorder.startAudioRecording()
+        lifecycleScope.launch {
+            captureEvidenceAndDispatch(alertId, dispatchType, initialAudio)
         }
 
-        // 4. Acquire Real GPS Coordinates & Dispatch SMS Broadcast in parallel
-        locationHelper.getSingleAccurateLocation { loc ->
-            if (isFinishing || isDestroyed) return@getSingleAccurateLocation
-            runOnUiThread {
-                if (isFinishing || isDestroyed) return@runOnUiThread
-                if (loc != null) {
-                    currentLat = loc.latitude
-                    currentLng = loc.longitude
-                    tvLiveAlertCoordinates.text = String.format("Lat: %.5f, Lng: %.5f", loc.latitude, loc.longitude)
-                    tvAlertAddress.text = "GPS Precision: ±${loc.accuracy.toInt()}m Satellite Lock"
-                }
-
-                // Dispatch Native SMS to all emergency contacts
-                val contacts = sessionManager.getContacts()
-                val smsSentCount = try {
-                    EmergencyDispatcher.dispatchAllEmergencyChannels(
-                        this@AlertActiveActivity,
-                        contacts,
-                        currentLat,
-                        currentLng,
-                        activeAlertId
-                    )
-                } catch (e: Exception) {
-                    0
-                }
-
-                tvSmsStatus.text = "📱 Native Emergency SMS: Sent to $smsSentCount responder(s)"
-            }
-        }
-
-        // 5. Keep tracking continuously during emergency
+        // 4. Continual Accurate GPS Telemetry Tracking
         try {
             locationHelper.startContinuousTracking { updatedLoc ->
                 if (!isFinishing && !isDestroyed) {
@@ -198,36 +185,80 @@ class AlertActiveActivity : AppCompatActivity() {
     ) {
         withContext(Dispatchers.Main) {
             if (!isFinishing && !isDestroyed) {
-                tvEvidenceStatus.text = "📸 Capturing photos, video & ambient audio..."
+                tvEvidenceStatus.text = "📸 Initializing Dual Camera & 30s Recording..."
+                tvCameraStatusBadge?.text = "🎥 SENSOR: ACTIVE (30s REC)"
             }
         }
 
-        // A. Automatically capture dual burst photos (front and back camera)
+        // A. Automatically capture burst photos (Front selfie + Rear burst)
         val photos = try {
-            cameraEvidenceManager.captureBurstPhotos(currentLat, currentLng, alertId)
+            cameraEvidenceManager.captureBurstPhotos(currentLat, currentLng, alertId, textureViewAlertCamera)
         } catch (e: Exception) {
             emptyList()
         }
 
-        // B. Automatically capture video evidence container
-        val video = try {
-            cameraEvidenceManager.createVideoEvidenceContainer(alertId)
-        } catch (e: Exception) {
-            null
+        withContext(Dispatchers.Main) {
+            if (!isFinishing && !isDestroyed) {
+                tvEvidenceStatus.text = "📸 Photos Captured (${photos.size}) • Recording 30s Video & Audio..."
+            }
         }
 
-        // C. Record 2.5 seconds of live ambient acoustic sounds, then stop to finalize
-        delay(2500)
-        val stoppedAudio = try { mediaRecorder.stopAudioRecording() } catch (_: Exception) { null }
-        val finalAudio = stoppedAudio ?: initialAudioFile ?: File(filesDir, "evidence/audio_${System.currentTimeMillis()}.3gp")
+        // B & C. Record 30 SECONDS of Video through the camera AND 30 SECONDS of Audio through the microphone in parallel
+        var videoFile: File? = null
+        var finalAudio: File? = null
 
-        // Restart continuous background microphone recording for active alert monitoring
-        try { mediaRecorder.startAudioRecording() } catch (_: Exception) {}
+        coroutineScope {
+            val audioJob = async(Dispatchers.IO) {
+                mediaRecorder.recordAudioForDuration(30) { sec ->
+                    runOnUiThread {
+                        if (!isFinishing && !isDestroyed) {
+                            val mins = sec / 60
+                            val secs = sec % 60
+                            tvCameraTimer?.text = String.format(Locale.US, "REC %02d:%02d", mins, secs)
+                            tvEvidenceStatus.text = "🎥 Recording 30s Video & Audio: ${sec}s / 30s"
+                        }
+                    }
+                }
+            }
+
+            val videoJob = async(Dispatchers.IO) {
+                val previewSurface = if (textureViewAlertCamera?.isAvailable == true && textureViewAlertCamera?.surfaceTexture != null) {
+                    Surface(textureViewAlertCamera?.surfaceTexture)
+                } else null
+
+                cameraEvidenceManager.recordVideoEvidence(
+                    alertId = alertId,
+                    durationSeconds = 30,
+                    cameraFacing = CameraCharacteristics.LENS_FACING_BACK,
+                    previewSurface = previewSurface
+                ) { sec ->
+                    runOnUiThread {
+                        if (!isFinishing && !isDestroyed) {
+                            val mins = sec / 60
+                            val secs = sec % 60
+                            tvCameraTimer?.text = String.format(Locale.US, "REC %02d:%02d", mins, secs)
+                            tvEvidenceStatus.text = "🎥 Recording 30s Video & Audio: ${sec}s / 30s"
+                        }
+                    }
+                }
+            }
+
+            finalAudio = audioJob.await() ?: initialAudioFile ?: File(filesDir, "evidence/audio_${System.currentTimeMillis()}.3gp")
+            videoFile = videoJob.await()
+        }
+
+        withContext(Dispatchers.Main) {
+            if (!isFinishing && !isDestroyed) {
+                tvCameraStatusBadge?.text = "✓ 30s EVIDENCE ARCHIVED"
+                tvCameraTimer?.text = "REC 00:30"
+                tvEvidenceStatus.text = "💾 30s Video, Audio & Photos Saved to Evidence Screen"
+            }
+        }
 
         // D. SAVE TO LOCAL EVIDENCE VAULT IMMEDIATELY (Available on Evidence Screen)
         val photoFiles = photos.map { EvidenceFile("photo", it.absolutePath, System.currentTimeMillis()) }
-        val videoFiles = if (video != null) listOf(EvidenceFile("video", video.absolutePath, System.currentTimeMillis())) else emptyList()
-        val audioFiles = if (finalAudio.exists()) listOf(EvidenceFile("audio", finalAudio.absolutePath, System.currentTimeMillis())) else emptyList()
+        val videoFiles = if (videoFile != null) listOf(EvidenceFile("video", videoFile!!.absolutePath, System.currentTimeMillis())) else emptyList()
+        val audioFiles = if (finalAudio != null && finalAudio!!.exists()) listOf(EvidenceFile("audio", finalAudio!!.absolutePath, System.currentTimeMillis())) else emptyList()
         val allEvidenceFiles = photoFiles + videoFiles + audioFiles
 
         val localEvent = AlertEvent(
@@ -237,8 +268,8 @@ class AlertActiveActivity : AppCompatActivity() {
             status = "Active",
             evidence = EvidenceSummary(
                 photos = photos.size,
-                videos = if (video != null) 1 else 0,
-                audio = if (finalAudio.exists()) 1 else 0,
+                videos = if (videoFile != null) 1 else 0,
+                audio = if (finalAudio != null && finalAudio!!.exists()) 1 else 0,
                 files = allEvidenceFiles
             ),
             lat = currentLat,
@@ -252,7 +283,7 @@ class AlertActiveActivity : AppCompatActivity() {
 
         withContext(Dispatchers.Main) {
             if (!isFinishing && !isDestroyed) {
-                tvEvidenceStatus.text = "📸 Captured ${photos.size} photos, HD video & mic audio • Saved to Evidence Screen"
+                tvEvidenceStatus.text = "📸 Captured ${photos.size} photos, 30s HD video & 30s audio • Saved to Evidence Screen"
             }
         }
 
@@ -268,13 +299,12 @@ class AlertActiveActivity : AppCompatActivity() {
             }
         }
 
-        // Register alert with backend (or use current alertId)
         val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", contacts)
         val serverAlertId = triggerRes.getOrNull() ?: alertId
 
         withContext(Dispatchers.Main) {
             if (!isFinishing && !isDestroyed) {
-                tvServerSyncStatus.text = "☁️ Alert #$serverAlertId Registered • Uploading Evidence Files..."
+                tvServerSyncStatus.text = "☁️ Alert #$serverAlertId Registered • Uploading 30s Evidence Files..."
             }
         }
 
@@ -283,17 +313,17 @@ class AlertActiveActivity : AppCompatActivity() {
             try { apiClient.uploadEvidence(serverAlertId, photo, "photo") } catch (_: Exception) {}
         }
 
-        // Upload video to backend
-        if (video != null) {
-            try { apiClient.uploadEvidence(serverAlertId, video, "video") } catch (_: Exception) {}
+        // Upload 30-second video to backend
+        if (videoFile != null) {
+            try { apiClient.uploadEvidence(serverAlertId, videoFile!!, "video") } catch (_: Exception) {}
         }
 
-        // Upload audio to backend
-        if (finalAudio.exists()) {
-            try { apiClient.uploadEvidence(serverAlertId, finalAudio, "audio") } catch (_: Exception) {}
+        // Upload 30-second audio to backend
+        if (finalAudio != null && finalAudio!!.exists()) {
+            try { apiClient.uploadEvidence(serverAlertId, finalAudio!!, "audio") } catch (_: Exception) {}
         }
 
-        // Complete alert on backend -> Triggers email with photos, video & audio attached to all contacts
+        // Complete alert on backend -> Triggers email with photos, 30s video & 30s audio attached to all contacts
         apiClient.completeAlert(serverAlertId, contacts)
         val emailRecipients = contacts.filter { it.email.isNotBlank() }
 
@@ -302,7 +332,7 @@ class AlertActiveActivity : AppCompatActivity() {
                 tvServerSyncStatus.text = "☁️ All Evidence Attached • Email Dispatched to ${emailRecipients.size} Contact(s) ✓"
                 Toast.makeText(
                     this@AlertActiveActivity,
-                    "✉️ Evidence (photos, video & audio) emailed to ${emailRecipients.size} contact(s)!",
+                    "✉️ 30s Video, Audio & Photos emailed to ${emailRecipients.size} contact(s)!",
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -345,21 +375,16 @@ class AlertActiveActivity : AppCompatActivity() {
                 apiClient.uploadEvidence(activeAlertId, audioFile, "audio")
             }
             apiClient.stopAlert(activeAlertId, pin)
-            apiClient.fetchState()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@AlertActiveActivity, "Distress Beacon Deactivated", Toast.LENGTH_SHORT).show()
+                finish()
+            }
         }
-
-        Toast.makeText(this, "✅ Distress Alert Deactivated. All evidence archived & emailed to contacts.", Toast.LENGTH_LONG).show()
-        finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         countdownTimer?.cancel()
-        if (!isAlertDispatched) {
-            locationHelper.stopContinuousTracking()
-            mediaRecorder.stopAudioRecording()
-            SosForegroundService.stop(this)
-        }
+        locationHelper.stopContinuousTracking()
     }
 }
-

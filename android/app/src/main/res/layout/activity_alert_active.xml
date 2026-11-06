@@ -121,6 +121,48 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <!-- Live Evidence Camera Capture Card -->
+        <FrameLayout
+            android:id="@+id/layoutEvidenceCamera"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card_surface">
+
+            <TextureView
+                android:id="@+id/textureViewAlertCamera"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:background="#B3000000"
+                android:padding="6dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvCameraStatusBadge"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🎥 SENSOR: ARMED (30s REC)"
+                    android:textColor="#f87171"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvCameraTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="REC 00:00"
+                    android:textColor="#ffffff"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </FrameLayout>
+
         <!-- Dispatch Telemetry Badges -->
         <LinearLayout
             android:layout_width="match_parent"

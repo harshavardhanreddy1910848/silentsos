@@ -46,7 +46,7 @@ class LocationHelper(private val context: Context) {
             }.addOnFailureListener {
                 fallbackToLocationManager(onLocationResult)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             fallbackToLocationManager(onLocationResult)
         }
     }
@@ -84,7 +84,7 @@ class LocationHelper(private val context: Context) {
         }
         try {
             fusedClient.requestLocationUpdates(request, cb, Looper.getMainLooper())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             if (!handled) {
                 handled = true
                 handler.removeCallbacks(timeoutRunnable)

@@ -29,7 +29,7 @@ class SosForegroundService : Service() {
                     android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
             try {
                 startForeground(NotificationHelper.NOTIFICATION_ID, notification, serviceType)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 try {
                     startForeground(NotificationHelper.NOTIFICATION_ID, notification)
                 } catch (ex: Exception) {
@@ -43,9 +43,9 @@ class SosForegroundService : Service() {
         locationHelper.startContinuousTracking { loc ->
             val updatedNotification = NotificationHelper.buildEmergencyNotification(
                 this,
-                "Live GPS: ${String.format("%.5f, %.5f", loc.latitude, loc.longitude)} (±${loc.accuracy.toInt()}m)"
+                "Live GPS: ${String.format(java.util.Locale.US, "%.5f, %.5f", loc.latitude, loc.longitude)} (±${loc.accuracy.toInt()}m)",
             )
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            val nm = getSystemService(NOTIFICATION_SERVICE) as? android.app.NotificationManager
             nm?.notify(NotificationHelper.NOTIFICATION_ID, updatedNotification)
         }
 
@@ -54,10 +54,10 @@ class SosForegroundService : Service() {
 
     private fun acquireWakeLock() {
         try {
-            val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager
+            val pm = getSystemService(POWER_SERVICE) as? PowerManager
             wakeLock = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SilentSOS:EmergencyWakeLock")
             wakeLock?.acquire(30 * 60 * 1000L) // 30 minutes safety timeout
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Ignored
         }
     }
@@ -69,7 +69,7 @@ class SosForegroundService : Service() {
             if (wakeLock?.isHeld == true) {
                 wakeLock?.release()
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Ignored
         }
     }
