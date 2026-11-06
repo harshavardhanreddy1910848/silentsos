@@ -58,20 +58,38 @@ class LocationHelper(private val context: Context) {
             return
         }
 
+        var handled = false
+        val handler = android.os.Handler(Looper.getMainLooper())
+        val timeoutRunnable = Runnable {
+            if (!handled) {
+                handled = true
+                fallbackToLocationManager(onResult)
+            }
+        }
+        handler.postDelayed(timeoutRunnable, 3000)
+
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000)
             .setMaxUpdates(1)
             .build()
 
         val cb = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                fusedClient.removeLocationUpdates(this)
-                onResult(result.lastLocation)
+                if (!handled) {
+                    handled = true
+                    handler.removeCallbacks(timeoutRunnable)
+                    try { fusedClient.removeLocationUpdates(this) } catch (_: Exception) {}
+                    onResult(result.lastLocation)
+                }
             }
         }
         try {
             fusedClient.requestLocationUpdates(request, cb, Looper.getMainLooper())
         } catch (e: Exception) {
-            fallbackToLocationManager(onResult)
+            if (!handled) {
+                handled = true
+                handler.removeCallbacks(timeoutRunnable)
+                fallbackToLocationManager(onResult)
+            }
         }
     }
 

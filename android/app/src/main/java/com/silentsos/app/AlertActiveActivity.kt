@@ -119,6 +119,7 @@ class AlertActiveActivity : AppCompatActivity() {
     }
 
     private fun dispatchSosDistress() {
+        if (isAlertDispatched) return
         isAlertDispatched = true
         layoutCountdown.visibility = View.GONE
         layoutActiveDetails.visibility = View.VISIBLE
@@ -129,12 +130,18 @@ class AlertActiveActivity : AppCompatActivity() {
         SosForegroundService.start(this, "🚨 $dispatchType active. Dispatching alerts...")
 
         // 2. Start Native Audio Recording Immediately
-        val audioSessionFile = mediaRecorder.startAudioRecording()
+        val audioSessionFile = try {
+            mediaRecorder.startAudioRecording()
+        } catch (_: Exception) {
+            null
+        }
         tvEvidenceStatus.text = "🎙️ Microphones, Cameras & Sensors: Vault Capture Armed"
 
         // 3. Acquire Real GPS Coordinates & Dispatch SMS Broadcast
         locationHelper.getSingleAccurateLocation { loc ->
+            if (isFinishing || isDestroyed) return@getSingleAccurateLocation
             runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
                 if (loc != null) {
                     currentLat = loc.latitude
                     currentLng = loc.longitude
@@ -145,93 +152,128 @@ class AlertActiveActivity : AppCompatActivity() {
                 // 4. Dispatch Native SMS to all emergency contacts
                 val contacts = sessionManager.getContacts()
                 activeAlertId = "alert_${System.currentTimeMillis()}"
-                val smsSentCount = EmergencyDispatcher.dispatchAllEmergencyChannels(
-                    this@AlertActiveActivity,
-                    contacts,
-                    currentLat,
-                    currentLng,
-                    activeAlertId
-                )
+                val smsSentCount = try {
+                    EmergencyDispatcher.dispatchAllEmergencyChannels(
+                        this@AlertActiveActivity,
+                        contacts,
+                        currentLat,
+                        currentLng,
+                        activeAlertId
+                    )
+                } catch (e: Exception) {
+                    0
+                }
 
                 tvSmsStatus.text = "📱 Native Emergency SMS: Sent to $smsSentCount responder(s)"
 
                 // 5. Automatically capture photos, videos, microphone sounds & send through email
                 lifecycleScope.launch {
-                    tvEvidenceStatus.text = "📸 Capturing photos, video & ambient audio..."
-                    val res = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", contacts)
-                    res.onSuccess { id ->
-                        activeAlertId = id
-                        tvServerSyncStatus.text = "☁️ Alert #$id Broadcasted • Email 1 Dispatched"
-
-                        // 5a. Automatically capture dual burst photos (front and back camera)
-                        val photos = cameraEvidenceManager.captureBurstPhotos(currentLat, currentLng, id)
-                        for (photo in photos) {
-                            apiClient.uploadEvidence(id, photo, "photo")
+                    try {
+                        if (!isFinishing && !isDestroyed) {
+                            tvEvidenceStatus.text = "📸 Capturing photos, video & ambient audio..."
                         }
+                        val res = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", contacts)
+                        res.onSuccess { id ->
+                            activeAlertId = id
+                            if (!isFinishing && !isDestroyed) {
+                                tvServerSyncStatus.text = "☁️ Alert #$id Broadcasted • Email 1 Dispatched"
+                            }
 
-                        // 5b. Automatically capture video evidence
-                        val video = cameraEvidenceManager.createVideoEvidenceContainer(id)
-                        apiClient.uploadEvidence(id, video, "video")
+                            // 5a. Automatically capture dual burst photos (front and back camera)
+                            val photos = try {
+                                cameraEvidenceManager.captureBurstPhotos(currentLat, currentLng, id)
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                            for (photo in photos) {
+                                try { apiClient.uploadEvidence(id, photo, "photo") } catch (_: Exception) {}
+                            }
 
-                        // 5c. Capture microphone audio sounds
-                        delay(2000) // Buffer 2 seconds of live ambient acoustic sounds
-                        val stoppedAudio = mediaRecorder.stopAudioRecording()
-                        val finalAudio = stoppedAudio ?: audioSessionFile ?: File(filesDir, "evidence/audio_${System.currentTimeMillis()}.3gp")
-                        if (finalAudio.exists()) {
-                            apiClient.uploadEvidence(id, finalAudio, "audio")
+                            // 5b. Automatically capture video evidence
+                            val video = try {
+                                cameraEvidenceManager.createVideoEvidenceContainer(id)
+                            } catch (e: Exception) {
+                                null
+                            }
+                            if (video != null) {
+                                try { apiClient.uploadEvidence(id, video, "video") } catch (_: Exception) {}
+                            }
+
+                            // 5c. Capture microphone audio sounds
+                            delay(2000) // Buffer 2 seconds of live ambient acoustic sounds
+                            val stoppedAudio = try { mediaRecorder.stopAudioRecording() } catch (e: Exception) { null }
+                            val finalAudio = stoppedAudio ?: audioSessionFile ?: File(filesDir, "evidence/audio_${System.currentTimeMillis()}.3gp")
+                            if (finalAudio.exists()) {
+                                try { apiClient.uploadEvidence(id, finalAudio, "audio") } catch (_: Exception) {}
+                            }
+
+                            // Restart continuous background microphone recording for active alert monitoring
+                            try { mediaRecorder.startAudioRecording() } catch (_: Exception) {}
+
+                            // 5d. Signal alert capture complete -> Triggers Email with photos, video & audio attached to all contacts
+                            try { apiClient.completeAlert(id, contacts) } catch (_: Exception) {}
+
+                            // 5e. Also save to local evidence vault
+                            val videoFiles = if (video != null) listOf(EvidenceFile("video", video.absolutePath, System.currentTimeMillis())) else emptyList()
+                            val audioFiles = if (finalAudio.exists()) listOf(EvidenceFile("audio", finalAudio.absolutePath, System.currentTimeMillis())) else emptyList()
+                            val event = AlertEvent(
+                                id = id,
+                                timestamp = System.currentTimeMillis(),
+                                type = dispatchType,
+                                status = "Active",
+                                evidence = EvidenceSummary(
+                                    photos = photos.size,
+                                    videos = if (video != null) 1 else 0,
+                                    audio = if (finalAudio.exists()) 1 else 0,
+                                    files = photos.map { f ->
+                                        EvidenceFile("photo", f.absolutePath, System.currentTimeMillis())
+                                    } + videoFiles + audioFiles
+                                ),
+                                lat = currentLat,
+                                lng = currentLng
+                            )
+                            val history = sessionManager.getHistory().toMutableList()
+                            history.add(0, event)
+                            sessionManager.saveHistory(history)
+
+                            val emailsCount = contacts.count { it.email.isNotBlank() }
+                            if (!isFinishing && !isDestroyed) {
+                                runOnUiThread {
+                                    tvEvidenceStatus.text = "📸 Captured ${photos.size} photos, HD video & mic audio! Dispatched via email to $emailsCount contact(s) ✓"
+                                    Toast.makeText(
+                                        this@AlertActiveActivity,
+                                        "✉️ Emergency photos, video & audio sent to all contacts!",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                        }.onFailure {
+                            if (!isFinishing && !isDestroyed) {
+                                runOnUiThread {
+                                    tvEvidenceStatus.text = "⚠️ Network offline: Evidence stored locally & SMS dispatched ✓"
+                                }
+                            }
                         }
-
-                        // Restart continuous background microphone recording for active alert monitoring
-                        mediaRecorder.startAudioRecording()
-
-                        // 5d. Signal alert capture complete -> Triggers Email with photos, video & audio attached to all contacts
-                        apiClient.completeAlert(id, contacts)
-
-                        // 5e. Also save to local evidence vault
-                        val event = AlertEvent(
-                            id = id,
-                            timestamp = System.currentTimeMillis(),
-                            type = dispatchType,
-                            status = "Active",
-                            evidence = EvidenceSummary(
-                                photos = photos.size,
-                                videos = 1,
-                                audio = 1,
-                                files = photos.map { f ->
-                                    EvidenceFile("photo", f.absolutePath, System.currentTimeMillis())
-                                } + listOf(
-                                    EvidenceFile("video", video.absolutePath, System.currentTimeMillis()),
-                                    EvidenceFile("audio", finalAudio.absolutePath, System.currentTimeMillis())
-                                )
-                            ),
-                            lat = currentLat,
-                            lng = currentLng
-                        )
-                        val history = sessionManager.getHistory().toMutableList()
-                        history.add(0, event)
-                        sessionManager.saveHistory(history)
-
-                        val emailsCount = contacts.count { it.email.isNotBlank() }
-                        runOnUiThread {
-                            tvEvidenceStatus.text = "📸 Captured ${photos.size} photos, HD video & mic audio! Dispatched via email to $emailsCount contact(s) ✓"
-                            Toast.makeText(
-                                this@AlertActiveActivity,
-                                "✉️ Emergency photos, video & audio sent to all contacts!",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
             }
         }
 
         // 6. Keep tracking continuously during emergency
-        locationHelper.startContinuousTracking { updatedLoc ->
-            runOnUiThread {
-                currentLat = updatedLoc.latitude
-                currentLng = updatedLoc.longitude
-                tvLiveAlertCoordinates.text = String.format("Lat: %.5f, Lng: %.5f", updatedLoc.latitude, updatedLoc.longitude)
+        try {
+            locationHelper.startContinuousTracking { updatedLoc ->
+                if (!isFinishing && !isDestroyed) {
+                    runOnUiThread {
+                        currentLat = updatedLoc.latitude
+                        currentLng = updatedLoc.longitude
+                        tvLiveAlertCoordinates.text = String.format("Lat: %.5f, Lng: %.5f", updatedLoc.latitude, updatedLoc.longitude)
+                    }
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

@@ -3,6 +3,7 @@ package com.silentsos.app
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 
@@ -17,11 +18,27 @@ class SosForegroundService : Service() {
         acquireWakeLock()
     }
 
+    @Suppress("NewApi")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         NotificationHelper.createNotificationChannel(this)
         val initialStatus = intent?.getStringExtra(EXTRA_STATUS) ?: "Broadcasting live distress signal..."
         val notification = NotificationHelper.buildEmergencyNotification(this, initialStatus)
-        startForeground(NotificationHelper.NOTIFICATION_ID, notification)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val serviceType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION or
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            try {
+                startForeground(NotificationHelper.NOTIFICATION_ID, notification, serviceType)
+            } catch (e: Exception) {
+                try {
+                    startForeground(NotificationHelper.NOTIFICATION_ID, notification)
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
+        } else {
+            startForeground(NotificationHelper.NOTIFICATION_ID, notification)
+        }
 
         locationHelper.startContinuousTracking { loc ->
             val updatedNotification = NotificationHelper.buildEmergencyNotification(
@@ -63,19 +80,27 @@ class SosForegroundService : Service() {
         const val EXTRA_STATUS = "extra_status"
 
         fun start(context: Context, status: String = "Broadcasting live distress signal...") {
-            val intent = Intent(context, SosForegroundService::class.java).apply {
-                putExtra(EXTRA_STATUS, status)
-            }
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+            try {
+                val intent = Intent(context, SosForegroundService::class.java).apply {
+                    putExtra(EXTRA_STATUS, status)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 
         fun stop(context: Context) {
-            val intent = Intent(context, SosForegroundService::class.java)
-            context.stopService(intent)
+            try {
+                val intent = Intent(context, SosForegroundService::class.java)
+                context.stopService(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }
