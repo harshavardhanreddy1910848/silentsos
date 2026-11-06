@@ -40,19 +40,23 @@ class CameraEvidenceManager(private val context: Context) {
     }
 
     /**
-     * Captures dual-facing photographic bursts (Front and Rear cameras)
+     * Captures 3 photographic evidence bursts (Rear Primary, Rear Burst, and Front Selfie)
      * Falls back seamlessly to cryptographic telemetry snapshots if camera hardware is locked by OS.
      */
     suspend fun captureBurstPhotos(lat: Double, lng: Double, alertId: String): List<File> = withContext(Dispatchers.IO) {
         val photos = mutableListOf<File>()
 
         try {
-            // 1. Rear Camera Snapshot
-            val rearPhoto = captureOrGenerateSnapshot("REAR", lat, lng, alertId)
-            if (rearPhoto != null) photos.add(rearPhoto)
+            // 1. Rear Camera Snapshot (Primary)
+            val rearPhoto1 = captureOrGenerateSnapshot("REAR_PRIMARY", lat, lng, alertId)
+            if (rearPhoto1 != null) photos.add(rearPhoto1)
 
-            // 2. Front Camera Snapshot
-            val frontPhoto = captureOrGenerateSnapshot("FRONT", lat, lng, alertId)
+            // 2. Rear Camera Snapshot (Burst)
+            val rearPhoto2 = captureOrGenerateSnapshot("REAR_BURST", lat, lng, alertId)
+            if (rearPhoto2 != null) photos.add(rearPhoto2)
+
+            // 3. Front Camera Snapshot (Selfie)
+            val frontPhoto = captureOrGenerateSnapshot("FRONT_SELFIE", lat, lng, alertId)
             if (frontPhoto != null) photos.add(frontPhoto)
         } catch (e: Exception) {
             e.printStackTrace()

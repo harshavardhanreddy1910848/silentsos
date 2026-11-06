@@ -952,7 +952,30 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
     // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // TAB 3: EVIDENCE
-    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ─────────────────────────────────────────────────────────────────────────
+    // TAB 3: EVIDENCE
+    // ─────────────────────────────────────────────────────────────────────────
+    private fun deleteEvidenceRecord(event: AlertEvent, onDeleted: () -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Evidence Record")
+            .setMessage("Are you sure you want to delete this evidence record (${event.type})? This action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ ->
+                val currentHistory = sessionManager.getHistory().filter { it.id != event.id }
+                sessionManager.saveHistory(currentHistory)
+
+                lifecycleScope.launch {
+                    try {
+                        apiClient.deleteAlert(event.id)
+                    } catch (_: Exception) {}
+                }
+
+                Toast.makeText(this, "🗑️ Evidence record deleted", Toast.LENGTH_SHORT).show()
+                onDeleted()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun setupEvidenceView(inflater: LayoutInflater) {
         val view = inflater.inflate(R.layout.layout_tab_evidence, containerContent, false)
 
@@ -963,45 +986,86 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         val rvEvidence: RecyclerView = view.findViewById(R.id.rvEvidenceList)
         val layoutEmpty: LinearLayout = view.findViewById(R.id.layoutEvidenceEmpty)
 
-        val historyList = sessionManager.getHistory()
-        val totalPhotos = historyList.sumOf { it.evidence.photos.coerceAtLeast(it.evidence.files.count { f -> f.type == "photo" }) }
-        val totalVideos = historyList.sumOf { it.evidence.videos.coerceAtLeast(it.evidence.files.count { f -> f.type == "video" }) }
-        val totalAudio = historyList.sumOf { it.evidence.audio.coerceAtLeast(it.evidence.files.count { f -> f.type == "audio" }) }
-        val totalGps = historyList.sumOf { it.gpsPath.size }
+        fun refreshEvidenceUI(list: List<AlertEvent>) {
+            val p = list.sumOf { it.evidence.photos.coerceAtLeast(it.evidence.files.count { f -> f.type == "photo" }) }
+            val v = list.sumOf { it.evidence.videos.coerceAtLeast(it.evidence.files.count { f -> f.type == "video" }) }
+            val a = list.sumOf { it.evidence.audio.coerceAtLeast(it.evidence.files.count { f -> f.type == "audio" }) }
+            val g = list.sumOf { it.gpsPath.size }
 
-        tvPhotos.text = totalPhotos.toString()
-        tvVideos.text = totalVideos.toString()
-        tvAudio.text = totalAudio.toString()
-        tvGps.text = totalGps.toString()
-
-        layoutEmpty.visibility = if (historyList.isEmpty()) View.VISIBLE else View.GONE
-        rvEvidence.layoutManager = LinearLayoutManager(this)
-        val adapter = EvidenceAdapter(historyList) { event ->
-            showEvidenceViewerDialog(event)
+            tvPhotos.text = p.toString()
+            tvVideos.text = v.toString()
+            tvAudio.text = a.toString()
+            tvGps.text = g.toString()
+            layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
+
+        val historyList = sessionManager.getHistory()
+        refreshEvidenceUI(historyList)
+
+        rvEvidence.layoutManager = LinearLayoutManager(this)
+        var adapter: EvidenceAdapter? = null
+        adapter = EvidenceAdapter(
+            events = historyList,
+            onItemClick = { event ->
+                showEvidenceViewerDialog(event) {
+                    val updated = sessionManager.getHistory()
+                    refreshEvidenceUI(updated)
+                    adapter?.updateData(updated)
+                }
+            },
+            onItemDelete = { event ->
+                deleteEvidenceRecord(event) {
+                    val updated = sessionManager.getHistory()
+                    refreshEvidenceUI(updated)
+                    adapter?.updateData(updated)
+                }
+            }
+        )
         rvEvidence.adapter = adapter
 
         // Sync fresh evidence counts and files from PostgreSQL backend
         lifecycleScope.launch {
             val res = apiClient.fetchAlertsHistory()
             res.onSuccess { freshList ->
-                val p = freshList.sumOf { it.evidence.photos.coerceAtLeast(it.evidence.files.count { f -> f.type == "photo" }) }
-                val v = freshList.sumOf { it.evidence.videos.coerceAtLeast(it.evidence.files.count { f -> f.type == "video" }) }
-                val a = freshList.sumOf { it.evidence.audio.coerceAtLeast(it.evidence.files.count { f -> f.type == "audio" }) }
-                val g = freshList.sumOf { it.gpsPath.size }
-                tvPhotos.text = p.toString()
-                tvVideos.text = v.toString()
-                tvAudio.text = a.toString()
-                tvGps.text = g.toString()
-                layoutEmpty.visibility = if (freshList.isEmpty()) View.VISIBLE else View.GONE
-                adapter.updateData(freshList)
+                val localList = sessionManager.getHistory()
+                val merged = if (freshList.isEmpty()) {
+                    localList
+                } else {
+                    val localMap = localList.associateBy { it.id }
+                    val mergedList = freshList.map { remoteEvent ->
+                        val localEvent = localMap[remoteEvent.id]
+                        if (localEvent != null) {
+                            val combinedFiles = (localEvent.evidence.files + remoteEvent.evidence.files).distinctBy { it.url }
+                            remoteEvent.copy(
+                                evidence = remoteEvent.evidence.copy(
+                                    photos = remoteEvent.evidence.photos.coerceAtLeast(localEvent.evidence.photos),
+                                    videos = remoteEvent.evidence.videos.coerceAtLeast(localEvent.evidence.videos),
+                                    audio = remoteEvent.evidence.audio.coerceAtLeast(localEvent.evidence.audio),
+                                    files = combinedFiles
+                                )
+                            )
+                        } else {
+                            remoteEvent
+                        }
+                    }.toMutableList()
+                    val serverIds = freshList.map { it.id }.toSet()
+                    for (locEvent in localList) {
+                        if (!serverIds.contains(locEvent.id)) {
+                            mergedList.add(0, locEvent)
+                        }
+                    }
+                    mergedList
+                }
+                sessionManager.saveHistory(merged)
+                refreshEvidenceUI(merged)
+                adapter?.updateData(merged)
             }
         }
 
         containerContent.addView(view)
     }
 
-    private fun showEvidenceViewerDialog(event: AlertEvent) {
+    private fun showEvidenceViewerDialog(event: AlertEvent, onDeleted: (() -> Unit)? = null) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_evidence_viewer, null)
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
@@ -1021,6 +1085,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         val tvVideoFileName: TextView = dialogView.findViewById(R.id.tvVideoFileName)
         val tvVideoStatus: TextView = dialogView.findViewById(R.id.tvVideoStatus)
         val btnCloseViewer: AppCompatButton = dialogView.findViewById(R.id.btnCloseViewer)
+        val btnDeleteViewer: AppCompatButton? = dialogView.findViewById(R.id.btnDeleteViewer)
 
         var mediaPlayer: MediaPlayer? = null
 
@@ -1059,6 +1124,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
                 lifecycleScope.launch {
                     try {
+                        val localF = File(p.url)
+                        if (localF.exists()) {
+                            val bmp = withContext(Dispatchers.IO) {
+                                BitmapFactory.decodeFile(localF.absolutePath)
+                            }
+                            if (bmp != null) {
+                                iv.setImageBitmap(bmp)
+                                return@launch
+                            }
+                        }
                         val base = apiClient.getBaseUrl()
                         val fullUrl = if (p.url.startsWith("http")) p.url else "$base${p.url}"
                         val bmp = withContext(Dispatchers.IO) {
@@ -1199,6 +1274,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                 }
             } else {
                 Toast.makeText(this, "No video file available", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnDeleteViewer?.setOnClickListener {
+            dialog.dismiss()
+            deleteEvidenceRecord(event) {
+                onDeleted?.invoke()
             }
         }
 

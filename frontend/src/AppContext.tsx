@@ -5,14 +5,6 @@ const getMediaBase = () => {
   if (import.meta.env.VITE_API_BASE) {
     return import.meta.env.VITE_API_BASE.replace(/\/$/, '');
   }
-  if (typeof window !== 'undefined') {
-    // Standalone local Vite dev server on port 5173 (localhost, 127.0.0.1, or local LAN IP)
-    if (window.location.port === '5173') {
-      return `http://${window.location.hostname}:3001`;
-    }
-    // Vercel dev or production deployment on same origin
-    return window.location.origin;
-  }
   return '';
 };
 
@@ -26,10 +18,10 @@ export const safeJson = async (res: Response) => {
 };
 
 export const MEDIA_BASE = getMediaBase();
-export const API_BASE   = `${MEDIA_BASE}/api`;
-export const WS_BASE    = MEDIA_BASE.startsWith('https')
-  ? MEDIA_BASE.replace(/^https/, 'wss')
-  : MEDIA_BASE.replace(/^http/, 'ws');
+export const API_BASE   = MEDIA_BASE ? `${MEDIA_BASE}/api` : '/api';
+export const WS_BASE    = typeof window !== 'undefined'
+  ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname || '127.0.0.1'}:3001`
+  : 'ws://127.0.0.1:3001';
 
 
 const defaultSettings: Settings = {

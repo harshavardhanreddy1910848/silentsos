@@ -3,6 +3,7 @@ package com.silentsos.app
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
@@ -11,7 +12,8 @@ import java.util.Locale
 
 class EvidenceAdapter(
     private var events: List<AlertEvent>,
-    private val onItemClick: (AlertEvent) -> Unit
+    private val onItemClick: (AlertEvent) -> Unit,
+    private val onItemDelete: (AlertEvent) -> Unit
 ) : RecyclerView.Adapter<EvidenceAdapter.EvidenceViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
@@ -40,6 +42,7 @@ class EvidenceAdapter(
         private val tvBadgePhotos: TextView = itemView.findViewById(R.id.tvEvBadgePhotos)
         private val tvBadgeAudio: TextView = itemView.findViewById(R.id.tvEvBadgeAudio)
         private val tvBadgeVideo: TextView = itemView.findViewById(R.id.tvEvBadgeVideo)
+        private val btnDelete: ImageView = itemView.findViewById(R.id.btnDeleteEvidence)
 
         fun bind(event: AlertEvent) {
             tvTitle.text = "${event.type} Evidence Session"
@@ -56,6 +59,10 @@ class EvidenceAdapter(
 
             itemView.setOnClickListener {
                 onItemClick(event)
+            }
+
+            btnDelete.setOnClickListener {
+                onItemDelete(event)
             }
         }
     }
