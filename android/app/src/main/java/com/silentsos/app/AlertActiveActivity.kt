@@ -330,7 +330,8 @@ class AlertActiveActivity : AppCompatActivity() {
                     }
                 }
             }
-        } else {
+        }
+        if (actualVideoFile == null || !actualVideoFile.exists() || actualVideoFile.length() < 5000L) {
             // Secondary Camera2 Video fallback
             actualVideoFile = cameraEvidenceManager.recordVideoEvidence(
                 alertId = incidentId,
@@ -437,6 +438,7 @@ class AlertActiveActivity : AppCompatActivity() {
             id = incidentId,
             timestamp = System.currentTimeMillis(),
             type = dispatchType,
+            durationSeconds = 30,
             status = "Active",
             evidence = EvidenceSummary(
                 photos = capturedPhotos.size,

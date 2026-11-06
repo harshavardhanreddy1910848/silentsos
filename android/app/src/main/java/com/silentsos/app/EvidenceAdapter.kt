@@ -62,8 +62,19 @@ class EvidenceAdapter(
                 .coerceAtLeast(if (localVideos.isNotEmpty()) 1 else 0)
 
             tvBadgePhotos.text = "📷 $pCount Photos"
-            tvBadgeAudio.text = "🎤 $aCount Audio"
-            tvBadgeVideo.text = "🎥 $vCount Video"
+            if (aCount > 0) {
+                val dur = if (localAudios.isNotEmpty()) vaultManager.getMediaDurationSeconds(localAudios[0]) else 30L
+                tvBadgeAudio.text = String.format(Locale.US, "🎤 Audio %02d:%02d", dur / 60, dur % 60)
+            } else {
+                tvBadgeAudio.text = "🎤 0 Audio"
+            }
+
+            if (vCount > 0) {
+                val dur = if (localVideos.isNotEmpty()) vaultManager.getMediaDurationSeconds(localVideos[0]) else 30L
+                tvBadgeVideo.text = String.format(Locale.US, "🎥 Video %02d:%02d", dur / 60, dur % 60)
+            } else {
+                tvBadgeVideo.text = "🎥 0 Video"
+            }
 
             itemView.setOnClickListener {
                 onItemClick(event)

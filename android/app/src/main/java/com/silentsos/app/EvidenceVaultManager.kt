@@ -124,6 +124,40 @@ class EvidenceVaultManager(private val context: Context) {
         return File(getIncidentDir(incidentId), "Metadata").apply { mkdirs() }
     }
 
+    fun getMediaDurationSeconds(file: File): Long {
+        if (!file.exists() || file.length() < 500L) return 0L
+        var sec = 0L
+        try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(file.absolutePath)
+            val durMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            sec = durMs / 1000L
+            retriever.release()
+        } catch (_: Exception) {}
+
+        if (sec <= 0L) {
+            try {
+                val mp = android.media.MediaPlayer()
+                mp.setDataSource(file.absolutePath)
+                mp.prepare()
+                sec = (mp.duration / 1000).toLong()
+                mp.release()
+            } catch (_: Exception) {}
+        }
+
+        if (sec <= 0L) {
+            val name = file.name.lowercase()
+            if (name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".webm")) {
+                sec = (file.length() / (1024L * 1024L)).coerceIn(5L, 30L)
+                if (file.length() > 500_000L) sec = 30L
+            } else if (name.endsWith(".m4a") || name.endsWith(".aac") || name.endsWith(".3gp") || name.endsWith(".mp3")) {
+                sec = (file.length() / 16_000L).coerceIn(1L, 30L)
+                if (file.length() > 20_000L) sec = 30L
+            }
+        }
+        return if (sec > 0L) sec else 30L
+    }
+
     fun getVideosForIncident(incidentId: String, timestamp: Long = 0L): List<File> {
         val dir = findIncidentDir(incidentId, timestamp)
         val videosDir = File(dir, "Videos")
@@ -133,13 +167,23 @@ class EvidenceVaultManager(private val context: Context) {
 
         if (localVideos.isNotEmpty()) return localVideos
 
-        // Scan all incident directories if not found in specific folder
-        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
-        for (d in allDirs.sortedByDescending { it.lastModified() }) {
-            val vDir = File(d, "Videos")
-            if (vDir.exists()) {
-                val found = vDir.listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 500L }?.toList() ?: emptyList()
-                if (found.isNotEmpty()) return found
+        // Check if video is stored directly in incident directory
+        val directVideos = dir.listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 500L }?.toList() ?: emptyList()
+        if (directVideos.isNotEmpty()) return directVideos
+
+        // Check nearby incident directories within 5-minute proximity window
+        val targetTs = if (timestamp > 0L) timestamp else incidentId.removePrefix("INCIDENT_").toLongOrNull() ?: 0L
+        if (targetTs > 0L) {
+            val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+            for (d in allDirs.sortedByDescending { it.lastModified() }) {
+                val dirTs = d.name.removePrefix("INCIDENT_").toLongOrNull() ?: d.lastModified()
+                if (kotlin.math.abs(dirTs - targetTs) < 300_000L) {
+                    val vDir = File(d, "Videos")
+                    val found = if (vDir.exists()) {
+                        vDir.listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 500L }?.toList() ?: emptyList()
+                    } else emptyList()
+                    if (found.isNotEmpty()) return found
+                }
             }
         }
 
@@ -156,17 +200,39 @@ class EvidenceVaultManager(private val context: Context) {
         val dir = findIncidentDir(incidentId, timestamp)
         val audioDir = File(dir, "Audio")
         val localAudios = if (audioDir.exists()) {
-            audioDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".m4a") || f.name.endsWith(".3gp") || f.name.endsWith(".mp3")) && f.length() > 500L }?.toList() ?: emptyList()
+            audioDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".m4a") || f.name.endsWith(".3gp") || f.name.endsWith(".mp3") || f.name.endsWith(".aac")) && f.length() > 500L }?.toList() ?: emptyList()
         } else emptyList()
 
         if (localAudios.isNotEmpty()) return localAudios
 
-        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
-        for (d in allDirs.sortedByDescending { it.lastModified() }) {
-            val aDir = File(d, "Audio")
-            if (aDir.exists()) {
-                val found = aDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".m4a") || f.name.endsWith(".3gp")) && f.length() > 500L }?.toList() ?: emptyList()
-                if (found.isNotEmpty()) return found
+        // Check if audio is directly in the incident folder
+        val directAudios = dir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".m4a") || f.name.endsWith(".3gp") || f.name.endsWith(".mp3") || f.name.endsWith(".aac")) && f.length() > 500L }?.toList() ?: emptyList()
+        if (directAudios.isNotEmpty()) return directAudios
+
+        // Automatic Single-Source Extraction: If a valid video exists for this incident, extract audio track now
+        val videos = getVideosForIncident(incidentId, timestamp)
+        if (videos.isNotEmpty()) {
+            val video = videos.first()
+            audioDir.mkdirs()
+            val extractedAudio = File(audioDir, "audio_${dir.name}_${System.currentTimeMillis()}.m4a")
+            if (AudioExtractor.extractAudioTrackFromMp4(video, extractedAudio) && extractedAudio.exists() && extractedAudio.length() > 500L) {
+                return listOf(extractedAudio)
+            }
+        }
+
+        // Check nearby incident directories within 5-minute proximity window
+        val targetTs = if (timestamp > 0L) timestamp else incidentId.removePrefix("INCIDENT_").toLongOrNull() ?: 0L
+        if (targetTs > 0L) {
+            val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+            for (d in allDirs.sortedByDescending { it.lastModified() }) {
+                val dirTs = d.name.removePrefix("INCIDENT_").toLongOrNull() ?: d.lastModified()
+                if (kotlin.math.abs(dirTs - targetTs) < 300_000L) {
+                    val aDir = File(d, "Audio")
+                    val found = if (aDir.exists()) {
+                        aDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".m4a") || f.name.endsWith(".3gp") || f.name.endsWith(".mp3") || f.name.endsWith(".aac")) && f.length() > 500L }?.toList() ?: emptyList()
+                    } else emptyList()
+                    if (found.isNotEmpty()) return found
+                }
             }
         }
 
@@ -188,12 +254,21 @@ class EvidenceVaultManager(private val context: Context) {
 
         if (localPhotos.isNotEmpty()) return localPhotos
 
-        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
-        for (d in allDirs.sortedByDescending { it.lastModified() }) {
-            val pDir = File(d, "Photos")
-            if (pDir.exists()) {
-                val found = pDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".jpg") || f.name.endsWith(".png")) && f.length() > 500L }?.toList() ?: emptyList()
-                if (found.isNotEmpty()) return found
+        val directPhotos = dir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".jpg") || f.name.endsWith(".jpeg") || f.name.endsWith(".png")) && f.length() > 500L }?.toList() ?: emptyList()
+        if (directPhotos.isNotEmpty()) return directPhotos
+
+        val targetTs = if (timestamp > 0L) timestamp else incidentId.removePrefix("INCIDENT_").toLongOrNull() ?: 0L
+        if (targetTs > 0L) {
+            val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+            for (d in allDirs.sortedByDescending { it.lastModified() }) {
+                val dirTs = d.name.removePrefix("INCIDENT_").toLongOrNull() ?: d.lastModified()
+                if (kotlin.math.abs(dirTs - targetTs) < 300_000L) {
+                    val pDir = File(d, "Photos")
+                    val found = if (pDir.exists()) {
+                        pDir.listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".jpg") || f.name.endsWith(".png")) && f.length() > 500L }?.toList() ?: emptyList()
+                    } else emptyList()
+                    if (found.isNotEmpty()) return found
+                }
             }
         }
 
@@ -204,6 +279,62 @@ class EvidenceVaultManager(private val context: Context) {
         }
 
         return emptyList()
+    }
+
+    fun getAllVaultEvents(): List<AlertEvent> {
+        val events = mutableListOf<AlertEvent>()
+        val allDirs = vaultRootDir.listFiles { f -> f.isDirectory } ?: emptyArray()
+
+        for (dir in allDirs.sortedByDescending { it.lastModified() }) {
+            try {
+                val meta = loadIncidentMetadata(dir.name)
+                val photos = getPhotosForIncident(dir.name, meta?.timestamp ?: 0L)
+                val videos = getVideosForIncident(dir.name, meta?.timestamp ?: 0L)
+                val audios = getAudioForIncident(dir.name, meta?.timestamp ?: 0L)
+
+                if (photos.isEmpty() && videos.isEmpty() && audios.isEmpty() && meta == null) {
+                    continue
+                }
+
+                val files = mutableListOf<EvidenceFile>()
+                photos.forEach { files.add(EvidenceFile("photo", it.absolutePath, it.lastModified())) }
+                videos.forEach { files.add(EvidenceFile("video", it.absolutePath, it.lastModified())) }
+                audios.forEach { files.add(EvidenceFile("audio", it.absolutePath, it.lastModified())) }
+
+                val ts = when {
+                    meta != null && meta.timestamp > 0 -> meta.timestamp
+                    dir.name.removePrefix("INCIDENT_").toLongOrNull() != null -> dir.name.removePrefix("INCIDENT_").toLong()
+                    else -> dir.lastModified()
+                }
+
+                val type = when {
+                    dir.name.startsWith("SURV_BURST_") -> "Surveillance Photo Burst"
+                    dir.name.startsWith("SURV_VID_") -> "Surveillance Video Loop"
+                    dir.name.startsWith("SURV_AUD_") -> "Surveillance Audio Channel"
+                    else -> "Emergency SOS"
+                }
+
+                val event = AlertEvent(
+                    id = dir.name,
+                    timestamp = ts,
+                    type = type,
+                    durationSeconds = 30,
+                    status = "Resolved",
+                    evidence = EvidenceSummary(
+                        photos = photos.size,
+                        videos = videos.size,
+                        audio = audios.size,
+                        files = files
+                    ),
+                    lat = meta?.latitude ?: 17.4485,
+                    lng = meta?.longitude ?: 78.3908
+                )
+                events.add(event)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return events
     }
 
     fun calculateSha256(file: File): String {

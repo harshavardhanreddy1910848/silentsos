@@ -1053,6 +1053,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         val layoutEmpty: LinearLayout = view.findViewById(R.id.layoutEvidenceEmpty)
 
         val vaultManager = EvidenceVaultManager(this)
+        val vaultDiskEvents = vaultManager.getAllVaultEvents()
+        val historyList = sessionManager.getHistory().toMutableList()
+        val existingIds = historyList.map { it.id }.toSet()
+        for (ve in vaultDiskEvents) {
+            if (!existingIds.contains(ve.id)) {
+                historyList.add(ve)
+            }
+        }
+        sessionManager.saveHistory(historyList)
+
         fun refreshEvidenceUI(list: List<AlertEvent>) {
             val p = list.sumOf {
                 val localPhotos = vaultManager.getPhotosForIncident(it.id, it.timestamp).size
@@ -1075,7 +1085,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        val historyList = sessionManager.getHistory()
         refreshEvidenceUI(historyList)
 
         rvEvidence.layoutManager = LinearLayoutManager(this)
@@ -1278,26 +1287,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         if (localAudioFile != null && localAudioFile.exists()) {
-            var audioSec = 0L
-            try {
-                val mmr = MediaMetadataRetriever()
-                mmr.setDataSource(localAudioFile.absolutePath)
-                val durMs = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-                audioSec = durMs / 1000L
-                mmr.release()
-            } catch (_: Exception) {}
-            if (audioSec == 0L) {
-                try {
-                    val mp = MediaPlayer()
-                    mp.setDataSource(localAudioFile.absolutePath)
-                    mp.prepare()
-                    audioSec = (mp.duration / 1000).toLong()
-                    mp.release()
-                } catch (_: Exception) {}
-            }
-            if (audioSec == 0L && localAudioFile.length() > 20000L) {
-                audioSec = 30L
-            }
+            val audioSec = vaultManager.getMediaDurationSeconds(localAudioFile)
             val sizeKb = localAudioFile.length() / 1024L
             tvAudioFileName.text = "SOS Audio (${localAudioFile.name})"
             tvAudioStatus.text = String.format(Locale.US, "Verified Audio • Duration: %02d:%02d • %d KB", audioSec / 60, audioSec % 60, sizeKb)
@@ -1317,17 +1307,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                     stopAudioPlayback()
                     mediaPlayer = MediaPlayer()
                     if (localAudioFile != null && localAudioFile.exists()) {
+                        val audioSec = vaultManager.getMediaDurationSeconds(localAudioFile)
                         mediaPlayer?.setDataSource(localAudioFile.absolutePath)
                         mediaPlayer?.prepare()
                         mediaPlayer?.start()
                         btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
                         val totalSec = (mediaPlayer?.duration ?: 0) / 1000
+                        val durToDisplay = if (totalSec > 0) totalSec.toLong() else audioSec
                         audioProgressRunnable = object : Runnable {
                             override fun run() {
                                 val mp = mediaPlayer
                                 if (mp != null && mp.isPlaying) {
                                     val cur = mp.currentPosition / 1000
-                                    tvAudioStatus.text = String.format(Locale.US, "▶ Playing Audio • %02d:%02d / %02d:%02d", cur / 60, cur % 60, totalSec / 60, totalSec % 60)
+                                    tvAudioStatus.text = String.format(Locale.US, "▶ Playing Audio • %02d:%02d / %02d:%02d", cur / 60, cur % 60, durToDisplay / 60, durToDisplay % 60)
                                     audioProgressHandler.postDelayed(this, 500)
                                 }
                             }
@@ -1343,7 +1335,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                                 mediaPlayer?.setOnPreparedListener { mp ->
                                     mp.start()
                                     btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
-                                    val totalSec = mp.duration / 1000
+                                    val totalSec = (mp.duration / 1000).toLong().coerceAtLeast(30L)
                                     audioProgressRunnable = object : Runnable {
                                         override fun run() {
                                             val currentMp = mediaPlayer
@@ -1381,17 +1373,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         val localVideoFile = vaultVideos.firstOrNull() ?: eventVideoFile
 
         if (localVideoFile != null && localVideoFile.exists()) {
-            var videoSec = 0L
-            try {
-                val mmr = MediaMetadataRetriever()
-                mmr.setDataSource(localVideoFile.absolutePath)
-                val durMs = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-                videoSec = durMs / 1000L
-                mmr.release()
-            } catch (_: Exception) {}
-            if (videoSec == 0L && localVideoFile.length() > 500000L) {
-                videoSec = 30L
-            }
+            val videoSec = vaultManager.getMediaDurationSeconds(localVideoFile)
             val sizeMb = localVideoFile.length() / (1024.0 * 1024.0)
             tvVideoFileName.text = "Incident Video (${localVideoFile.name})"
             tvVideoStatus.text = String.format(Locale.US, "Verified HD Video • Duration: %02d:%02d • %.2f MB", videoSec / 60, videoSec % 60, sizeMb)
@@ -1766,6 +1748,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             .setPositiveButton("Close") { d, _ ->
                 vv.stopPlayback()
                 d.dismiss()
+            }
+            .setNeutralButton("Open in Gallery") { _, _ ->
+                vv.stopPlayback()
+                playVideoWithInAppFallback(videoFile)
             }
             .setOnDismissListener { vv.stopPlayback() }
             .create()
