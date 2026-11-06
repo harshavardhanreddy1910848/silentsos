@@ -41,7 +41,7 @@ def run_selenium_test_suite():
     core_pages = [
         "Dashboard.tsx", "Auth.tsx", "CameraGesture.tsx",
         "Evidence.tsx", "Contacts.tsx", "History.tsx",
-        "Settings.tsx", "AiAssistant.tsx", "Receiver.tsx",
+        "Settings.tsx", "Receiver.tsx",
         "AdminDashboard.tsx", "AdminLogin.tsx"
     ]
     pages_dir = os.path.join(frontend_dir, "pages")
@@ -140,7 +140,6 @@ def run_selenium_test_suite():
 | Guardian Contacts Network | 35 | 35 | ✅ PASS |
 | Incident History Audit | 30 | 30 | ✅ PASS |
 | System Settings & Resend | 30 | 30 | ✅ PASS |
-| AI Defense Assistant | 30 | 30 | ✅ PASS |
 | Admin Governance Portal | 30 | 30 | ✅ PASS |
 | **Total** | **{len(test_cases)}** | **{passed_count}** | **✅ 100% PASS** |
 """

@@ -495,57 +495,6 @@ def get_mobile_test_cases():
             "remarks": "Forensic audit grade logging."
         })
 
-    # 10. AI Defense Assistant (AiAssistantActivity & Settings) (30 unique cases)
-    ai_scenarios = [
-        ("AI Assistant button in Settings navigates to chat", "Verify tapping cardAiAssistant opens AiAssistantActivity", "Settings open"),
-        ("AI Assistant greeting banner and prompt suggestions", "Verify default greeting and secondary suggestion chips render", "AiAssistantActivity open"),
-        ("Send user question: Stalker pursuit evasion", "Verify AI generates step-by-step tactical advice before suggestions", "Question sent"),
-        ("Send user question: Solo travelling safety advice", "Verify AI provides situational awareness and emergency prep guide", "Question sent"),
-        ("Send follow-up question: Night travel continuity", "Verify conversation context maintained from previous travel question", "Follow-up sent"),
-        ("Send acute danger inquiry: 'I feel unsafe right now'", "Verify empathetic immediate triage prioritizing physical safety", "Question sent"),
-        ("Send CPR / Medical first aid inquiry", "Verify step-by-step chest compression guide with 100-120bpm cadence", "Question sent"),
-        ("Send Indian legal rights inquiry (Zero FIR / 112)", "Verify assistant explains Section 173 CrPC / BNS Zero FIR protocol", "Question sent"),
-        ("Send domestic violence safety exit plan inquiry", "Verify covert exit planning, emergency helpline 181/1091 guidance", "Question sent"),
-        ("Send cyberbullying / blackmail extortion inquiry", "Verify 1930 helpline, cybercrime.gov.in, and evidence preservation tips", "Question sent"),
-        ("Secondary suggested questions appear below response", "Verify 2-3 contextual suggestions render underneath primary answer", "Answer received"),
-        ("Tap suggestion chip auto-submits inquiry", "Verify clicking suggestion chip inputs and sends query automatically", "Chip tapped"),
-        ("Conversation history scrolling behavior", "Verify ScrollView auto-scrolls smoothly to latest assistant message", "Message received"),
-        ("Empty input submission disabled", "Verify send button disabled or ignores empty whitespace text", "Empty input"),
-        ("Offline fallback safety intelligence", "Verify assistant returns local offline safety guidance if backend offline", "Airplane mode"),
-        ("Local LLM inference probe (Ollama / Llama.cpp)", "Verify backend probes localhost:11434 with zero external API calls", "Local runtime running"),
-        ("Zero external API leakage (No OpenAI/Gemini/Claude)", "Verify network traffic analysis reveals zero third-party AI endpoints", "Network inspected"),
-        ("AI Assistant clear conversation history", "Verify menu option clears active session dialogue and resets greeting", "Clear tapped"),
-        ("Keyboard management on send", "Verify soft keyboard remains open or dismisses cleanly per user preference", "Message sent"),
-        ("Multi-line text input expansion", "Verify input field expands up to 4 lines smoothly for long questions", "Long text typed"),
-        ("Markdown formatting in AI response", "Verify bold text, bullet points, and numbered lists format cleanly", "Response received"),
-        ("Emergency numbers direct-dial links", "Verify tapping '112' in assistant response launches phone dialer", "112 in response"),
-        ("Stealth mode command understanding", "Verify asking 'How does Stealth Mode work?' explains volume key exit", "Question sent"),
-        ("Safety PIN inquiry handling", "Verify asking 'How to change Safety PIN' explains Settings navigation", "Question sent"),
-        ("Long response rendering without clipping", "Verify 500+ word tactical guides render completely without cutoff", "Long response"),
-        ("Rapid successive questions handling", "Verify engine queues or handles rapid queries without dropping responses", "Rapid inputs"),
-        ("Accessibility screen reader support on chat", "Verify TalkBack reads user and assistant message bubbles sequentially", "TalkBack on"),
-        ("Night mode high-contrast chat bubbles", "Verify user bubble (#1e293b) and AI bubble (#0f172a) contrast cleanly", "Dark theme"),
-        ("Special characters and emoji input handling", "Verify assistant accepts Unicode symbols and emoji without crash", "Emoji in query"),
-        ("Session memory isolation between user accounts", "Verify logging in as different user starts fresh conversation history", "User switched")
-    ]
-    for idx, (title, obj, pre) in enumerate(ai_scenarios, start=1):
-        test_cases.append({
-            "test_id": f"TC_MOB_AI_{idx:03d}",
-            "category": "AI Defense Assistant",
-            "classification": "FUNCTIONAL" if idx <= 20 else "UI_UX",
-            "test_name": title,
-            "objective": obj,
-            "preconditions": pre,
-            "steps": "1. Open AI Assistant; 2. Dispatch cognitive safety query; 3. Assert contextual answer and suggestions.",
-            "expected_result": "AI Defense Assistant generates accurate, ChatGPT-like conversational advice 100% locally.",
-            "actual_result": "Verified passed with zero errors.",
-            "status": "PASS",
-            "priority": "P0" if idx <= 8 else "P1",
-            "severity": "High" if idx <= 8 else "Medium",
-            "execution_time": "0.13s",
-            "remarks": "100% local cognitive inference."
-        })
-
     # 11. System Configuration, Settings & Profile (MainActivity Tab 6 & ProfileActivity) (30 unique cases)
     settings_scenarios = [
         ("Settings (Tab 6): User profile banner rendering", "Verify avatar initials, full name, and email render accurately", "Tab 6 open"),

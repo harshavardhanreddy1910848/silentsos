@@ -38,7 +38,6 @@ class WebDashboardPage(WebBasePage):
     NAV_CONTACTS = (By.CSS_SELECTOR, "a[href='/contacts']")
     NAV_HISTORY = (By.CSS_SELECTOR, "a[href='/history']")
     NAV_SETTINGS = (By.CSS_SELECTOR, "a[href='/settings']")
-    NAV_AI_ASSISTANT = (By.CSS_SELECTOR, "a[href='/ai-assistant']")
 
 class WebGesturesPage(WebBasePage):
     PALM_CARD = (By.CSS_SELECTOR, "[data-testid='gesture-palm']")
@@ -53,12 +52,6 @@ class WebReceiverPage(WebBasePage):
     TELEMETRY_LNG = (By.ID, "receiver-lng")
     ALERT_STATUS_BADGE = (By.ID, "receiver-status")
     RESOLVE_BUTTON = (By.ID, "btn-resolve-alert")
-
-class WebAiAssistantPage(WebBasePage):
-    CHAT_INPUT = (By.CSS_SELECTOR, "textarea, input[placeholder*='Ask']")
-    SEND_BUTTON = (By.CSS_SELECTOR, "button[type='submit']")
-    MESSAGES_LIST = (By.CSS_SELECTOR, "[data-testid='message-bubble']")
-    SUGGESTION_CHIPS = (By.CSS_SELECTOR, "[data-testid='suggestion-chip']")
 
 class WebAdminPage(WebBasePage):
     TAB_DASHBOARD = (By.XPATH, "//button[contains(text(), 'Dashboard')]")

@@ -21,8 +21,7 @@ import {
   Lightbulb,
   Radio,
   Check,
-  HelpCircle,
-  Bot
+  HelpCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -310,52 +309,46 @@ export function Settings() {
           </div>
         </section>
 
-        {/* AI Defense & Safety Assistant Section */}
+        {/* AI Safety Assistant Navigation Card */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xs font-bold text-textMuted uppercase flex items-center">
-              <Sparkles className="w-4 h-4 mr-2 text-cyan-400" /> AI Safety &amp; Defense Assistant
+              <Sparkles className="w-4 h-4 mr-2 text-emerald-400" /> AI Safety Assistant
             </h2>
-            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              24/7 Intelligent Agent
+            <span className="text-[10px] text-textMuted font-medium">
+              24/7 Safety &amp; First Aid Companion
             </span>
           </div>
 
           <div
             onClick={() => navigate('/ai-assistant')}
-            className="bg-surface hover:bg-surfaceHighlight/80 border border-surfaceHighlight hover:border-cyan-500/40 rounded-2xl p-4 sm:p-5 cursor-pointer transition-all shadow-md group flex items-center justify-between gap-4"
+            className="bg-surface hover:bg-surfaceHighlight/80 border border-surfaceHighlight hover:border-emerald-500/40 rounded-2xl p-4 sm:p-5 cursor-pointer transition-all shadow-md group flex items-center justify-between gap-4"
           >
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform shrink-0">
-                <Bot className="w-7 h-7" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-950 via-slate-900 to-teal-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-md">
+                <Sparkles className="w-6 h-6 text-emerald-400" />
               </div>
 
               <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-base text-white group-hover:text-cyan-400 transition-colors">
-                    AI Defense &amp; Safety Assistant
-                  </h3>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-400 border border-cyan-500/30">
-                    LOCAL BRAIN &bull; 112 SOURCES
-                  </span>
-                </div>
-
-                <p className="text-xs text-textMuted mt-1">
-                  Tap to chat with your local AI guide for CPR first aid, tactical stalking evasion, Zero FIR legal rights, and app controls.
+                <h3 className="font-bold text-base text-white group-hover:text-emerald-400 transition-colors flex items-center gap-2">
+                  SilentSOS AI Assistant
+                </h3>
+                <p className="text-xs text-textMuted mt-0.5">
+                  Personal safety advice, medical first aid, legal rights &amp; emergency guidance
                 </p>
               </div>
             </div>
 
             <button
               type="button"
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-cyan-900/30 shrink-0 group-hover:translate-x-1 transition-transform cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-500 transition-all flex items-center gap-1.5 shrink-0 shadow-sm"
             >
-              Chat Now
-              <ChevronRight className="w-4 h-4" />
+              Open
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </section>
+
         {/* Stealth & Disguise */}
         <section>
           <h2 className="text-xs font-bold text-textMuted uppercase mb-3 flex items-center">

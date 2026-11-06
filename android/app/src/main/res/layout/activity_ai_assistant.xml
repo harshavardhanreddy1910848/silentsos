@@ -1,178 +1,399 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#07090e"
-    android:orientation="vertical">
+    android:fitsSystemWindows="true">
 
-    <!-- ─── TOP APP BAR ──────────────────────────────────────────────── -->
-    <LinearLayout
+    <!-- Top Header Action Bar (56dp) -->
+    <RelativeLayout
+        android:id="@+id/headerAiAssistant"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#0d111a"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="12dp">
+        android:layout_height="56dp"
+        android:layout_alignParentTop="true"
+        android:background="#0d0e14"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
 
         <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:id="@+id/btnAiBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back to Settings"
+            android:contentDescription="Go back"
             android:src="@drawable/ic_arrow_left_vector"
-            app:tint="#94a3b8" />
-
-        <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:layout_marginStart="6dp"
-            android:src="@drawable/ic_sparkle_vector"
-            app:tint="#38bdf8" />
+            app:tint="@color/white" />
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="4dp"
+            android:layout_toEndOf="@id/btnAiBack"
             android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="AI Defense Assistant"
-                    android:textColor="@color/white"
-                    android:textSize="14.5sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_badge_cyan"
-                    android:paddingHorizontal="6dp"
-                    android:paddingVertical="1.5dp"
-                    android:text="112 SOURCES"
-                    android:textColor="#38bdf8"
-                    android:textSize="9sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:text="Zero External APIs • Self-Hosted Local Brain"
+                android:text="SilentSOS AI Assistant"
+                android:textColor="@color/white"
+                android:textSize="15.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Personal Safety &amp; First Aid Companion"
                 android:textColor="#94a3b8"
-                android:textSize="10.5sp" />
+                android:textSize="11sp" />
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/btnAiClear"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
+            android:id="@+id/btnAiReset"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Clear conversation"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="#64748b" />
+            android:contentDescription="Reset conversation"
+            android:src="@drawable/ic_trash_vector"
+            app:tint="#94a3b8" />
+
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/dividerHeader"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/headerAiAssistant"
+        android:background="#1a1c27" />
+
+    <!-- Bottom Message Input Bar -->
+    <LinearLayout
+        android:id="@+id/layoutAiInputBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#0d0e14"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <EditText
+            android:id="@+id/etAiInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input_field"
+            android:hint="Ask a safety, medical, or legal question..."
+            android:imeOptions="actionSend"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLines="4"
+            android:minHeight="48dp"
+            android:paddingStart="14dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="12dp"
+            android:textColor="@color/white"
+            android:textColorHint="#475569"
+            android:textSize="13.5sp" />
+
+        <ImageButton
+            android:id="@+id/btnAiSend"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_auth_btn_primary"
+            android:contentDescription="Send message"
+            android:src="@drawable/ic_login_arrow_vector"
+            app:tint="@color/black" />
+
     </LinearLayout>
 
     <View
+        android:id="@+id/dividerInput"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#1e293b" />
+        android:layout_above="@id/layoutAiInputBar"
+        android:background="#1a1c27" />
 
-    <!-- ─── CHAT MESSAGES SCROLL CONTAINER ───────────────────────────── -->
-    <ScrollView
-        android:id="@+id/scrollAiMessages"
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/pbAiLoading"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp">
-
-        <LinearLayout
-            android:id="@+id/llAiMessageContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="4dp" />
-    </ScrollView>
-
-    <!-- Typing / Progress Indicator -->
-    <TextView
-        android:id="@+id/tvAiThinking"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="4dp"
-        android:text="⚡ Defense AI is formulating response..."
-        android:textColor="#38bdf8"
-        android:textSize="11sp"
-        android:textStyle="italic"
+        android:layout_height="3dp"
+        android:layout_above="@id/dividerInput"
+        android:indeterminate="true"
+        android:indeterminateTint="#00E676"
         android:visibility="gone" />
 
-    <!-- Suggestion Chips Container -->
-    <HorizontalScrollView
-        android:id="@+id/scrollSuggestions"
+    <!-- Main Content Area: Welcome Screen OR Message Feed -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:paddingHorizontal="14dp"
-        android:scrollbars="none">
+        android:layout_height="match_parent"
+        android:layout_above="@id/pbAiLoading"
+        android:layout_below="@id/dividerHeader">
 
-        <LinearLayout
-            android:id="@+id/llAiSuggestions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="2dp" />
-    </HorizontalScrollView>
+        <!-- 1. Welcome Screen (Visible when messages list is empty) -->
+        <ScrollView
+            android:id="@+id/scrollAiWelcome"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:padding="16dp">
 
-    <!-- ─── INPUT BAR ────────────────────────────────────────────────── -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#0b0f19"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="10dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/etAiQuery"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_input_field"
-            android:hint="Ask AI about CPR, PIN, Stalking, STEM..."
-            android:imeOptions="actionSend"
-            android:inputType="textCapSentences"
-            android:paddingHorizontal="14dp"
-            android:textColor="@color/white"
-            android:textColorHint="#64748b"
-            android:textSize="12.5sp" />
+                <!-- Welcome Intro Banner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_surface"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnAiSend"
-            android:layout_width="60dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/bg_badge_cyan"
-            android:text="Send"
-            android:textAllCaps="false"
-            android:textColor="#0369a1"
-            android:textSize="12.5sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-</LinearLayout>
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginBottom="12dp"
+                        android:src="@drawable/ic_shield_alert_vector"
+                        app:tint="#00E676" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="How can I assist your safety today?"
+                        android:textColor="@color/white"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingExtra="3dp"
+                        android:text="I am your private assistant for emergency first aid procedures, stalking and transit safety, legal rights in India, and SilentSOS defense controls."
+                        android:textColor="#94a3b8"
+                        android:textSize="12.5sp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="8dp"
+                    android:letterSpacing="0.06"
+                    android:text="SUGGESTED TOPICS"
+                    android:textColor="#64748b"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <!-- Prompt 1: Medical First Aid -->
+                <LinearLayout
+                    android:id="@+id/cardPromptMedical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_medical_vector" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Medical First Aid"
+                            android:textColor="#f87171"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="What should I do if someone collapses?"
+                            android:textColor="@color/white"
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Prompt 2: Women's Safety -->
+                <LinearLayout
+                    android:id="@+id/cardPromptWomen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_heart_vector"
+                        app:tint="#00E676" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Women's Safety"
+                            android:textColor="#34d399"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="What should I do if someone is following me?"
+                            android:textColor="@color/white"
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Prompt 3: Legal Rights -->
+                <LinearLayout
+                    android:id="@+id/cardPromptLegal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_police_vector" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Legal Rights in India"
+                            android:textColor="#38bdf8"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="What is a Zero FIR in India?"
+                            android:textColor="@color/white"
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Prompt 4: SilentSOS Features -->
+                <LinearLayout
+                    android:id="@+id/cardPromptFeatures"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_sparkle_vector" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="SilentSOS Features"
+                            android:textColor="#fbbf24"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="How does Stealth Mode work?"
+                            android:textColor="@color/white"
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+        <!-- 2. Message History Feed -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAiMessages"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</RelativeLayout>
 

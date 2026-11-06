@@ -56,14 +56,7 @@ class ContactsPage(BasePage):
 
 class SettingsPage(BasePage):
     PROFILE_CARD = ("id", "com.silentsos.app.debug:id/cardProfileBanner")
-    AI_ASSISTANT_CARD = ("id", "com.silentsos.app.debug:id/cardAiAssistant")
     SAFETY_PIN_BUTTON = ("id", "com.silentsos.app.debug:id/btnChangePin")
     STEALTH_SWITCH = ("id", "com.silentsos.app.debug:id/switchStealthMode")
     LOGOUT_BUTTON = ("id", "com.silentsos.app.debug:id/btnLogout")
-
-class AiAssistantPage(BasePage):
-    INPUT_EDIT_TEXT = ("id", "com.silentsos.app.debug:id/etAiInput")
-    SEND_BUTTON = ("id", "com.silentsos.app.debug:id/btnAiSend")
-    MESSAGE_CONTAINER = ("id", "com.silentsos.app.debug:id/llAiMessageContainer")
-    SUGGESTIONS_CONTAINER = ("id", "com.silentsos.app.debug:id/llAiSuggestions")
 

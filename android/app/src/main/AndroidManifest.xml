@@ -106,13 +106,6 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- AI Safety & Defense Assistant Activity (Full Screen Chat) -->
-        <activity
-            android:name=".AiAssistantActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize"
-            android:screenOrientation="portrait" />
-
         <!-- SOS Administrative Security Portal -->
         <activity
             android:name=".AdminLoginActivity"
@@ -136,6 +129,13 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- SilentSOS AI Safety Assistant Activity -->
+        <activity
+            android:name=".AiAssistantActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
             android:screenOrientation="portrait" />
 
         <!-- Real-Time SOS Foreground Tracking & Audio Beacon Service -->

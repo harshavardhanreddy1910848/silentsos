@@ -1,0 +1,9 @@
+# SilentSOS ML Microservice Dependencies
+# Compatible with local Python 3.14 environment
+fastapi==0.141.1
+uvicorn==0.52.4
+scikit-learn==1.9.0
+joblib==1.5.3
+pydantic==2.13.5
+numpy==2.5.2
+

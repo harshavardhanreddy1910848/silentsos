@@ -1,86 +1,130 @@
 package com.silentsos.app
 
-import android.content.Intent
-import android.graphics.Color
-import android.graphics.Typeface
-import android.net.Uri
 import android.os.Bundle
-import android.text.util.Linkify
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+
+/**
+ * Data representation of an in-memory conversation message.
+ * Stored strictly in volatile memory (never persisted to disk or database).
+ */
+data class ChatMessage(
+    val role: String, // "user" or "assistant"
+    val content: String,
+    val suggestions: List<String> = emptyList(),
+    val isError: Boolean = false
+)
 
 class AiAssistantActivity : AppCompatActivity() {
 
     private lateinit var apiClient: ApiClient
-    private lateinit var sessionManager: SessionManager
     private lateinit var locationHelper: LocationHelper
-    private lateinit var scrollAiMessages: ScrollView
-    private lateinit var llAiMessageContainer: LinearLayout
-    private lateinit var tvAiThinking: TextView
-    private lateinit var llAiSuggestions: LinearLayout
-    private lateinit var etAiQuery: EditText
-    private lateinit var btnAiSend: AppCompatButton
-    private lateinit var btnBack: ImageButton
-    private lateinit var btnAiClear: ImageButton
+    private var currentLat: Double? = null
+    private var currentLng: Double? = null
 
-    // Conversation Memory History
-    private val conversationHistory = mutableListOf<Pair<String, String>>()
+    private val messages = mutableListOf<ChatMessage>()
+    private lateinit var chatAdapter: AiChatAdapter
+
+    private var isLoading = false
+
+    // View references
+    private lateinit var scrollAiWelcome: ScrollView
+    private lateinit var rvAiMessages: RecyclerView
+    private lateinit var etAiInput: EditText
+    private lateinit var btnAiSend: ImageButton
+    private lateinit var pbAiLoading: ProgressBar
+    private lateinit var btnAiBack: ImageButton
+    private lateinit var btnAiReset: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ai_assistant)
 
         apiClient = ApiClient(this)
-        sessionManager = SessionManager(this)
         locationHelper = LocationHelper(this)
 
-        scrollAiMessages = findViewById(R.id.scrollAiMessages)
-        llAiMessageContainer = findViewById(R.id.llAiMessageContainer)
-        tvAiThinking = findViewById(R.id.tvAiThinking)
-        llAiSuggestions = findViewById(R.id.llAiSuggestions)
-        etAiQuery = findViewById(R.id.etAiQuery)
-        btnAiSend = findViewById(R.id.btnAiSend)
-        btnBack = findViewById(R.id.btnBack)
-        btnAiClear = findViewById(R.id.btnAiClear)
-
-        btnBack.setOnClickListener {
-            finish()
-        }
-
-        btnAiClear.setOnClickListener {
-            conversationHistory.clear()
-            llAiMessageContainer.removeAllViews()
-            initDefaultAssistantGreeting()
-            resetSuggestions()
-        }
-
-        initDefaultAssistantGreeting()
-        resetSuggestions()
-
-        btnAiSend.setOnClickListener {
-            val text = etAiQuery.text.toString().trim()
-            if (text.isNotEmpty()) {
-                sendQuery(text)
+        // Read last known location if permissions are granted
+        locationHelper.getSingleAccurateLocation { loc ->
+            if (loc != null) {
+                currentLat = loc.latitude
+                currentLng = loc.longitude
             }
         }
 
-        etAiQuery.setOnEditorActionListener { _, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_SEND || (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
-                val text = etAiQuery.text.toString().trim()
-                if (text.isNotEmpty()) {
-                    sendQuery(text)
-                }
+        initViews()
+        setupRecyclerView()
+        setupListeners()
+    }
+
+    private fun initViews() {
+        scrollAiWelcome = findViewById(R.id.scrollAiWelcome)
+        rvAiMessages = findViewById(R.id.rvAiMessages)
+        etAiInput = findViewById(R.id.etAiInput)
+        btnAiSend = findViewById(R.id.btnAiSend)
+        pbAiLoading = findViewById(R.id.pbAiLoading)
+        btnAiBack = findViewById(R.id.btnAiBack)
+        btnAiReset = findViewById(R.id.btnAiReset)
+    }
+
+    private fun setupRecyclerView() {
+        chatAdapter = AiChatAdapter(messages) { suggestion ->
+            sendQuery(suggestion)
+        }
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.stackFromEnd = true
+        rvAiMessages.layoutManager = layoutManager
+        rvAiMessages.adapter = chatAdapter
+    }
+
+    private fun setupListeners() {
+        btnAiBack.setOnClickListener {
+            finish()
+        }
+
+        btnAiReset.setOnClickListener {
+            resetConversation()
+        }
+
+        // Welcome prompt category cards
+        findViewById<LinearLayout>(R.id.cardPromptMedical).setOnClickListener {
+            sendQuery("What should I do if someone collapses?")
+        }
+        findViewById<LinearLayout>(R.id.cardPromptWomen).setOnClickListener {
+            sendQuery("What should I do if someone is following me?")
+        }
+        findViewById<LinearLayout>(R.id.cardPromptLegal).setOnClickListener {
+            sendQuery("What is a Zero FIR in India?")
+        }
+        findViewById<LinearLayout>(R.id.cardPromptFeatures).setOnClickListener {
+            sendQuery("How does Stealth Mode work?")
+        }
+
+        // Send button
+        btnAiSend.setOnClickListener {
+            handleSend()
+        }
+
+        // Soft keyboard send action
+        etAiInput.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEND ||
+                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && !event.isShiftPressed)
+            ) {
+                handleSend()
                 true
             } else {
                 false
@@ -88,502 +132,189 @@ class AiAssistantActivity : AppCompatActivity() {
         }
     }
 
-    private fun initDefaultAssistantGreeting() {
-        val userName = sessionManager.currentUser?.name ?: "there"
-        val greeting = "👋 Hello $userName! I am your 24/7 **SilentSOS AI Assistant**.\n\n" +
-            "I am ready to assist you with:\n" +
-            "• **Personal Safety & Evasion:** What to do if followed, solo travel, night transit safety\n" +
-            "• **Emergency First Aid:** Hands-only CPR, burns treatment, choking Heimlich protocol\n" +
-            "• **Legal Rights in India:** Zero FIR under BNSS, women's rights, emergency helplines\n" +
-            "• **SilentSOS Controls:** Stealth Mode disguise, Safety PIN, Optical Gestures, Fake Call & Auto-Capture\n\n" +
-            "What emergency, medical, or safety situation can I help you with today?"
-
-        addBubble(greeting, isUser = false)
-    }
-
-    private fun resetSuggestions() {
-        val defaultSuggestions = listOf(
-            "Where is the nearest police station?",
-            "Where is the nearest hospital?",
-            "What should I do if someone is following me?",
-            "How to perform CPR on an adult?",
-            "How does SilentSOS Stealth Mode work?",
-            "What is a Zero FIR in India?"
-        )
-        populateSuggestions(defaultSuggestions)
-    }
-
-    private fun populateSuggestions(suggestions: List<String>) {
-        llAiSuggestions.removeAllViews()
-        for (suggestion in suggestions) {
-            val btn = AppCompatButton(this).apply {
-                text = suggestion
-                isAllCaps = false
-                textSize = 11f
-                setTextColor(Color.parseColor("#94a3b8"))
-                setBackgroundResource(R.drawable.bg_badge_cyan)
-                setPadding(28, 14, 28, 14)
-                setOnClickListener {
-                    sendQuery(suggestion)
-                }
-            }
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                marginEnd = 16
-            }
-            llAiSuggestions.addView(btn, params)
-        }
-    }
-
-    private fun addBubble(
-        messageContent: String,
-        isUser: Boolean,
-        onlineFetched: Boolean = false,
-        sources: List<Pair<String, String>> = emptyList()
-    ) {
-        val bubble = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            val bubbleParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                gravity = if (isUser) Gravity.END else Gravity.START
-                bottomMargin = 24
-                marginStart = if (isUser) 80 else 0
-                marginEnd = if (isUser) 0 else 80
-            }
-            layoutParams = bubbleParams
-
-            setPadding(32, 24, 32, 24)
-            if (isUser) {
-                setBackgroundResource(R.drawable.bg_badge_cyan)
-            } else {
-                setBackgroundResource(R.drawable.bg_card_surface)
-            }
-        }
-
-        if (!isUser) {
-            val headerLabel = TextView(this)
-            headerLabel.text = if (onlineFetched) "🌐 ANALYZED FROM ONLINE KNOWLEDGE" else "⚡ SILENTSOS CONVERSATIONAL AI"
-            headerLabel.setTextColor(if (onlineFetched) Color.parseColor("#34d399") else Color.parseColor("#38bdf8"))
-            headerLabel.textSize = 9.5f
-            headerLabel.typeface = Typeface.DEFAULT_BOLD
-            headerLabel.setPadding(0, 0, 0, 8)
-            bubble.addView(headerLabel)
-        }
-
-        val tv = TextView(this)
-        tv.text = messageContent
-        tv.setTextColor(Color.WHITE)
-        tv.textSize = 12.5f
-        tv.setLineSpacing(4f, 1.15f)
-        tv.linksClickable = true
-        Linkify.addLinks(tv, Linkify.WEB_URLS or Linkify.PHONE_NUMBERS)
-        bubble.addView(tv)
-
-        // Render clickable online sources badges if retrieved from web
-        if (!isUser && sources.isNotEmpty()) {
-            val sourcesScroll = android.widget.HorizontalScrollView(this).apply {
-                isHorizontalScrollBarEnabled = false
-                setPadding(0, 14, 0, 0)
-            }
-            val sourcesRow = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-            }
-            for ((title, url) in sources) {
-                if (url.isNotEmpty()) {
-                    val btnSrc = AppCompatButton(this).apply {
-                        text = "🔗 " + if (title.length > 22) title.take(20) + "…" else title
-                        textSize = 9.5f
-                        isAllCaps = false
-                        setTextColor(Color.parseColor("#38bdf8"))
-                        setBackgroundResource(R.drawable.bg_badge_cyan)
-                        setPadding(18, 8, 18, 8)
-                        setOnClickListener {
-                            try {
-                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                            } catch (_: Exception) {}
-                        }
-                    }
-                    sourcesRow.addView(btnSrc, LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply { marginEnd = 12 })
-                }
-            }
-            sourcesScroll.addView(sourcesRow)
-            bubble.addView(sourcesScroll)
-        }
-
-        // Action buttons if providing police / hospital / emergency locations
-        val lowerMsg = messageContent.lowercase()
-        val hasPolice = lowerMsg.contains("police")
-        val hasHospital = lowerMsg.contains("hospital")
-        if (!isUser && (hasPolice || hasHospital)) {
-            val btnRow = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(0, 16, 0, 0)
-            }
-
-            if (hasPolice) {
-                val btnPolice = AppCompatButton(this).apply {
-                    text = "📍 Police Map"
-                    textSize = 10.5f
-                    setTextColor(Color.WHITE)
-                    setBackgroundResource(R.drawable.bg_badge_cyan)
-                    setPadding(20, 10, 20, 10)
-                    setOnClickListener {
-                        val uri = Uri.parse("https://www.google.com/maps/search/police+station+near+me")
-                        startActivity(Intent(Intent.ACTION_VIEW, uri))
-                    }
-                }
-                btnRow.addView(btnPolice, LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { marginEnd = 12 })
-            }
-
-            if (hasHospital) {
-                val btnHosp = AppCompatButton(this).apply {
-                    text = "🏥 Hospital Map"
-                    textSize = 10.5f
-                    setTextColor(Color.WHITE)
-                    setBackgroundResource(R.drawable.bg_badge_cyan)
-                    setPadding(20, 10, 20, 10)
-                    setOnClickListener {
-                        val uri = Uri.parse("https://www.google.com/maps/search/hospitals+near+me")
-                        startActivity(Intent(Intent.ACTION_VIEW, uri))
-                    }
-                }
-                btnRow.addView(btnHosp, LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { marginEnd = 12 })
-            }
-
-            val btnCall = AppCompatButton(this).apply {
-                text = "📞 Dial 112"
-                textSize = 10.5f
-                setTextColor(Color.WHITE)
-                setBackgroundResource(R.drawable.bg_badge_cyan)
-                setPadding(20, 10, 20, 10)
-                setOnClickListener {
-                    startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:112")))
-                }
-            }
-            btnRow.addView(btnCall)
-
-            bubble.addView(btnRow)
-        }
-
-        llAiMessageContainer.addView(bubble)
-        scrollAiMessages.post {
-            scrollAiMessages.fullScroll(ScrollView.FOCUS_DOWN)
-        }
+    private fun handleSend() {
+        val query = etAiInput.text.toString().trim()
+        if (query.isEmpty() || isLoading) return
+        sendQuery(query)
     }
 
     private fun sendQuery(queryText: String) {
-        addBubble(queryText, isUser = true)
-        etAiQuery.setText("")
-        tvAiThinking.visibility = View.VISIBLE
+        if (isLoading) return
 
-        // Add user turn to conversation history
-        conversationHistory.add("user" to queryText)
+        etAiInput.setText("")
 
-        locationHelper.getSingleAccurateLocation { loc ->
-            val lat = loc?.latitude
-            val lng = loc?.longitude
+        // Switch from Welcome view to Message Feed
+        if (scrollAiWelcome.visibility != View.GONE) {
+            scrollAiWelcome.visibility = View.GONE
+            rvAiMessages.visibility = View.VISIBLE
+        }
 
-            lifecycleScope.launch {
-                val res = apiClient.askAiAssistant(queryText, conversationHistory.takeLast(6), lat, lng)
-                tvAiThinking.visibility = View.GONE
-                res.onSuccess { aiRes ->
-                    conversationHistory.add("assistant" to aiRes.reply)
-                    addBubble(aiRes.reply, isUser = false, onlineFetched = aiRes.onlineFetched, sources = aiRes.sources)
-                    if (aiRes.suggestions.isNotEmpty()) {
-                        populateSuggestions(aiRes.suggestions)
+        // Add user question
+        val userMsg = ChatMessage(role = "user", content = queryText)
+        messages.add(userMsg)
+        chatAdapter.notifyItemInserted(messages.size - 1)
+        rvAiMessages.scrollToPosition(messages.size - 1)
+
+        // Loading state
+        setLoadingState(true)
+
+        // Build bounded history: exclude current message, exclude errors, last 6
+        val history = messages
+            .dropLast(1)
+            .filter { !it.isError }
+            .takeLast(6)
+            .map { Pair(it.role, it.content) }
+
+        lifecycleScope.launch {
+            val result = apiClient.sendAiChatMessage(
+                message = queryText,
+                history = history,
+                latitude = currentLat,
+                longitude = currentLng
+            )
+
+            setLoadingState(false)
+
+            result.onSuccess { response ->
+                val assistantMsg = ChatMessage(
+                    role = "assistant",
+                    content = response.reply,
+                    suggestions = response.suggestions
+                )
+                messages.add(assistantMsg)
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                rvAiMessages.smoothScrollToPosition(messages.size - 1)
+            }.onFailure {
+                val errorMsg = ChatMessage(
+                    role = "assistant",
+                    content = "Unable to connect to the SilentSOS safety assistant. Please try again. In an immediate emergency, contact your local emergency services.",
+                    isError = true
+                )
+                messages.add(errorMsg)
+                chatAdapter.notifyItemInserted(messages.size - 1)
+                rvAiMessages.smoothScrollToPosition(messages.size - 1)
+            }
+        }
+    }
+
+    private fun setLoadingState(loading: Boolean) {
+        isLoading = loading
+        pbAiLoading.visibility = if (loading) View.VISIBLE else View.GONE
+        btnAiSend.isEnabled = !loading
+        btnAiSend.alpha = if (loading) 0.5f else 1.0f
+    }
+
+    private fun resetConversation() {
+        if (isLoading) return
+        messages.clear()
+        chatAdapter.notifyDataSetChanged()
+        scrollAiWelcome.visibility = View.VISIBLE
+        rvAiMessages.visibility = View.GONE
+        etAiInput.setText("")
+    }
+
+    /**
+     * RecyclerView Adapter handling distinct User and Assistant bubble viewholders.
+     */
+    private class AiChatAdapter(
+        private val items: List<ChatMessage>,
+        private val onSuggestionClicked: (String) -> Unit
+    ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        companion object {
+            private const val TYPE_USER = 1
+            private const val TYPE_ASSISTANT = 2
+        }
+
+        override fun getItemViewType(position: Int): Int {
+            return if (items[position].role == "user") TYPE_USER else TYPE_ASSISTANT
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            val inflater = LayoutInflater.from(parent.context)
+            return if (viewType == TYPE_USER) {
+                val v = inflater.inflate(R.layout.item_chat_bubble_user, parent, false)
+                UserViewHolder(v)
+            } else {
+                val v = inflater.inflate(R.layout.item_chat_bubble_ai, parent, false)
+                AssistantViewHolder(v)
+            }
+        }
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            val item = items[position]
+            if (holder is UserViewHolder) {
+                holder.bind(item)
+            } else if (holder is AssistantViewHolder) {
+                holder.bind(item, onSuggestionClicked)
+            }
+        }
+
+        override fun getItemCount(): Int = items.size
+
+        class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            private val tvUserMessage: TextView = itemView.findViewById(R.id.tvUserMessage)
+
+            fun bind(item: ChatMessage) {
+                tvUserMessage.text = item.content
+            }
+        }
+
+        class AssistantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            private val tvAiMessage: TextView = itemView.findViewById(R.id.tvAiMessage)
+            private val layoutAiErrorNotice: LinearLayout = itemView.findViewById(R.id.layoutAiErrorNotice)
+            private val scrollAiSuggestions: View = itemView.findViewById(R.id.scrollAiSuggestions)
+            private val llAiSuggestions: LinearLayout = itemView.findViewById(R.id.llAiSuggestions)
+
+            fun bind(item: ChatMessage, onSuggestionClicked: (String) -> Unit) {
+                tvAiMessage.text = item.content
+
+                // Connection / safety notice on errors
+                layoutAiErrorNotice.visibility = if (item.isError) View.VISIBLE else View.GONE
+
+                // Suggestions list
+                if (item.suggestions.isNotEmpty()) {
+                    scrollAiSuggestions.visibility = View.VISIBLE
+                    llAiSuggestions.removeAllViews()
+
+                    val context = itemView.context
+                    val density = context.resources.displayMetrics.density
+                    val marginEndPx = (8 * density).toInt()
+                    val padStartEndPx = (14 * density).toInt()
+                    val padTopBottomPx = (10 * density).toInt()
+                    val minHeightPx = (48 * density).toInt()
+
+                    for (suggestion in item.suggestions) {
+                        val chip = TextView(context).apply {
+                            text = suggestion
+                            textSize = 12.5f
+                            setTextColor(0xFF00E676.toInt()) // Tactical emerald accent
+                            setBackgroundResource(R.drawable.bg_chip_suggestion)
+                            setPadding(padStartEndPx, padTopBottomPx, padStartEndPx, padTopBottomPx)
+                            minHeight = minHeightPx
+                            gravity = Gravity.CENTER_VERTICAL
+                            isClickable = true
+                            isFocusable = true
+                            setOnClickListener {
+                                onSuggestionClicked(suggestion)
+                            }
+                        }
+
+                        val lp = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            rightMargin = marginEndPx
+                        }
+
+                        llAiSuggestions.addView(chip, lp)
                     }
-                }.onFailure {
-                    val (offlineReply, offlineSuggestions) = getLocalOfflineSafetyAdvice(queryText, conversationHistory, lat, lng)
-                    conversationHistory.add("assistant" to offlineReply)
-                    addBubble(offlineReply, isUser = false)
-                    if (offlineSuggestions.isNotEmpty()) {
-                        populateSuggestions(offlineSuggestions)
-                    }
+                } else {
+                    scrollAiSuggestions.visibility = View.GONE
+                    llAiSuggestions.removeAllViews()
                 }
             }
         }
     }
-
-    private fun getLocalOfflineSafetyAdvice(
-        query: String,
-        history: List<Pair<String, String>>,
-        lat: Double? = null,
-        lng: Double? = null
-    ): Pair<String, List<String>> {
-        val q = query.trim().lowercase()
-        val currentPin = sessionManager.safetyPin.ifEmpty { "1234" }
-
-        // Context analysis from previous turns
-        val previousTurns = history.map { it.second.lowercase() }.joinToString(" ")
-        val isTravelContext = previousTurns.contains("travel") || previousTurns.contains("trip") || previousTurns.contains("hotel") || previousTurns.contains("transit")
-        val isStalkerContext = previousTurns.contains("follow") || previousTurns.contains("stalk") || previousTurns.contains("behind me")
-
-        // 0. Nearby Emergency Facilities: Police Station & Hospital Locations
-        val hasPolice = q.contains("police") || q.contains("cop") || q.contains("thana") || q.contains("chowki")
-        val hasHospital = q.contains("hospital") || q.contains("medical") || q.contains("doctor") || q.contains("clinic")
-        val hasLoc = q.contains("location") || q.contains("near") || q.contains("where") || q.contains("closest") || q.contains("find")
-
-        if ((hasPolice || hasHospital) && (hasLoc || q.contains("station"))) {
-            val coordsStr = if (lat != null && lng != null) "@${lat},${lng},15z" else "near+me"
-            if (hasPolice && hasHospital) {
-                return Pair(
-                    "🚨 **Nearby Emergency Facilities: Police Stations & 24/7 Hospitals:**\n\n" +
-                    "• **Nearest Police Stations:** https://www.google.com/maps/search/police+station/$coordsStr\n" +
-                    "• **Nearest 24/7 Hospitals:** https://www.google.com/maps/search/hospitals+near+me/$coordsStr\n\n" +
-                    "📞 **Emergency Contact Numbers:**\n" +
-                    "• Police: Dial **112** (Universal) or **100**\n" +
-                    "• Ambulance / Trauma: Dial **108** or **102**\n" +
-                    "• Women Helpline: Dial **1091**\n\n" +
-                    "Tap the buttons below to open Google Maps or dial immediately.",
-                    listOf("How to call 112 emergency?", "What to do if followed?", "How does Stealth Mode work?")
-                )
-            }
-            if (hasPolice) {
-                return Pair(
-                    "🚔 **Nearest Police Stations & Law Enforcement Centers:**\n\n" +
-                    "• **Open in Google Maps:** https://www.google.com/maps/search/police+station/$coordsStr\n" +
-                    "• **Universal Police Dispatch:** Dial **112** or **100**\n" +
-                    "• **Women Helpline:** Dial **1091**\n\n" +
-                    "**Safety Rule:** Under BNSS Section 173 (Zero FIR), any police station in India is legally mandated to register your emergency complaint.",
-                    listOf("What is a Zero FIR in India?", "What should I do if followed?", "How does live tracking work?")
-                )
-            }
-            return Pair(
-                "🏥 **Nearest 24/7 Hospitals & Emergency Medical Centers:**\n\n" +
-                "• **Open in Google Maps:** https://www.google.com/maps/search/hospitals+near+me/$coordsStr\n" +
-                "• **Emergency Ambulance Dispatch:** Dial **108** or **102**\n" +
-                "• **Universal Emergency:** Dial **112**\n\n" +
-                "**Urgent Guidance:** For severe bleeding, apply firm direct pressure with a clean cloth. For cardiac collapse, start hands-only CPR immediately.",
-                listOf("How to perform CPR on an adult?", "How to treat severe bleeding?", "How does live GPS tracking work?")
-            )
-        }
-
-        // 1. FIRST PREFERENCE: SilentSOS App Operations & How It Works (Android & Web)
-        val isAppHowItWorks = q.contains("how it works") || q.contains("how does it work") ||
-            q.contains("how does this work") || q.contains("how does the app work") ||
-            q.contains("how does our app work") || q.contains("how our app works") ||
-            q.contains("tell me about our app") || q.contains("tell me about the app") ||
-            q.contains("explain our app") || q.contains("explain the app") ||
-            q.contains("what is this app") || q.contains("what is our app") ||
-            q.contains("what does this app do") || q.contains("how to use this app") ||
-            q.contains("how to use our app") || q.contains("how does silentsos work") ||
-            q.contains("features of silentsos") || q.contains("how it works in android and web") ||
-            q.contains("how does android app work") || q.contains("how does web app work") ||
-            q.contains("about silentsos") || q.contains("what is silentsos") ||
-            q.contains("purpose of silentsos") || q.contains("how does the system work") ||
-            q.contains("how to trigger alert") || q == "silentsos" || q == "app" || q == "our app"
-
-        if (isAppHowItWorks) {
-            return Pair(
-                "🛡️ **SilentSOS Women's Safety Platform — Complete System & How It Works:**\n\n" +
-                "SilentSOS is an enterprise-grade emergency dispatch, evidence preservation, and covert personal defense system available as both a **Native Android Application** and a **Web Application**.\n\n" +
-                "---\n\n" +
-                "### 📱 1. Native Android Application (On-Device Mobile Operations)\n" +
-                "The Android mobile app is engineered for rapid, hands-free emergency execution in physical crises:\n" +
-                "• **SOS Triggers:**\n" +
-                "  - **3-Second Hold:** Press and hold the central glowing SOS button to dispatch an emergency alarm without accidental clicks.\n" +
-                "  - **Hardware Accelerometer Shake:** Rapidly shake the phone 3–4 times to trigger the alarm without unlocking or looking at the screen.\n" +
-                "  - **Covert Optical Gestures:** Front-camera computer vision detects a 1.5s open Palm Raise or 3-Blink eye pattern to silently trigger an alarm completely hands-free.\n" +
-                "• **Auto-Capture Surveillance:**\n" +
-                "  - Captures a rapid 5–10 photo burst from front and rear cameras.\n" +
-                "  - Records a rolling continuous 1080p HD video loop.\n" +
-                "  - Records high-fidelity microphone ambient audio with noise reduction.\n" +
-                "• **Automated Evidence Email Dispatch:**\n" +
-                "  - Instantly compiles photos, video, audio recordings, and reverse-geocoded GPS street coordinates into an encrypted evidence package emailed to all trusted guardian contacts.\n" +
-                "• **Stealth Mode (Black Screen Disguise):**\n" +
-                "  - Simulates a completely black, powered-off screen while silently broadcasting satellite GPS coordinates and surveillance audio in the background.\n" +
-                "• **Safety PIN Anti-Tamper Disarm:**\n" +
-                "  - Aggressors cannot cancel, silence, or exit the alert without entering your personal 4-digit Safety PIN (default: `1234`).\n" +
-                "• **Fake Call Escape Simulator:**\n" +
-                "  - Triggers an authentic incoming phone call with ringtone and caller voice to gracefully exit risky or awkward social situations.\n\n" +
-                "---\n\n" +
-                "### 🌐 2. Web Application (Cloud Telemetry, Guardian Receiver Portal & Admin)\n" +
-                "The Web application serves as the cloud management, dispatch telemetry, and guardian tracking hub:\n" +
-                "• **Live Guardian Receiver Portal:**\n" +
-                "  - Emergency contacts receive a secure live link showing the user's real-time movements on Google Maps with updated GPS coordinates.\n" +
-                "• **Emergency SOS Dispatch Console:**\n" +
-                "  - Web users can trigger immediate alarms, locate nearest 24/7 police stations and hospitals, and dial 112 emergency services with one click.\n" +
-                "• **AI Defense Assistant:**\n" +
-                "  - 24/7 conversational safety and emergency intelligence engine answering safety questions, first-aid protocols, legal protections, and live online knowledge retrieval.\n" +
-                "• **Evidence Vault & Incident Logs:**\n" +
-                "  - Secure dashboard storing timestamped audio clips, photos, and incident coordinates for legal evidence.\n" +
-                "• **Emergency Contacts Management:**\n" +
-                "  - Add, verify, and prioritize trusted guardians with phone numbers and emails for instant dispatch.\n\n" +
-                "---\n\n" +
-                "### ⚡ 3. End-to-End Emergency Workflow\n" +
-                "1. **Trigger:** User activates SOS via button hold, phone shake, or optical gesture.\n" +
-                "2. **Surveillance:** Camera bursts, video loops, and microphone audio are captured automatically.\n" +
-                "3. **Dispatch:** Guardians immediately receive email evidence and live Google Maps tracking links.\n" +
-                "4. **Assistance:** AI Assistant provides instant guidance to nearest police stations and hospitals.\n" +
-                "5. **Safe Resolution:** Disarmed only when the user enters their 4-digit Safety PIN.",
-                listOf(
-                    "How does Stealth Mode work in SilentSOS?",
-                    "How does Auto-Capture Surveillance record evidence?",
-                    "Where is the nearest police station?"
-                )
-            )
-        }
-
-        // 2. Being Followed / Stalking
-        if (q.contains("following me") || q.contains("someone following") || q.contains("being followed") || q.contains("stalk") || (isStalkerContext && (q.contains("stop") || q.contains("close") || q.contains("run")))) {
-            return Pair(
-                "If you think someone is following you, **prioritize your immediate physical safety above everything else**:\n\n" +
-                "1. **Confirm Without Alerting Them:** Do not panic or constantly look back. Make 3–4 consecutive turns around a block. If the person matches your turns, pursuit is confirmed.\n" +
-                "2. **Move Towards a Crowded, Illuminated Venue:** Head directly into an open commercial space—a supermarket, hotel lobby, restaurant, 24-hour convenience store, or fuel station with staff and CCTV cameras.\n" +
-                "3. **DO NOT Go Directly Home:** Never lead a follower to your apartment, dark residential lanes, or parking garages.\n" +
-                "4. **Contact Trusted Persons & Share Live Location:** Call someone you trust, state your exact street intersection calmly, and keep them on speaker. In SilentSOS, your live GPS coordinates can be shared instantly.\n" +
-                "5. **Contact Emergency Services (112):** If you feel threatened or the person closes distance, dial **112** (Universal Emergency in India/EU) or **911** (US).",
-                listOf("What should I do if they don't stop?", "How does Stealth Mode work in SilentSOS?", "What about travelling at night?")
-            )
-        }
-
-        // 2. Solo Travel Safety
-        if (q.contains("travelling at night") || q.contains("traveling at night") || q.contains("travel at night") || (isTravelContext && (q.contains("night") || q.contains("dark")))) {
-            return Pair(
-                "Travelling at night requires heightened awareness because visibility is reduced and fewer open businesses are available. Here is how to stay safe at night:\n\n" +
-                "1. **Stick to Illuminated Arterial Roads:** Never take dark shortcuts, unlit park trails, or deserted service lanes—even if it saves travel time. Stick to main, well-lit roads with passing vehicle traffic.\n" +
-                "2. **Cab & Rideshare Safety Checklist (Uber / Ola / Taxis):**\n" +
-                "   • **Match the Plate and Driver:** Always verify the vehicle's registration number, make, and driver photo *before* entering.\n" +
-                "   • **Ask 'Who are you picking up?':** Never say *'Are you for [My Name]?'* Let the driver state your name first.\n" +
-                "   • **Sit in the Back Seat:** Sitting in the rear diagonal seat gives you visibility of the driver, access to both doors, and safe exit options.\n" +
-                "   • **Verify Child Locks:** Check that the rear door handle opens freely from the inside before departing.\n" +
-                "   • **Share Trip & Live GPS:** Share your ride status with trusted contacts and monitor the GPS route on your own phone.\n" +
-                "3. **Sensory Awareness (Headphone Rule):** Avoid wearing two earbuds with noise-cancellation turned on. Keep at least one ear free and head up so you can hear approaching vehicles or footsteps.\n" +
-                "4. **Battery & Power Reserve:** Keep phone battery above 30% before heading out at night. Carry a portable power bank.\n" +
-                "5. **Public Transit Caution:** If taking a night train or bus, sit near the driver, conductor, or in carriages with other families and commuters. Avoid isolated end compartments.",
-                listOf("What should I do if my cab driver changes route?", "What should I do if someone is following me?", "How does Stealth Mode work in SilentSOS?")
-            )
-        }
-
-        if (q.contains("travel") || q.contains("travelling") || q.contains("traveling") || q.contains("trip") || q.contains("hotel") || q.contains("solo")) {
-            return Pair(
-                "Solo travel can be empowering and rewarding when paired with practical situational awareness. Here are essential safety recommendations for travelling alone:\n\n" +
-                "1. **Pre-Trip Preparation & Digital Itinerary:**\n" +
-                "   • Research the neighborhood safety reputation of your destination before booking.\n" +
-                "   • Save digital copies of your passport, ID, and travel insurance in encrypted cloud storage.\n" +
-                "   • Share your complete itinerary and hotel bookings with at least one trusted emergency contact.\n\n" +
-                "2. **Accommodation & Room Security:**\n" +
-                "   • Request a room located between the 2nd and 4th floors (high enough to discourage street-level break-ins, low enough for fire rescue ladders).\n" +
-                "   • Verify that windows and secondary door deadbolts latch securely upon checking in.\n" +
-                "   • Carry an inexpensive portable rubber door stop or portable door alarm for extra nighttime security.\n\n" +
-                "3. **Street Smartness & Blending In:**\n" +
-                "   • Walk with confidence and purpose. If you need to check maps, step into a shop or cafe rather than stopping on an open street corner with luggage.\n" +
-                "   • Avoid flashing high-value jewelry, open luxury cameras, or large stacks of cash in crowded tourist hubs.\n\n" +
-                "4. **Communication & Check-Ins:**\n" +
-                "   • Establish a daily check-in routine with a family member or friend (e.g., a quick text every evening).\n" +
-                "   • In SilentSOS, your trusted emergency circle can view your coordinates whenever you arm the journey tracker.\n\n" +
-                "5. **Local Emergency Numbers:**\n" +
-                "   • Memorize local dispatch numbers: **112** in India & European Union, **911** in the USA & Canada, **999** in the UK, **000** in Australia.",
-                listOf("What about travelling at night?", "What should I do if someone is following me?", "What are the official emergency numbers in India?")
-            )
-        }
-
-        // 3. Immediate Danger / Unsafe Right Now
-        if (q.contains("feel unsafe") || q.contains("feeling unsafe") || q.contains("in danger") || q.contains("someone is outside") || q.contains("help me right now") || q.contains("scared right now") || q.contains("threatened")) {
-            return Pair(
-                "💙 **I am here with you. Take a steady breath. Your immediate safety is the number one priority.**\n\n" +
-                "Please assess your current surroundings right now:\n\n" +
-                "1. **Are you in immediate physical danger?**\n" +
-                "   • If **YES**, do not hesitate: move immediately towards people, a lit shop, or security personnel, and dial **112** (Universal Emergency Helpline) or your local police immediately.\n" +
-                "   • If speaking out loud is dangerous, activate **SilentSOS Stealth Mode** (hold volume rocker or tap Stealth in SOS Hub) to transmit your coordinates silently without an active screen display.\n\n" +
-                "2. **If You Are in a Public Space:**\n" +
-                "   • Stay in well-lit areas with active bystanders or security cameras.\n" +
-                "   • Call a trusted friend, family member, or colleague and stay on the line until you reach a secure destination.\n\n" +
-                "3. **If You Are Indoors or at Home:**\n" +
-                "   • Ensure all doors and deadbolts are locked. Turn off lights that silhouette your movements from outside.\n" +
-                "   • Keep your phone charged, stay in an interior room with an exit path, and call local authorities if someone unauthorized is outside.\n\n" +
-                "*Tell me: are you currently outdoors or indoors? I will guide you through your exact next steps.*",
-                listOf("What should I do if someone is following me?", "How does Stealth Mode work in SilentSOS?", "What are the official emergency numbers?")
-            )
-        }
-
-        // 4. CPR & Medical
-        if (q.contains("cpr") || q.contains("resuscitat") || q.contains("chest compression") || q.contains("heart attack")) {
-            return Pair(
-                "🩺 **Emergency Hands-Only CPR Protocol (Adult):**\n\n" +
-                "If someone collapses, is unresponsive, and is not breathing normally:\n\n" +
-                "1. **Call 112 / 911 Immediately:** Put phone on speaker so dispatchers can assist.\n" +
-                "2. **Position Person:** Lay them flat on their back on a firm, hard floor.\n" +
-                "3. **Hand Placement:** Place the heel of one hand in the center of the chest. Interlock your other hand on top.\n" +
-                "4. **Compress Hard & Fast:** Push down 2 inches deep at **100–120 compressions per minute** (to the beat of *'Stayin Alive'*).\n" +
-                "5. **Don't Stop:** Continue until emergency medical services take over.",
-                listOf("How to treat burns?", "What to do for choking (Heimlich)?", "Emergency phone numbers")
-            )
-        }
-
-        // 5. Zero FIR
-        if (q.contains("zero fir") || q.contains("fir") || q.contains("police refuse") || q.contains("legal rights")) {
-            return Pair(
-                "⚖️ **Zero FIR & Legal Protections in India:**\n\n" +
-                "Under **Section 173 of the Bharatiya Nagarik Suraksha Sanhita (BNSS)**:\n\n" +
-                "1. **Nationwide Registration:** Any police station **MUST** register an FIR for a cognizable offense regardless of territorial jurisdiction.\n" +
-                "2. **Zero Designation:** Assigned temporary number '0' and immediate evidence/medical preservation occurs before case transfer.\n" +
-                "3. **Penalties for Refusal:** Officers refusing to register FIRs for crimes against women face imprisonment under Section 199 of BNS.\n" +
-                "4. **Emergency Helplines:** 112 (Universal), 1091 (Women's Helpline), 181 (Domestic Violence).",
-                listOf("What are emergency numbers in India?", "What to do if followed?", "How does Stealth Mode work?")
-            )
-        }
-
-        // 6. Stealth Mode
-        if (q.contains("stealth") || q.contains("black screen") || q.contains("disguise")) {
-            return Pair(
-                "🕶️ **SilentSOS Stealth Mode:**\n\n" +
-                "• **Simulated Black Screen:** Phone appears completely powered off to aggressors.\n" +
-                "• **Covert Telemetry:** Silently streams live GPS satellite coordinates, front/back photo bursts, and microphone audio buffers to your emergency contacts.\n" +
-                "• **Activation:** Toggle in SOS Hub, Settings, or press your hardware volume button cadence.\n" +
-                "• **Exit:** Double-tap the top corner and enter your 4-digit Safety PIN ($currentPin).",
-                listOf("How to change my safety PIN?", "What should I do if followed?", "How does Fake Call work?")
-            )
-        }
-
-        // 7. SilentSOS Emergency GPS Tracking
-        if (q.contains("gps") || q.contains("location") || q.contains("tracking") || q.contains("coordinates")) {
-            return Pair(
-                "🛰️ **SilentSOS Emergency GPS Tracking System:**\n\n" +
-                "• **Immediate Fix:** Locks onto high-precision GNSS satellite coordinates upon alarm trigger.\n" +
-                "• **Live Broadcast:** Continuously transmits real-time telemetry to your emergency circle on Google Maps.\n" +
-                "• **Reverse Geocoding:** Automatically translates raw latitude/longitude into street intersections and landmarks.\n" +
-                "• **Offline Buffering:** If cellular connectivity is temporarily unavailable, breadcrumbs are buffered and automatically dispatched once signal returns.",
-                listOf("How does Stealth Mode work in SilentSOS?", "How to trigger SOS on mobile?", "How does live tracking work?")
-            )
-        }
-
-        // 8. SilentSOS Platform Features & Controls
-        if (q.contains("silentsos") || q.contains("feature") || q.contains("purpose") || q.contains("gesture") || q.contains("auto capture")) {
-            return Pair(
-                "🛡️ **SilentSOS Purpose & Feature Summary:**\n\n" +
-                "**Mission:** Mission-critical personal safety and rapid emergency dispatch platform for women and solo travelers.\n\n" +
-                "• **SOS Dispatch:** 3-second hold or rapid device shake trigger.\n" +
-                "• **Covert Optical Gestures:** Front-camera Palm Raise (1.5s) and Eye Blink detection.\n" +
-                "• **Auto-Capture Surveillance:** Dual photo burst, continuous HD video loop, stereo audio recording.\n" +
-                "• **Evidence Dispatch:** Automated email package with media and live GPS coordinates to guardians.\n" +
-                "• **Live Tracking Portal:** Real-time Google Maps telemetry link for contacts.\n" +
-                "• **Stealth Mode & PIN:** Simulated black screen and 4-digit PIN ($currentPin) anti-tamper disarm.",
-                listOf("How does Stealth Mode work in SilentSOS?", "How does Covert Gesture Detection work?", "How does Auto-Capture Surveillance record evidence?")
-            )
-        }
-
-        // 9. Safety & Emergency Assistance Fallback
-        return Pair(
-            "🛡️ **SilentSOS Safety & Emergency Companion:**\n\n" +
-            "I am standing by to assist you with **Personal Safety**, **Emergency Medical First Aid**, and **SilentSOS System Operations**.\n\n" +
-            "• If you feel unsafe or in danger, please move towards a crowded, well-lit area or dial **112**.\n" +
-            "• In an immediate crisis, hold the central SOS button or use Stealth Mode to notify your emergency contacts.\n\n" +
-            "How can I support your safety right now?",
-            listOf("What should I do if someone is following me?", "How to perform CPR on an adult?", "How does SilentSOS Stealth Mode work?")
-        )
-    }
 }
+

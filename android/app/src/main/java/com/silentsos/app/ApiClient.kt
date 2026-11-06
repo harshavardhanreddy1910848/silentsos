@@ -800,79 +800,6 @@ class ApiClient(private val context: Context) {
         }
     }
 
-    data class AiAssistantResponse(
-        val reply: String,
-        val suggestions: List<String>,
-        val onlineFetched: Boolean = false,
-        val sources: List<Pair<String, String>> = emptyList()
-    )
-
-    suspend fun askAiAssistant(
-        message: String,
-        history: List<Pair<String, String>> = emptyList(),
-        lat: Double? = null,
-        lng: Double? = null
-    ): Result<AiAssistantResponse> = withContext(Dispatchers.IO) {
-        try {
-            val base = getBaseUrl()
-            val json = JSONObject().apply {
-                put("message", message)
-                if (lat != null && lng != null) {
-                    put("location", JSONObject().apply {
-                        put("lat", lat)
-                        put("lng", lng)
-                    })
-                }
-                if (history.isNotEmpty()) {
-                    val arr = JSONArray()
-                    for ((role, text) in history) {
-                        arr.put(JSONObject().apply {
-                            put("role", role)
-                            put("text", text)
-                        })
-                    }
-                    put("history", arr)
-                }
-            }
-            val request = Request.Builder()
-                .url("$base/api/ai/chat")
-                .post(json.toString().toRequestBody(jsonMediaType))
-                .build()
-
-            val response = client.newCall(request).execute()
-            val body = response.body?.string() ?: ""
-            if (response.isSuccessful) {
-                val jsonRes = JSONObject(body)
-                val reply = jsonRes.optString("reply", "I am here to guide your personal safety and emergency settings.")
-                val suggestionsArr = jsonRes.optJSONArray("suggestions")
-                val suggestions = mutableListOf<String>()
-                if (suggestionsArr != null) {
-                    for (i in 0 until suggestionsArr.length()) {
-                        suggestions.add(suggestionsArr.getString(i))
-                    }
-                }
-                val onlineFetched = jsonRes.optBoolean("onlineFetched", false)
-                val sourcesArr = jsonRes.optJSONArray("sources")
-                val sourcesList = mutableListOf<Pair<String, String>>()
-                if (sourcesArr != null) {
-                    for (i in 0 until sourcesArr.length()) {
-                        val sObj = sourcesArr.optJSONObject(i)
-                        if (sObj != null) {
-                            val title = sObj.optString("title", "Online Source")
-                            val url = sObj.optString("url", "")
-                            sourcesList.add(Pair(title, url))
-                        }
-                    }
-                }
-                Result.success(AiAssistantResponse(reply, suggestions, onlineFetched, sourcesList))
-            } else {
-                Result.failure(Exception("AI Assistant query failed (${response.code})"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     suspend fun clearData(): Result<Boolean> = withContext(Dispatchers.IO) {
         sessionManager.logout()
         SyncManager.getInstance(context).disconnect()
@@ -1129,6 +1056,71 @@ class ApiClient(private val context: Context) {
             } else {
                 Result.failure(Exception("Failed to delete feedback (${response.code})"))
             }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun sendAiChatMessage(
+        message: String,
+        history: List<Pair<String, String>> = emptyList(),
+        latitude: Double? = null,
+        longitude: Double? = null
+    ): Result<AiChatResponse> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val json = JSONObject().apply {
+                put("message", message.trim())
+                val historyArr = JSONArray()
+                val boundedHistory = if (history.size > 6) history.takeLast(6) else history
+                for ((role, content) in boundedHistory) {
+                    historyArr.put(JSONObject().apply {
+                        put("role", role)
+                        put("content", content)
+                    })
+                }
+                put("history", historyArr)
+                if (latitude != null && longitude != null) {
+                    put("location", JSONObject().apply {
+                        put("latitude", latitude)
+                        put("longitude", longitude)
+                    })
+                }
+            }
+
+            val request = Request.Builder()
+                .url("$base/api/ai/chat")
+                .post(json.toString().toRequestBody("application/json".toMediaType()))
+                .build()
+
+            val response = client.newCall(request).execute()
+            val bodyStr = response.body?.string() ?: ""
+
+            if (!response.isSuccessful) {
+                return@withContext Result.failure(Exception("HTTP ${response.code}: $bodyStr"))
+            }
+
+            val obj = JSONObject(bodyStr)
+            val reply = obj.optString("reply", "").trim()
+            if (reply.isEmpty()) {
+                return@withContext Result.failure(Exception("Empty assistant reply received"))
+            }
+
+            val suggestionsList = mutableListOf<String>()
+            val sugArr = obj.optJSONArray("suggestions")
+            if (sugArr != null) {
+                for (i in 0 until sugArr.length()) {
+                    val s = sugArr.optString(i, "").trim()
+                    if (s.isNotEmpty()) {
+                        suggestionsList.add(s)
+                    }
+                }
+            }
+
+            val source = obj.optString("source", "Local Ollama (llama3.2)")
+            val model = obj.optString("model", "llama3.2")
+
+            Result.success(AiChatResponse(reply, suggestionsList, source, model))
         } catch (e: Exception) {
             Result.failure(e)
         }

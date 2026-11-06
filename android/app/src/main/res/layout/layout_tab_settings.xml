@@ -89,80 +89,6 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- AI Defense Assistant Card -->
-        <LinearLayout
-            android:id="@+id/cardAiAssistant"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_card_surface"
-            android:padding="16dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_sparkle_vector"
-                app:tint="#38bdf8" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="AI Safety &amp; Defense Assistant"
-                        android:textColor="@color/white"
-                        android:textSize="13.5sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_badge_cyan"
-                        android:paddingHorizontal="6dp"
-                        android:paddingVertical="1.5dp"
-                        android:text="24/7 AI"
-                        android:textColor="#38bdf8"
-                        android:textSize="9.5sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Crisis tactics, PIN, stealth mode &amp; emergency settings"
-                    android:textColor="#94a3b8"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_badge_cyan"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="5dp"
-                android:text="Chat Now ›"
-                android:textColor="#38bdf8"
-                android:textSize="11.5sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
         <!-- 2. Capture & Surveillance Shortcut -->
         <LinearLayout
             android:id="@+id/cardCaptureSettings"
@@ -200,6 +126,56 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Photo burst counts, rolling video buffers, audio fidelity"
+                    android:textColor="#94a3b8"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="›"
+                android:textColor="#64748b"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <!-- AI Safety Assistant -->
+        <LinearLayout
+            android:id="@+id/cardAiAssistant"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card_surface"
+            android:padding="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_sparkle_vector"
+                app:tint="#00E676" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI Safety Assistant"
+                    android:textColor="@color/white"
+                    android:textSize="13.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Personal safety, first aid and legal guidance"
                     android:textColor="#94a3b8"
                     android:textSize="11sp" />
             </LinearLayout>

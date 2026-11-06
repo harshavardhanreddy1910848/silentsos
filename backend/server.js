@@ -1737,9 +1737,7 @@ app.post('/api/ai/chat', optionalAuthenticateToken, async (req, res) => {
     res.json({
       success: true,
       reply: result.reply,
-      suggestions: result.suggestions,
-      onlineFetched: result.onlineFetched || false,
-      sources: result.sources || [],
+      suggestions: result.suggestions || [],
       source: result.source || 'Local Ollama (llama3.2)',
       model: result.model || 'llama3.2'
     });

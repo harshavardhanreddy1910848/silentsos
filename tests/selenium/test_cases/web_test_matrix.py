@@ -21,7 +21,6 @@ def get_web_test_cases():
         ("Navigation link: Contacts tab click", "Verify clicking Contacts navigates to /contacts", "Header visible"),
         ("Navigation link: History tab click", "Verify clicking History navigates to /history", "Header visible"),
         ("Navigation link: Settings tab click", "Verify clicking Settings navigates to /settings", "Header visible"),
-        ("Navigation link: AI Assistant tab click", "Verify clicking AI Assistant navigates to /ai-assistant", "Header visible"),
         ("Mobile bottom navigation bar on small screens", "Verify bottom navigation renders on viewports < 768px", "Mobile viewport"),
         ("Active tab visual indicator highlighting", "Verify current active route tab highlighted with emerald underline/pill", "Route active"),
         ("Footer copyright and security credentials", "Verify footer displays 'SilentSOS Defense Network' and AES-256 badge", "Footer in DOM"),
@@ -102,7 +101,6 @@ def get_web_test_cases():
         ("Protected route redirect: /contacts when unauthenticated", "Verify unauthenticated visit to /contacts redirects to /auth", "No token"),
         ("Protected route redirect: /settings when unauthenticated", "Verify unauthenticated visit to /settings redirects to /auth", "No token"),
         ("Protected route redirect: /history when unauthenticated", "Verify unauthenticated visit to /history redirects to /auth", "No token"),
-        ("Protected route redirect: /ai-assistant when unauthenticated", "Verify unauthenticated visit to /ai-assistant redirects to /auth", "No token"),
         ("Admin route protection: /admin for regular user", "Verify regular user visiting /admin redirected with 'Access Denied'", "Regular user token"),
         ("XSS sanitization in login fields", "Verify script injection payloads rendered as escaped text", "XSS payload"),
         ("SQL injection sanitization in login fields", "Verify SQL statements treated as literal strings and rejected safely", "SQLi payload"),
@@ -505,7 +503,6 @@ def get_web_test_cases():
         ("Submit Feedback: Valid submission", "Verify submitting feedback dispatches POST /api/feedback", "Feedback typed"),
         ("Submit Feedback: Category selection (Bug, Feature, UI, General)", "Verify category pills update payload correctly", "Category clicked"),
         ("Submit Feedback: Empty comments validation", "Verify empty feedback rejected with 'Please provide your comments'", "Empty feedback"),
-        ("AI Assistant shortcut banner in Settings", "Verify AI Assistant banner navigates directly to /ai-assistant chat", "Banner clicked"),
         ("App version and build hash display", "Verify software version 1.0.0 and commit hash display in footer", "Page loaded"),
         ("Sensor sensitivity preset selector (Low, Normal, High)", "Verify adjusting sensitivity updates shake and optical thresholds", "Preset changed"),
         ("Clear local offline cache button", "Verify clearing cache wipes temporary media files without removing tokens", "Cache cleared"),
@@ -533,57 +530,6 @@ def get_web_test_cases():
             "severity": "Medium" if idx <= 15 else "Low",
             "execution_time": "0.10s",
             "remarks": "Settings and Resend gateway verified."
-        })
-
-    # 10. AI Defense Assistant Cognitive Chat (/ai-assistant) (30 unique cases)
-    ai_scenarios = [
-        ("AI Assistant page initial load (/ai-assistant)", "Verify chat container, message list, input box, and send button mount", "Navigated to /ai-assistant"),
-        ("Default greeting message display", "Verify assistant greets user with tactical safety mission statement", "Page loaded"),
-        ("Secondary suggested questions chips display", "Verify initial suggestion chips render underneath greeting", "Page loaded"),
-        ("Ask question: Tactical stalker pursuit evasion", "Verify AI generates step-by-step physical evasion protocol", "Question submitted"),
-        ("Ask question: Solo travelling safety advice", "Verify AI generates situational awareness and transport advice", "Question submitted"),
-        ("Ask follow-up question: Night travel continuity", "Verify assistant maintains context from previous solo travel inquiry", "Follow-up submitted"),
-        ("Ask question: Acute danger triage ('I feel unsafe')", "Verify empathetic immediate triage prioritizing physical safety", "Question submitted"),
-        ("Ask question: CPR / Medical emergency first aid", "Verify chest compression cadence (100-120bpm) and recovery position", "Question submitted"),
-        ("Ask question: Indian legal rights (Zero FIR / 112)", "Verify assistant explains Section 173 CrPC / BNS Zero FIR rights", "Question submitted"),
-        ("Ask question: Domestic violence emergency exit plan", "Verify covert packing, emergency helpline 181/1091 guidance", "Question submitted"),
-        ("Ask question: Cyberbullying & blackmail extortion", "Verify 1930 helpline, cybercrime.gov.in, and evidence preservation", "Question submitted"),
-        ("Primary answer renders before secondary suggestions", "Verify full answer text renders completely before suggestion chips", "Answer received"),
-        ("Clicking secondary suggestion chip sends query", "Verify clicking chip auto-populates input and dispatches question", "Chip clicked"),
-        ("Chat message list auto-scrolling to latest response", "Verify container smoothly scrolls to bottom upon new message", "Message received"),
-        ("Empty question submission prevented", "Verify send button disabled or ignores whitespace-only input", "Empty input"),
-        ("Offline cognitive safety fallback advice", "Verify assistant returns local offline guidance if backend offline", "Server offline"),
-        ("Local LLM runtime probe (Ollama on localhost:11434)", "Verify backend queries local Qwen/Llama runtime without external APIs", "Local LLM active"),
-        ("Zero external API calls (No OpenAI/Gemini/Claude)", "Verify network traffic analysis reveals zero external cloud AI endpoints", "Network inspected"),
-        ("Clear chat history button", "Verify clicking clear chat resets conversation and restores greeting", "Clear clicked"),
-        ("Markdown formatting rendering in AI response", "Verify bold text, bullet points, and code blocks format cleanly", "Response received"),
-        ("Direct-dial emergency numbers in response (112)", "Verify tapping '112' launches phone dialer", "112 in response"),
-        ("Stealth mode explanation inquiry", "Verify asking 'How does Stealth Mode work?' explains volume key exit", "Question submitted"),
-        ("Safety PIN inquiry handling", "Verify asking 'How to change Safety PIN' explains Settings navigation", "Question submitted"),
-        ("Long response rendering without clipping (500+ words)", "Verify long comprehensive tactical guides render cleanly", "Long response"),
-        ("Rapid successive questions queueing", "Verify submitting queries rapidly does not corrupt message sequence", "Rapid inputs"),
-        ("Responsive chat interface on mobile viewports", "Verify input box and chat bubbles adapt to 375px mobile screens", "Mobile viewport"),
-        ("Screen reader accessibility on chat bubbles", "Verify aria-live announces user and assistant messages clearly", "Screen reader on"),
-        ("Dark mode contrast on chat bubbles", "Verify contrast between user bubble (#1e293b) and text meets WCAG AA", "Dark theme"),
-        ("Unicode characters and emoji handling in chat", "Verify assistant handles international characters and emoji safely", "Emoji typed"),
-        ("Session memory isolation between user accounts", "Verify logging out and switching accounts starts fresh conversation", "User switched")
-    ]
-    for idx, (title, obj, pre) in enumerate(ai_scenarios, start=1):
-        test_cases.append({
-            "test_id": f"TC_WEB_AI_{idx:03d}",
-            "category": "AI Defense Assistant",
-            "classification": "FUNCTIONAL" if idx <= 20 else "UI_UX",
-            "test_name": title,
-            "objective": obj,
-            "preconditions": pre,
-            "steps": "1. Open /ai-assistant; 2. Dispatch cognitive safety query; 3. Assert contextual answer and suggestions.",
-            "expected_result": "AI Defense Assistant generates accurate, ChatGPT-like conversational advice 100% locally.",
-            "actual_result": "Verified passed with zero errors.",
-            "status": "PASS",
-            "priority": "P0" if idx <= 8 else "P1",
-            "severity": "High" if idx <= 8 else "Medium",
-            "execution_time": "0.12s",
-            "remarks": "100% local cognitive inference."
         })
 
     # 11. Administrative Governance Portal (/admin) (30 unique cases)

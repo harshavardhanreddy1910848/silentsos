@@ -504,3 +504,10 @@ data class AdminFeedbackItem(
         }
     }
 }
+
+data class AiChatResponse(
+    val reply: String,
+    val suggestions: List<String> = emptyList(),
+    val source: String = "Local Ollama (llama3.2)",
+    val model: String = "llama3.2"
+)
