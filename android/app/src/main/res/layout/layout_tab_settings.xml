@@ -431,60 +431,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-                <!-- SOS Administrative Security Console Access -->
-        <LinearLayout
-            android:id="@+id/btnOpenAdminConsole"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_card_surface"
-            android:padding="14dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_shield_alert_vector"
-                app:tint="#e11d48" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="SOS Administrative Console"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="System alerts, user management &amp; telemetry"
-                    android:textColor="#94a3b8"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_badge_red"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:text="Admin ›"
-                android:textColor="#f87171"
-                android:textSize="10.5sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
+        
         <!-- 7. Clear Data & Logout -->
         <LinearLayout
             android:layout_width="match_parent"

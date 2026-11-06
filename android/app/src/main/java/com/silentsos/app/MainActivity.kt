@@ -1634,14 +1634,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         // Reset Data
-        // SOS Administrative Console Access
-        view.findViewById<View?>(R.id.btnOpenAdminConsole)?.setOnClickListener {
-            if (sessionManager.isAdmin) {
-                startActivity(Intent(this, AdminDashboardActivity::class.java))
-            } else {
-                startActivity(Intent(this, AdminLoginActivity::class.java))
-            }
-        }
 
         view.findViewById<AppCompatButton>(R.id.btnClearData).setOnClickListener {
             AlertDialog.Builder(this)
