@@ -11,10 +11,10 @@ if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder('ipv4first');
 }
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Initialize PostgreSQL Connection Pool with serverless resilience & TCP keepAlive
 const connectionConfig = process.env.DATABASE_URL
