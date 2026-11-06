@@ -1,6 +1,8 @@
 package com.silentsos.app
 
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -203,4 +205,44 @@ class EvidenceVaultManager(private val context: Context) {
             null
         }
     }
+
+    fun verifyPhoto(file: File): Boolean {
+        if (!file.exists() || file.length() < 1000L) return false
+        return try {
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.absolutePath, options)
+            options.outWidth > 0 && options.outHeight > 0
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun verifyVideo(file: File): Boolean {
+        if (!file.exists() || file.length() < 50000L) return false
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(file.absolutePath)
+            val hasVideo = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO)
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            retriever.release()
+            hasVideo != null && duration > 0L
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun verifyAudio(file: File): Boolean {
+        if (!file.exists() || file.length() < 5000L) return false
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(file.absolutePath)
+            val hasAudio = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO)
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            retriever.release()
+            hasAudio != null && duration > 0L
+        } catch (_: Exception) {
+            false
+        }
+    }
 }
+

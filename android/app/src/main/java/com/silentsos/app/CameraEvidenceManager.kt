@@ -246,7 +246,7 @@ class CameraEvidenceManager(private val context: Context) {
     ): File? = withContext(Dispatchers.IO) {
         val outputFile = File(evidenceDir, "video_${alertId}_${System.currentTimeMillis()}.mp4")
         if (!hasCameraPermission()) {
-            return@withContext createVideoEvidenceContainer(alertId)
+            return@withContext null
         }
 
         var success = false
@@ -390,10 +390,10 @@ class CameraEvidenceManager(private val context: Context) {
             thread.quitSafely()
         }
 
-        if (success && outputFile.exists() && outputFile.length() > 5000) {
+        if (success && outputFile.exists() && outputFile.length() > 50000L) {
             outputFile
         } else {
-            createVideoEvidenceContainer(alertId)
+            null
         }
     }
 

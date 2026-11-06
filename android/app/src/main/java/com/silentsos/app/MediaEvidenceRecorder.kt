@@ -3,16 +3,21 @@ package com.silentsos.app
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.MediaMetadataRetriever
 import android.media.MediaRecorder
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 
 class MediaEvidenceRecorder(private val context: Context) {
+    companion object {
+        private const val TAG = "MediaEvidenceRecorder"
+    }
+
     private var mediaRecorder: MediaRecorder? = null
     var currentAudioFile: File? = null
         private set
@@ -28,47 +33,45 @@ class MediaEvidenceRecorder(private val context: Context) {
         stopAudioRecording()
         val outputFile = targetFile ?: run {
             val outputDir = File(context.filesDir, "evidence").apply { mkdirs() }
-            File(outputDir, "audio_${System.currentTimeMillis()}.3gp")
+            File(outputDir, "audio_${System.currentTimeMillis()}.m4a")
         }
         outputFile.parentFile?.mkdirs()
-
-        if (hasRecordPermission()) {
-            try {
-                val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    MediaRecorder(context)
-                } else {
-                    @Suppress("DEPRECATION")
-                    MediaRecorder()
-                }
-
-                recorder.apply {
-                    setAudioSource(MediaRecorder.AudioSource.MIC)
-                    setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                    setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-                    setOutputFile(outputFile.absolutePath)
-                    prepare()
-                    start()
-                }
-
-                mediaRecorder = recorder
-                currentAudioFile = outputFile
-                return outputFile
-            } catch (e: Exception) {
-                mediaRecorder?.release()
-                mediaRecorder = null
-            }
+        if (outputFile.exists()) {
+            outputFile.delete()
         }
 
-        // Safe fallback audio evidence container
+        if (!hasRecordPermission()) {
+            Log.w(TAG, "Audio RECORD_AUDIO permission not granted")
+            return null
+        }
+
         try {
-            FileOutputStream(outputFile).use { fos ->
-                val amrHeader = "#!AMR\n".toByteArray()
-                fos.write(amrHeader)
-                fos.write("SILENTSOS-AUDIO-VAULT".toByteArray())
+            val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MediaRecorder(context)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaRecorder()
             }
+
+            recorder.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioEncodingBitRate(128_000)
+                setAudioSamplingRate(44100)
+                setOutputFile(outputFile.absolutePath)
+                prepare()
+                start()
+            }
+
+            mediaRecorder = recorder
             currentAudioFile = outputFile
+            Log.i(TAG, "MediaRecorder started recording to: ${outputFile.name}")
             return outputFile
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start MediaRecorder: ${e.message}", e)
+            try { mediaRecorder?.release() } catch (_: Exception) {}
+            mediaRecorder = null
             return null
         }
     }
@@ -79,14 +82,38 @@ class MediaEvidenceRecorder(private val context: Context) {
         onProgress: ((Int) -> Unit)? = null
     ): File? = withContext(Dispatchers.IO) {
         val startedFile = startAudioRecording(targetFile)
+        if (startedFile == null) {
+            Log.e(TAG, "Cannot record audio: recorder could not start")
+            return@withContext null
+        }
+
         for (i in 1..durationSeconds) {
             delay(1000)
             onProgress?.invoke(i)
         }
+
         val finalFile = stopAudioRecording() ?: startedFile
-        if (finalFile != null && finalFile.exists() && finalFile.length() > 0) {
-            finalFile
+        if (finalFile.exists() && finalFile.length() > 5000L) {
+            // Verify file has real audio stream and duration
+            try {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(finalFile.absolutePath)
+                val hasAudio = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO)
+                val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                retriever.release()
+                if (hasAudio != null && duration > 0L) {
+                    Log.i(TAG, "Verified audio file: ${finalFile.name} (duration=${duration}ms, size=${finalFile.length()} bytes)")
+                    finalFile
+                } else {
+                    Log.w(TAG, "Audio file has no decodable duration")
+                    finalFile
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Metadata check warning: ${e.message}")
+                finalFile
+            }
         } else {
+            Log.e(TAG, "Audio recording resulted in empty or corrupt file")
             null
         }
     }
@@ -98,8 +125,9 @@ class MediaEvidenceRecorder(private val context: Context) {
                 stop()
                 release()
             }
-        } catch (_: Exception) {
-            // Ignored if not active
+            Log.i(TAG, "MediaRecorder stopped successfully")
+        } catch (e: Exception) {
+            Log.w(TAG, "MediaRecorder stop failed (possibly too short): ${e.message}")
         } finally {
             mediaRecorder = null
         }

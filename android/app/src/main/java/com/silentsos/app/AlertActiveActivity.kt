@@ -194,109 +194,119 @@ class AlertActiveActivity : AppCompatActivity() {
             }
         }
 
-        // Initialize CameraX with rear camera default and preview provider
-        val cameraInitSuccess = cameraXCapture.initializeCamera(cameraPreviewView, useFrontCamera = false)
+        // =========================================================================
+        // STAGE 1: BIND CAMERAX FOR PHOTOGRAPHS & CAPTURE SENSOR BURST
+        // =========================================================================
+        val photoInitSuccess = cameraXCapture.bindForPhoto(cameraPreviewView, useFrontCamera = false)
 
         withContext(Dispatchers.Main) {
             if (!isFinishing && !isDestroyed) {
-                if (cameraInitSuccess) {
-                    tvCameraStatusBadge?.text = "🎥 CAMERAX: ARMED • RECORDING"
-                    tvEvidenceStatus.text = "📸 Capturing Photos & 30s Video/Audio..."
+                if (photoInitSuccess) {
+                    tvCameraStatusBadge?.text = "📸 CAMERAX: CAPTURING BURST"
+                    tvEvidenceStatus.text = "📸 Capturing Sensor Photographs..."
                 } else {
-                    tvCameraStatusBadge?.text = "⚠️ SENSOR: CAMERAX FALLBACK"
-                    tvEvidenceStatus.text = "📸 Initializing Hardware Fallback..."
+                    tvCameraStatusBadge?.text = "⚠️ SENSOR: HARDWARE FALLBACK"
+                    tvEvidenceStatus.text = "📸 Initializing Camera Hardware Fallback..."
                 }
             }
         }
 
-        // 1. Capture Photographs (Actual JPGs via CameraX ImageCapture)
         val capturedPhotos = mutableListOf<File>()
 
-        if (cameraInitSuccess) {
-            val photoFile1 = File(photosDir, "photo_${System.currentTimeMillis()}_1.jpg")
-            val p1 = cameraXCapture.capturePhoto(photoFile1)
-            if (p1 != null && p1.exists() && p1.length() > 0) {
-                capturedPhotos.add(p1)
+        if (photoInitSuccess) {
+            val burst = cameraXCapture.captureBurstPhotos(photosDir, count = 3, intervalMs = 600)
+            for (p in burst) {
+                if (vaultManager.verifyPhoto(p)) {
+                    capturedPhotos.add(p)
+                }
             }
         }
 
-        // Fallback to secondary camera capture if CameraX unavailable or to get additional burst
+        // Hardware Camera2 Fallback if CameraX photos unavailable
         if (capturedPhotos.isEmpty()) {
             val fallbackPhotos = cameraEvidenceManager.captureBurstPhotos(currentLat, currentLng, incidentId)
             for (fp in fallbackPhotos) {
                 val dest = File(photosDir, fp.name)
                 fp.copyTo(dest, overwrite = true)
-                if (dest.exists() && dest.length() > 0) {
+                if (vaultManager.verifyPhoto(dest)) {
                     capturedPhotos.add(dest)
                 }
             }
         }
 
-        // 2 & 3. Record at least 30 SECONDS of Video (with audio) AND Standalone Audio in parallel
+        // =========================================================================
+        // STAGE 2: BIND CAMERAX FOR HD VIDEO RECORDING WITH MICROPHONE AUDIO
+        // =========================================================================
+        withContext(Dispatchers.Main) {
+            if (!isFinishing && !isDestroyed) {
+                tvCameraStatusBadge?.text = "🎥 CAMERAX: RECORDING 30s HD VIDEO"
+                tvEvidenceStatus.text = "🎥 Recording 30s Video & Audio: 0s / 30s"
+                tvCameraTimer?.text = "REC 00:00"
+            }
+        }
+
         var actualVideoFile: File? = null
         var actualAudioFile: File? = null
 
-        coroutineScope {
-            // Standalone Microphone Audio Recording (30s)
-            val audioJob = async(Dispatchers.IO) {
-                val targetAudio = File(audioDir, "audio_${System.currentTimeMillis()}.3gp")
-                mediaRecorder.recordAudioForDuration(targetAudio, 30) { sec ->
-                    runOnUiThread {
-                        if (!isFinishing && !isDestroyed) {
-                            val mins = sec / 60
-                            val secs = sec % 60
-                            tvCameraTimer?.text = String.format(Locale.US, "REC %02d:%02d", mins, secs)
-                            tvEvidenceStatus.text = "🎥 Recording 30s Evidence: ${sec}s / 30s"
-                        }
+        val videoInitSuccess = cameraXCapture.bindForVideo(cameraPreviewView, useFrontCamera = false)
+        val targetVideo = File(videosDir, "video_${incidentId}_${System.currentTimeMillis()}.mp4")
+
+        if (videoInitSuccess) {
+            actualVideoFile = cameraXCapture.recordVideo(targetVideo, durationSeconds = 30) { sec ->
+                runOnUiThread {
+                    if (!isFinishing && !isDestroyed) {
+                        val mins = sec / 60
+                        val secs = sec % 60
+                        tvCameraTimer?.text = String.format(Locale.US, "REC %02d:%02d", mins, secs)
+                        tvEvidenceStatus.text = "🎥 Recording 30s Video & Audio: ${sec}s / 30s"
                     }
                 }
             }
-
-            // CameraX Video Recording with withAudioEnabled() (30s)
-            val videoJob = async(Dispatchers.IO) {
-                val targetVideo = File(videosDir, "video_${System.currentTimeMillis()}.mp4")
-                if (cameraInitSuccess) {
-                    cameraXCapture.recordVideo(targetVideo, durationSeconds = 30) { sec ->
-                        runOnUiThread {
-                            if (!isFinishing && !isDestroyed) {
-                                val mins = sec / 60
-                                val secs = sec % 60
-                                tvCameraTimer?.text = String.format(Locale.US, "REC %02d:%02d", mins, secs)
-                                tvEvidenceStatus.text = "🎥 Recording 30s Evidence: ${sec}s / 30s"
-                            }
-                        }
-                    }
-                } else {
-                    cameraEvidenceManager.recordVideoEvidence(
-                        alertId = incidentId,
-                        durationSeconds = 30
-                    ) { sec ->
-                        runOnUiThread {
-                            if (!isFinishing && !isDestroyed) {
-                                val mins = sec / 60
-                                val secs = sec % 60
-                                tvCameraTimer?.text = String.format(Locale.US, "REC %02d:%02d", mins, secs)
-                                tvEvidenceStatus.text = "🎥 Recording 30s Evidence: ${sec}s / 30s"
-                            }
-                        }
+        } else {
+            // Secondary Camera2 Video fallback
+            actualVideoFile = cameraEvidenceManager.recordVideoEvidence(
+                alertId = incidentId,
+                durationSeconds = 30
+            ) { sec ->
+                runOnUiThread {
+                    if (!isFinishing && !isDestroyed) {
+                        val mins = sec / 60
+                        val secs = sec % 60
+                        tvCameraTimer?.text = String.format(Locale.US, "REC %02d:%02d", mins, secs)
+                        tvEvidenceStatus.text = "🎥 Recording 30s Video & Audio: ${sec}s / 30s"
                     }
                 }
             }
+        }
 
-            // Capture interval photo at 15s mark if CameraX is active
-            launch(Dispatchers.IO) {
-                delay(15000)
-                if (cameraInitSuccess) {
-                    val photoFile2 = File(photosDir, "photo_${System.currentTimeMillis()}_interval.jpg")
-                    val p2 = cameraXCapture.capturePhoto(photoFile2)
-                    if (p2 != null && p2.exists() && p2.length() > 0) {
-                        capturedPhotos.add(p2)
+        // =========================================================================
+        // STAGE 3: SINGLE-SOURCE AUDIO EXTRACTION (NO MIC CONFLICT)
+        // =========================================================================
+        withContext(Dispatchers.Main) {
+            if (!isFinishing && !isDestroyed) {
+                tvEvidenceStatus.text = "🎙️ Extracting Authentic Microphone Audio Track..."
+            }
+        }
+
+        val targetAudio = File(audioDir, "audio_${incidentId}_${System.currentTimeMillis()}.m4a")
+
+        if (actualVideoFile != null && actualVideoFile.exists() && actualVideoFile.length() > 50000L) {
+            val extracted = AudioExtractor.extractAudioTrackFromMp4(actualVideoFile, targetAudio)
+            if (extracted && targetAudio.exists() && targetAudio.length() > 5000L && vaultManager.verifyAudio(targetAudio)) {
+                actualAudioFile = targetAudio
+            }
+        }
+
+        // If audio extraction was not possible, record standalone audio via MediaRecorder sequentially
+        if (actualAudioFile == null || !actualAudioFile.exists()) {
+            cameraXCapture.unbind()
+            actualAudioFile = mediaRecorder.recordAudioForDuration(targetAudio, durationSeconds = 10) { sec ->
+                runOnUiThread {
+                    if (!isFinishing && !isDestroyed) {
+                        tvEvidenceStatus.text = "🎙️ Recording Fallback Audio: ${sec}s / 10s"
                     }
                 }
             }
-
-            actualAudioFile = audioJob.await()
-            actualVideoFile = videoJob.await()
         }
 
         // 4. Calculate SHA-256 Hashes of Actual Evidence Files

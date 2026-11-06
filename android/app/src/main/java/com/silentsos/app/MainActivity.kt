@@ -20,6 +20,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.media.MediaPlayer
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -1181,14 +1182,25 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         // 2. Audio playback
-        val vaultAudios = vaultManager.getAudioDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".3gp") || f.name.endsWith(".m4a")) }?.toList() ?: emptyList()
+        val vaultAudios = vaultManager.getAudioDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".3gp") || f.name.endsWith(".m4a")) && f.length() > 1000L }?.toList() ?: emptyList()
         val audioEvidence = event.evidence.files.firstOrNull { it.type == "audio" }
         val localAudioFile = vaultAudios.firstOrNull() ?: if (localEvidenceDir.exists()) {
-            localEvidenceDir.listFiles { f -> f.name.startsWith("audio_") }?.lastOrNull()
+            localEvidenceDir.listFiles { f -> f.name.startsWith("audio_") && (f.name.endsWith(".3gp") || f.name.endsWith(".m4a")) && f.length() > 1000L }?.lastOrNull()
         } else null
 
-        if (audioEvidence != null || localAudioFile != null) {
-            tvAudioFileName.text = "SOS Audio Recording (${if (localAudioFile != null) localAudioFile.name else "cloud_vault.3gp"})"
+        if (localAudioFile != null && localAudioFile.exists()) {
+            var audioSec = 0L
+            try {
+                val mmr = MediaMetadataRetriever()
+                mmr.setDataSource(localAudioFile.absolutePath)
+                val durMs = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                audioSec = durMs / 1000L
+                mmr.release()
+            } catch (_: Exception) {}
+            tvAudioFileName.text = "SOS Audio (${localAudioFile.name})"
+            tvAudioStatus.text = String.format(Locale.US, "Verified Audio • Duration: %02d:%02d • Ready to play", audioSec / 60, audioSec % 60)
+        } else if (audioEvidence != null) {
+            tvAudioFileName.text = "Cloud Audio Evidence"
             tvAudioStatus.text = "Encrypted audio evidence • Ready to stream"
         } else {
             tvAudioStatus.text = "No audio recorded for this session"
@@ -1210,7 +1222,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                         mediaPlayer?.prepare()
                         mediaPlayer?.start()
                         btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
-                        tvAudioStatus.text = "Playing emergency ambient audio recording..."
+                        val totalSec = (mediaPlayer?.duration ?: 0) / 1000
+                        tvAudioStatus.text = String.format(Locale.US, "Playing Audio • %02d:%02d", totalSec / 60, totalSec % 60)
                     } else if (audioEvidence != null) {
                         lifecycleScope.launch {
                             val base = apiClient.getBaseUrl()
@@ -1221,7 +1234,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                                 mediaPlayer?.setOnPreparedListener { mp ->
                                     mp.start()
                                     btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
-                                    tvAudioStatus.text = "Streaming audio evidence from secure cloud..."
+                                    val totalSec = mp.duration / 1000
+                                    tvAudioStatus.text = String.format(Locale.US, "Streaming Audio • %02d:%02d", totalSec / 60, totalSec % 60)
                                 }
                             } catch (e: Exception) {
                                 tvAudioStatus.text = "Playback failed: ${e.message}"
@@ -1244,14 +1258,26 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         }
 
         // 3. Video stream
-        val vaultVideos = vaultManager.getVideosDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") }?.toList() ?: emptyList()
+        val vaultVideos = vaultManager.getVideosDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 5000L }?.toList() ?: emptyList()
         val videoEvidence = event.evidence.files.firstOrNull { it.type == "video" }
         val localVideoFile = vaultVideos.firstOrNull() ?: if (localEvidenceDir.exists()) {
-            localEvidenceDir.listFiles { f -> f.name.startsWith("video_") && f.name.endsWith(".mp4") }?.lastOrNull()
+            localEvidenceDir.listFiles { f -> f.name.startsWith("video_") && f.name.endsWith(".mp4") && f.length() > 5000L }?.lastOrNull()
         } else null
 
-        if (videoEvidence != null || localVideoFile != null) {
-            tvVideoFileName.text = "Incident Video Stream (${if (localVideoFile != null) localVideoFile.name else "cloud_vault.mp4"})"
+        if (localVideoFile != null && localVideoFile.exists()) {
+            var videoSec = 0L
+            try {
+                val mmr = MediaMetadataRetriever()
+                mmr.setDataSource(localVideoFile.absolutePath)
+                val durMs = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                videoSec = durMs / 1000L
+                mmr.release()
+            } catch (_: Exception) {}
+            val sizeMb = localVideoFile.length() / (1024.0 * 1024.0)
+            tvVideoFileName.text = "Incident Video (${localVideoFile.name})"
+            tvVideoStatus.text = String.format(Locale.US, "Verified HD Video • Duration: %02d:%02d • %.2f MB", videoSec / 60, videoSec % 60, sizeMb)
+        } else if (videoEvidence != null) {
+            tvVideoFileName.text = "Cloud Video Evidence"
             tvVideoStatus.text = "Tamper-evident video stream container"
         } else {
             tvVideoStatus.text = "No video recorded for this session"
