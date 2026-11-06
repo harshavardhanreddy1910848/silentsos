@@ -84,6 +84,7 @@ class ApiClient(private val context: Context) {
         val candidates = listOf(
             "http://127.0.0.1:3001",
             "http://10.0.2.2:3001",
+            "http://10.240.225.242:3001",
             "http://10.235.254.242:3001",
             defaultBase
         ).distinct()

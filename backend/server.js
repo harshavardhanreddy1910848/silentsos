@@ -965,6 +965,15 @@ async function sendPeriodicAlertEmail(alertId, customLocation = null) {
 app.use(cors({ origin: '*', methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['*'] }));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+// Ensure all JSON body parser errors return clean JSON rather than default HTML
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Malformed JSON payload. Please ensure request body is valid JSON.' });
+  }
+  next(err);
+});
+
 app.use('/evidence', express.static(EVIDENCE_DIR));
 
 // Health check / root route
@@ -1038,7 +1047,10 @@ async function authenticateToken(req, res, next) {
     req.userId = decoded.userId;
 
     const user = await db.getUser(req.userId);
-    if (user && user.disabled) {
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: User account not found' });
+    }
+    if (user.disabled) {
       return res.status(403).json({ error: 'Your account has been disabled by an administrator.' });
     }
 
@@ -1217,20 +1229,32 @@ function dispatchEmergencyAlerts(user, contacts, alertId, lat = 19.076, lng = 72
 
 // 🔓 PUBLIC ROUTE: Authorization (Login / Registration)
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, name } = req.body || {};
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return res.status(400).json({ error: 'A valid email address is required.' });
+  }
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+  }
   try {
-    const user = await db.registerUser(email, password, name);
+    const user = await db.registerUser(email.trim(), password, (name || '').trim());
     const token = Buffer.from(JSON.stringify({ userId: user.id })).toString('base64');
-    res.json({ token, user });
+    res.status(201).json({ token, user });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body || {};
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Password is required.' });
+  }
   try {
-    const user = await db.authenticateUser(email, password);
+    const user = await db.authenticateUser(email.trim(), password);
     if (user.disabled) {
       return res.status(403).json({ error: 'Your account has been disabled by an administrator.' });
     }
@@ -1239,6 +1263,11 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+// 🔓 PUBLIC ROUTE: Logout acknowledgement
+app.post('/api/auth/logout', (req, res) => {
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 // 🔓 PUBLIC ROUTE: Forgot Password - Request 6-digit verification code sent to user email
@@ -1792,6 +1821,11 @@ app.get('/api/ai/status', async (req, res) => {
       'Personal Safety (SilentSOS controls, Stealth mode, accident response)'
     ]
   });
+});
+
+// 404 fallback for unmatched public /api/auth routes
+app.all('/api/auth/*', (req, res) => {
+  res.status(404).json({ error: `Auth endpoint not found: ${req.method} ${req.originalUrl}` });
 });
 
 // 🔒 PROTECTED ROUTES: Require token authorization header
@@ -2661,6 +2695,22 @@ app.post('/api/clear-all', async (req, res) => {
   await db.clearUserData(req.userId);
   activeAlert = null;
   res.json({ success: true });
+});
+
+// Fallback 404 for any unhandled /api routes - guarantee JSON response
+app.all('/api/*', (req, res) => {
+  res.status(404).json({ error: `API endpoint not found: ${req.method} ${req.originalUrl}` });
+});
+
+// Global unhandled error handler for Express - guarantee JSON response
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error'
+  });
 });
 
 server.listen(PORT, () => {

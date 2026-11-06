@@ -210,8 +210,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        const history = await res.json();
-        setState(s => ({ ...s, history }));
+        const history = await safeJson(res);
+        setState(s => ({ ...s, history: Array.isArray(history) ? history : [] }));
       }
     } catch (e) {
       console.error('Failed to load alerts history', e);
@@ -313,6 +313,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    try {
+      fetch(`${API_BASE}/auth/logout`, { method: 'POST' }).catch(() => {});
+    } catch {}
     persistToken(null);
     setState(initialState);
   };
@@ -355,7 +358,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(updates)
       });
       if (res.ok) {
-        const updated = await res.json();
+        const updated = await safeJson(res);
         setState((s) => ({
           ...s,
           userName: updated.name || s.userName,
@@ -487,8 +490,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             })
           });
 
+          const data = await safeJson(res);
           if (res.ok) {
-            const data = await res.json();
             setState((s) => ({
               ...s,
               activeAlert: {
@@ -502,8 +505,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             }));
             resolve();
           } else {
-            const errData = await res.json().catch(() => ({ error: 'Unknown server error' }));
-            const errMsg = errData.error || 'Server error triggering alert';
+            const errMsg = data.error || 'Server error triggering alert';
             setState((s) => ({ ...s, activeAlert: null }));
             alert(`🚨 Trigger Failed: ${errMsg}`);
             reject(new Error(errMsg));
@@ -628,7 +630,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify(feedbackData)
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         throw new Error(data.error || 'Failed to submit feedback');
       }
