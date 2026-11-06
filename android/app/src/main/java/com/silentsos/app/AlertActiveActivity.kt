@@ -57,6 +57,7 @@ class AlertActiveActivity : AppCompatActivity() {
     private var currentLat: Double = 0.0
     private var currentLng: Double = 0.0
     private var activeIncidentId: String = ""
+    private var activeServerAlertId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +72,28 @@ class AlertActiveActivity : AppCompatActivity() {
         apiClient = ApiClient(this)
 
         initViews()
+
+        currentLat = intent.getDoubleExtra("EXTRA_LAT", 0.0)
+        currentLng = intent.getDoubleExtra("EXTRA_LNG", 0.0)
+        if (currentLat == 0.0 && currentLng == 0.0) {
+            locationHelper.getImmediateLastKnownLocation()?.let {
+                currentLat = it.latitude
+                currentLng = it.longitude
+            }
+        }
+        if (currentLat != 0.0 && currentLng != 0.0) {
+            tvLiveAlertCoordinates.text = String.format("Lat: %.5f, Lng: %.5f", currentLat, currentLng)
+        }
+
+        locationHelper.getSingleAccurateLocation { loc ->
+            loc?.let {
+                currentLat = it.latitude
+                currentLng = it.longitude
+                runOnUiThread {
+                    tvLiveAlertCoordinates.text = String.format("Lat: %.5f, Lng: %.5f", currentLat, currentLng)
+                }
+            }
+        }
 
         val isImmediate = intent.getBooleanExtra("EXTRA_IMMEDIATE_DISPATCH", false)
         val dispatchType = intent.getStringExtra("EXTRA_DISPATCH_TYPE") ?: "Emergency SOS"
@@ -169,12 +192,40 @@ class AlertActiveActivity : AppCompatActivity() {
         // 2. Foreground Tracking Service
         SosForegroundService.start(this, "SilentSOS: $dispatchType Active • Live CameraX & Audio Capture")
 
-        // 3. Start CameraX + Video + Audio Autonomous Evidence Capture Pipeline
+        // 3. Immediately Trigger Cloud SOS Alert (Dispatches Real-Time GPS Location Email to Contacts instantly)
+        lifecycleScope.launch {
+            try {
+                var alertContacts = contacts
+                if (alertContacts.isEmpty()) {
+                    val remoteContactsRes = apiClient.getContacts()
+                    remoteContactsRes.onSuccess { remoteList ->
+                        if (remoteList.isNotEmpty()) {
+                            alertContacts = remoteList
+                            sessionManager.saveContacts(remoteList)
+                        }
+                    }
+                }
+                val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", alertContacts)
+                val sId = triggerRes.getOrNull()
+                if (sId != null) {
+                    activeServerAlertId = sId
+                    withContext(Dispatchers.Main) {
+                        if (!isFinishing && !isDestroyed) {
+                            tvServerSyncStatus.text = "☁️ SOS Alert Dispatched • Live GPS Emailed to Contacts ✓"
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // 4. Start CameraX + Video + Audio Autonomous Evidence Capture Pipeline
         lifecycleScope.launch {
             captureEvidenceAndDispatch(incidentId, dispatchType)
         }
 
-        // 4. Continual Accurate GPS Telemetry Tracking
+        // 5. Continual Accurate GPS Telemetry Tracking & Real-Time Sync to Mail / Web
         try {
             locationHelper.startContinuousTracking { updatedLoc ->
                 if (!isFinishing && !isDestroyed) {
@@ -182,6 +233,12 @@ class AlertActiveActivity : AppCompatActivity() {
                         currentLat = updatedLoc.latitude
                         currentLng = updatedLoc.longitude
                         tvLiveAlertCoordinates.text = String.format("Lat: %.5f, Lng: %.5f", updatedLoc.latitude, updatedLoc.longitude)
+                    }
+                    val sId = activeServerAlertId
+                    if (sId != null) {
+                        lifecycleScope.launch {
+                            apiClient.updateAlertLocation(sId, updatedLoc.latitude, updatedLoc.longitude)
+                        }
                     }
                 }
             }
@@ -408,8 +465,12 @@ class AlertActiveActivity : AppCompatActivity() {
             }
         }
 
-        val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", contacts)
-        val serverAlertId = triggerRes.getOrNull() ?: incidentId
+        val serverAlertId = activeServerAlertId ?: run {
+            val triggerRes = apiClient.triggerAlert(currentLat, currentLng, dispatchType, "", contacts)
+            val id = triggerRes.getOrNull() ?: incidentId
+            activeServerAlertId = id
+            id
+        }
 
         withContext(Dispatchers.Main) {
             if (!isFinishing && !isDestroyed) {

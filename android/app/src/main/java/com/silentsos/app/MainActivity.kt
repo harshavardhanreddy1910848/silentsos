@@ -111,6 +111,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
     private var isHoldingSos = false
     private val HOLD_DURATION_MS = 1500L
 
+    private var cachedLat: Double = 0.0
+    private var cachedLng: Double = 0.0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -128,6 +131,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         NotificationHelper.createNotificationChannel(this)
 
         checkAndRequestAppPermissions()
+
+        locationHelper.getImmediateLastKnownLocation()?.let {
+            cachedLat = it.latitude
+            cachedLng = it.longitude
+        }
+        locationHelper.getSingleAccurateLocation { loc ->
+            loc?.let {
+                cachedLat = it.latitude
+                cachedLng = it.longitude
+            }
+        }
 
         initNavViews()
         setupSensors()
@@ -427,8 +441,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
     }
 
     private fun triggerCrisisDispatch(type: String, immediate: Boolean = false) {
+        if (cachedLat == 0.0 && cachedLng == 0.0) {
+            locationHelper.getImmediateLastKnownLocation()?.let {
+                cachedLat = it.latitude
+                cachedLng = it.longitude
+            }
+        }
         val intent = Intent(this, AlertActiveActivity::class.java).apply {
             putExtra("EXTRA_DISPATCH_TYPE", type)
+            putExtra("EXTRA_LAT", cachedLat)
+            putExtra("EXTRA_LNG", cachedLng)
             if (immediate) {
                 putExtra("EXTRA_IMMEDIATE_DISPATCH", true)
             }

@@ -125,6 +125,22 @@ class LocationHelper(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
+    fun getImmediateLastKnownLocation(): Location? {
+        if (!hasLocationPermission()) return null
+        try {
+            val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+            val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+            for (provider in providers) {
+                if (lm.isProviderEnabled(provider)) {
+                    val loc = lm.getLastKnownLocation(provider)
+                    if (loc != null) return loc
+                }
+            }
+        } catch (_: Exception) {}
+        return null
+    }
+
+    @SuppressLint("MissingPermission")
     private fun fallbackToLocationManager(onResult: (Location?) -> Unit) {
         if (!hasLocationPermission()) {
             onResult(null)

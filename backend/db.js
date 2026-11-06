@@ -608,6 +608,21 @@ export const db = {
     return this.getContacts(userId);
   },
 
+  async addOrUpdateContact(userId, contact) {
+    if (!contact) return this.getContacts(userId);
+    const contacts = await this.getContacts(userId);
+    const existing = contacts.find(c =>
+      (contact.id && c.id === contact.id) ||
+      (contact.email && c.email && c.email.toLowerCase() === contact.email.toLowerCase()) ||
+      (contact.phone && c.phone && c.phone === contact.phone)
+    );
+    if (existing) {
+      return this.updateContact(userId, existing.id, contact);
+    } else {
+      return this.addContact(userId, contact);
+    }
+  },
+
   async removeContact(userId, contactId) {
     await run(`DELETE FROM contacts WHERE id = ? AND user_id = ?`, [contactId, userId]);
     return this.getContacts(userId);

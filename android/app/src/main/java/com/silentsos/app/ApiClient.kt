@@ -586,6 +586,29 @@ class ApiClient(private val context: Context) {
         }
     }
 
+    suspend fun updateAlertLocation(alertId: String, lat: Double, lng: Double): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val base = getBaseUrl()
+            val json = JSONObject().apply {
+                put("lat", lat)
+                put("lng", lng)
+            }
+            val request = Request.Builder()
+                .url("$base/api/alerts/$alertId/location")
+                .post(json.toString().toRequestBody(jsonMediaType))
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Failed to update alert location (${response.code})"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun completeAlert(alertId: String, contacts: List<Contact> = emptyList()): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             val base = getBaseUrl()

@@ -287,6 +287,11 @@ async function sendAlertEmails(user, contacts, alert, isInitial = false) {
       console.warn(`⚠️ Alert ${alertId} has no GPS coordinates. Skipping email dispatch.`);
       return;
     }
+
+    if (Math.abs(latestCoords.lat) < 0.0001 && Math.abs(latestCoords.lng) < 0.0001) {
+      console.warn(`⚠️ Alert ${alertId} has zero coordinates (0, 0). Postponing email dispatch until real location arrives.`);
+      return;
+    }
     
     const googleMapsLink = `https://maps.google.com/?q=${latestCoords.lat},${latestCoords.lng}`;
 
@@ -2125,6 +2130,81 @@ app.post('/api/alerts/:id/periodic-update', async (req, res) => {
     res.json({ success: true, dispatched });
   } catch (err) {
     console.error(`Failed to handle periodic-update for alert ${alertId}:`, err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Stream real-time GPS location telemetry from device
+app.post('/api/alerts/:id/location', async (req, res) => {
+  const alertId = req.params.id;
+  const { lat, lng } = req.body || {};
+
+  if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+    return res.status(400).json({ error: 'Valid numerical latitude and longitude required' });
+  }
+
+  // Reject (0, 0) Null Island coordinates
+  if (Math.abs(lat) < 0.0001 && Math.abs(lng) < 0.0001) {
+    return res.status(400).json({ error: 'Invalid coordinates (0, 0)' });
+  }
+
+  try {
+    let alert = (activeAlert && activeAlert.id === alertId) ? activeAlert : null;
+    if (!alert) {
+      const allHistory = await db.getAllHistory();
+      alert = allHistory.find(e => e.id === alertId) || null;
+    }
+
+    if (alert) {
+      if (!Array.isArray(alert.gpsPath)) {
+        alert.gpsPath = [];
+      }
+
+      const hadOnlyZeroCoords = alert.gpsPath.length === 0 || 
+        (alert.gpsPath.length === 1 && Math.abs(alert.gpsPath[0].lat) < 0.0001 && Math.abs(alert.gpsPath[0].lng) < 0.0001);
+
+      if (hadOnlyZeroCoords) {
+        alert.gpsPath = [{ lat, lng, timestamp: Date.now() }];
+      } else {
+        alert.gpsPath.push({ lat, lng, timestamp: Date.now() });
+      }
+
+      await db.updateHistoryEvent(alertId, { gpsPath: alert.gpsPath });
+
+      // Broadcast real-time location telemetry to connected WebSocket clients
+      broadcastToReceivers(alertId, {
+        type: 'location_update',
+        location: { lat, lng }
+      });
+
+      if (alert.userId) {
+        broadcastToUser(alert.userId, {
+          type: 'location_updated',
+          alertId,
+          location: { lat, lng }
+        });
+      }
+
+      console.log(`📍 Live GPS telemetry updated for alert ${alertId}: Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)}`);
+
+      // If alert was initially registered with 0,0, dispatch the initial email now with the real GPS coordinates!
+      if (hadOnlyZeroCoords) {
+        try {
+          const user = await db.getUser(alert.userId);
+          const contacts = await db.getContacts(alert.userId);
+          console.log(`✉️ Dispatching initial SOS email with updated real-time GPS coordinates for alert ${alertId}`);
+          sendAlertEmails(user, contacts, alert, true);
+        } catch (mailErr) {
+          console.error('Failed to dispatch alert email after location update:', mailErr);
+        }
+      }
+
+      return res.json({ success: true, count: alert.gpsPath.length, location: { lat, lng } });
+    }
+
+    res.status(404).json({ error: 'Alert not found' });
+  } catch (err) {
+    console.error(`Failed to record location update for alert ${alertId}:`, err);
     res.status(500).json({ error: err.message });
   }
 });
