@@ -25,8 +25,11 @@ class SosForegroundService : Service() {
         val notification = NotificationHelper.buildEmergencyNotification(this, initialStatus)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val serviceType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION or
+            var serviceType = android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION or
                     android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                serviceType = serviceType or android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+            }
             try {
                 startForeground(NotificationHelper.NOTIFICATION_ID, notification, serviceType)
             } catch (_: Exception) {

@@ -24,10 +24,13 @@ class MediaEvidenceRecorder(private val context: Context) {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun startAudioRecording(): File? {
+    fun startAudioRecording(targetFile: File? = null): File? {
         stopAudioRecording()
-        val outputDir = File(context.filesDir, "evidence").apply { mkdirs() }
-        val outputFile = File(outputDir, "audio_${System.currentTimeMillis()}.3gp")
+        val outputFile = targetFile ?: run {
+            val outputDir = File(context.filesDir, "evidence").apply { mkdirs() }
+            File(outputDir, "audio_${System.currentTimeMillis()}.3gp")
+        }
+        outputFile.parentFile?.mkdirs()
 
         if (hasRecordPermission()) {
             try {
@@ -65,22 +68,27 @@ class MediaEvidenceRecorder(private val context: Context) {
             }
             currentAudioFile = outputFile
             return outputFile
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
     }
 
     suspend fun recordAudioForDuration(
+        targetFile: File? = null,
         durationSeconds: Int = 30,
         onProgress: ((Int) -> Unit)? = null
     ): File? = withContext(Dispatchers.IO) {
-        val startedFile = startAudioRecording()
+        val startedFile = startAudioRecording(targetFile)
         for (i in 1..durationSeconds) {
             delay(1000)
             onProgress?.invoke(i)
         }
         val finalFile = stopAudioRecording() ?: startedFile
-        finalFile
+        if (finalFile != null && finalFile.exists() && finalFile.length() > 0) {
+            finalFile
+        } else {
+            null
+        }
     }
 
     fun stopAudioRecording(): File? {
@@ -90,7 +98,7 @@ class MediaEvidenceRecorder(private val context: Context) {
                 stop()
                 release()
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Ignored if not active
         } finally {
             mediaRecorder = null
