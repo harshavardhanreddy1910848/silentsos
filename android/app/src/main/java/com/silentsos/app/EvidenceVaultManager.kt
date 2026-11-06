@@ -218,7 +218,7 @@ class EvidenceVaultManager(private val context: Context) {
     }
 
     fun verifyVideo(file: File): Boolean {
-        if (!file.exists() || file.length() < 50000L) return false
+        if (!file.exists() || file.length() < 10000L) return false
         return try {
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(file.absolutePath)
@@ -232,7 +232,7 @@ class EvidenceVaultManager(private val context: Context) {
     }
 
     fun verifyAudio(file: File): Boolean {
-        if (!file.exists() || file.length() < 5000L) return false
+        if (!file.exists() || file.length() < 1000L) return false
         return try {
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(file.absolutePath)

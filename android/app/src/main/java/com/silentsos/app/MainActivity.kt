@@ -1,10 +1,12 @@
 package com.silentsos.app
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.SurfaceTexture
@@ -22,6 +24,7 @@ import android.hardware.SensorManager
 import android.media.MediaPlayer
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -33,11 +36,15 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.MediaController
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -119,6 +126,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
         setContentView(R.layout.activity_main)
         NotificationHelper.createNotificationChannel(this)
+
+        checkAndRequestAppPermissions()
 
         initNavViews()
         setupSensors()
@@ -811,11 +820,40 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                         recordRunnable?.let { recordHandler.removeCallbacks(it) }
                         layoutRecIndicator.visibility = View.GONE
                         btnAction.isEnabled = false
-                        btnAction.text = "PROCESSING VIDEO BUFFER..."
+                        btnAction.text = "SECURING VIDEO & AUDIO BUFFER..."
 
                         lifecycleScope.launch {
                             val alertId = "SURV_VID_${System.currentTimeMillis()}"
-                            val videoFile = cameraEvidenceManager.createVideoEvidenceContainer(alertId)
+                            val vaultManager = EvidenceVaultManager(this@MainActivity)
+                            val duration = recordSeconds.coerceIn(5, 30)
+
+                            val videoFile = cameraEvidenceManager.recordVideoEvidence(
+                                alertId = alertId,
+                                durationSeconds = duration,
+                                cameraFacing = if (isFrontLens) CameraCharacteristics.LENS_FACING_FRONT else CameraCharacteristics.LENS_FACING_BACK
+                            )
+
+                            val finalVideo = if (videoFile != null && videoFile.exists() && vaultManager.verifyVideo(videoFile)) {
+                                val dest = File(vaultManager.getVideosDir(alertId), videoFile.name)
+                                videoFile.copyTo(dest, overwrite = true)
+                                dest
+                            } else null
+
+                            var finalAudio: File? = null
+                            if (finalVideo != null && finalVideo.exists()) {
+                                val targetAudio = File(vaultManager.getAudioDir(alertId), "audio_${alertId}_${System.currentTimeMillis()}.m4a")
+                                if (AudioExtractor.extractAudioTrackFromMp4(finalVideo, targetAudio) && vaultManager.verifyAudio(targetAudio)) {
+                                    finalAudio = targetAudio
+                                }
+                            }
+
+                            val files = mutableListOf<EvidenceFile>()
+                            if (finalVideo != null && finalVideo.exists()) {
+                                files.add(EvidenceFile("video", finalVideo.absolutePath, System.currentTimeMillis()))
+                            }
+                            if (finalAudio != null && finalAudio.exists()) {
+                                files.add(EvidenceFile("audio", finalAudio.absolutePath, System.currentTimeMillis()))
+                            }
 
                             val event = AlertEvent(
                                 id = alertId,
@@ -824,15 +862,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                                 status = "Active",
                                 evidence = EvidenceSummary(
                                     photos = 0,
-                                    videos = 1,
-                                    audio = 0,
-                                    files = listOf(
-                                        EvidenceFile(
-                                            type = "video",
-                                            url = videoFile.absolutePath,
-                                            timestamp = System.currentTimeMillis()
-                                        )
-                                    )
+                                    videos = if (finalVideo != null) 1 else 0,
+                                    audio = if (finalAudio != null) 1 else 0,
+                                    files = files
                                 ),
                                 lat = curLat,
                                 lng = curLng
@@ -841,13 +873,18 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                             histVideo.add(0, event)
                             sessionManager.saveHistory(histVideo)
 
-                            apiClient.uploadEvidence(alertId, videoFile, "video")
+                            if (finalVideo != null && finalVideo.exists()) {
+                                apiClient.uploadEvidence(alertId, finalVideo, "video")
+                            }
+                            if (finalAudio != null && finalAudio.exists()) {
+                                apiClient.uploadEvidence(alertId, finalAudio, "audio")
+                            }
 
                             runOnUiThread {
                                 btnAction.isEnabled = true
                                 btnAction.text = "✓ 1080P ROLLING BUFFER ARCHIVED"
                                 btnAction.setBackgroundResource(R.drawable.bg_badge_cyan)
-                                tvResult.text = "✓ HD Video Loop archived and synced to Evidence Vault."
+                                tvResult.text = "✓ HD Video & Audio Loop archived and synced to Evidence Vault."
                                 targetActionLabel?.text = "1080p BUFFER ARCHIVED ✓"
                                 targetActionLabel?.setTextColor(Color.parseColor("#38bdf8"))
                                 Toast.makeText(this@MainActivity, "🎥 HD Rolling Video Buffer archived into Evidence Vault!", Toast.LENGTH_SHORT).show()
@@ -883,7 +920,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
                         lifecycleScope.launch {
                             val alertId = "SURV_AUD_${System.currentTimeMillis()}"
-                            val f = audioFile ?: File(filesDir, "evidence/audio_${System.currentTimeMillis()}.3gp")
+                            val vaultManager = EvidenceVaultManager(this@MainActivity)
+                            val targetAudio = File(vaultManager.getAudioDir(alertId), "audio_${alertId}_${System.currentTimeMillis()}.m4a")
+
+                            val finalAudio = if (audioFile != null && audioFile.exists()) {
+                                audioFile.copyTo(targetAudio, overwrite = true)
+                                if (vaultManager.verifyAudio(targetAudio)) targetAudio else audioFile
+                            } else null
+
+                            val files = mutableListOf<EvidenceFile>()
+                            if (finalAudio != null && finalAudio.exists()) {
+                                files.add(EvidenceFile("audio", finalAudio.absolutePath, System.currentTimeMillis()))
+                            }
+
                             val event = AlertEvent(
                                 id = alertId,
                                 timestamp = System.currentTimeMillis(),
@@ -892,14 +941,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                                 evidence = EvidenceSummary(
                                     photos = 0,
                                     videos = 0,
-                                    audio = 1,
-                                    files = listOf(
-                                        EvidenceFile(
-                                            type = "audio",
-                                            url = f.absolutePath,
-                                            timestamp = System.currentTimeMillis()
-                                        )
-                                    )
+                                    audio = if (finalAudio != null) 1 else 0,
+                                    files = files
                                 ),
                                 lat = curLat,
                                 lng = curLng
@@ -908,8 +951,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                             histAudio.add(0, event)
                             sessionManager.saveHistory(histAudio)
 
-                            if (f.exists()) {
-                                apiClient.uploadEvidence(alertId, f, "audio")
+                            if (finalAudio != null && finalAudio.exists()) {
+                                apiClient.uploadEvidence(alertId, finalAudio, "audio")
                             }
 
                             runOnUiThread {
@@ -1184,9 +1227,28 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         // 2. Audio playback
         val vaultAudios = vaultManager.getAudioDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && (f.name.endsWith(".3gp") || f.name.endsWith(".m4a")) && f.length() > 1000L }?.toList() ?: emptyList()
         val audioEvidence = event.evidence.files.firstOrNull { it.type == "audio" }
-        val localAudioFile = vaultAudios.firstOrNull() ?: if (localEvidenceDir.exists()) {
-            localEvidenceDir.listFiles { f -> f.name.startsWith("audio_") && (f.name.endsWith(".3gp") || f.name.endsWith(".m4a")) && f.length() > 1000L }?.lastOrNull()
-        } else null
+        val eventAudioFile = audioEvidence?.let { File(it.url) }?.takeIf { it.exists() && it.length() > 1000L }
+        val localAudioFile = vaultAudios.firstOrNull() ?: eventAudioFile
+
+        var audioProgressRunnable: Runnable? = null
+        val audioProgressHandler = Handler(Looper.getMainLooper())
+
+        fun stopAudioPlayback() {
+            audioProgressRunnable?.let { audioProgressHandler.removeCallbacks(it) }
+            audioProgressRunnable = null
+            try {
+                if (mediaPlayer?.isPlaying == true) {
+                    mediaPlayer?.stop()
+                }
+                mediaPlayer?.release()
+            } catch (_: Exception) {}
+            mediaPlayer = null
+            btnPlayAudio.setImageResource(android.R.drawable.ic_media_play)
+        }
+
+        dialog.setOnDismissListener {
+            stopAudioPlayback()
+        }
 
         if (localAudioFile != null && localAudioFile.exists()) {
             var audioSec = 0L
@@ -1208,14 +1270,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
         btnPlayAudio.setOnClickListener {
             if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.stop()
-                mediaPlayer?.release()
-                mediaPlayer = null
-                btnPlayAudio.setImageResource(android.R.drawable.ic_media_play)
+                stopAudioPlayback()
                 tvAudioStatus.text = "Playback stopped"
             } else {
                 try {
-                    mediaPlayer?.release()
+                    stopAudioPlayback()
                     mediaPlayer = MediaPlayer()
                     if (localAudioFile != null && localAudioFile.exists()) {
                         mediaPlayer?.setDataSource(localAudioFile.absolutePath)
@@ -1223,7 +1282,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                         mediaPlayer?.start()
                         btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
                         val totalSec = (mediaPlayer?.duration ?: 0) / 1000
-                        tvAudioStatus.text = String.format(Locale.US, "Playing Audio • %02d:%02d", totalSec / 60, totalSec % 60)
+                        audioProgressRunnable = object : Runnable {
+                            override fun run() {
+                                val mp = mediaPlayer
+                                if (mp != null && mp.isPlaying) {
+                                    val cur = mp.currentPosition / 1000
+                                    tvAudioStatus.text = String.format(Locale.US, "▶ Playing Audio • %02d:%02d / %02d:%02d", cur / 60, cur % 60, totalSec / 60, totalSec % 60)
+                                    audioProgressHandler.postDelayed(this, 500)
+                                }
+                            }
+                        }
+                        audioProgressHandler.post(audioProgressRunnable!!)
                     } else if (audioEvidence != null) {
                         lifecycleScope.launch {
                             val base = apiClient.getBaseUrl()
@@ -1235,7 +1304,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                                     mp.start()
                                     btnPlayAudio.setImageResource(android.R.drawable.ic_media_pause)
                                     val totalSec = mp.duration / 1000
-                                    tvAudioStatus.text = String.format(Locale.US, "Streaming Audio • %02d:%02d", totalSec / 60, totalSec % 60)
+                                    audioProgressRunnable = object : Runnable {
+                                        override fun run() {
+                                            val currentMp = mediaPlayer
+                                            if (currentMp != null && currentMp.isPlaying) {
+                                                val cur = currentMp.currentPosition / 1000
+                                                tvAudioStatus.text = String.format(Locale.US, "▶ Streaming Audio • %02d:%02d / %02d:%02d", cur / 60, cur % 60, totalSec / 60, totalSec % 60)
+                                                audioProgressHandler.postDelayed(this, 500)
+                                            }
+                                        }
+                                    }
+                                    audioProgressHandler.post(audioProgressRunnable!!)
                                 }
                             } catch (e: Exception) {
                                 tvAudioStatus.text = "Playback failed: ${e.message}"
@@ -1246,10 +1325,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
                     }
 
                     mediaPlayer?.setOnCompletionListener {
-                        btnPlayAudio.setImageResource(android.R.drawable.ic_media_play)
+                        stopAudioPlayback()
                         tvAudioStatus.text = "Playback completed"
-                        mediaPlayer?.release()
-                        mediaPlayer = null
                     }
                 } catch (e: Exception) {
                     tvAudioStatus.text = "Error: ${e.message}"
@@ -1260,9 +1337,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
         // 3. Video stream
         val vaultVideos = vaultManager.getVideosDir(event.id).listFiles { f -> !f.name.endsWith(".enc") && f.name.endsWith(".mp4") && f.length() > 5000L }?.toList() ?: emptyList()
         val videoEvidence = event.evidence.files.firstOrNull { it.type == "video" }
-        val localVideoFile = vaultVideos.firstOrNull() ?: if (localEvidenceDir.exists()) {
-            localEvidenceDir.listFiles { f -> f.name.startsWith("video_") && f.name.endsWith(".mp4") && f.length() > 5000L }?.lastOrNull()
-        } else null
+        val eventVideoFile = videoEvidence?.let { File(it.url) }?.takeIf { it.exists() && it.length() > 5000L }
+        val localVideoFile = vaultVideos.firstOrNull() ?: eventVideoFile
 
         if (localVideoFile != null && localVideoFile.exists()) {
             var videoSec = 0L
@@ -1285,16 +1361,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
 
         btnPlayVideo.setOnClickListener {
             if (localVideoFile != null && localVideoFile.exists()) {
-                try {
-                    val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", localVideoFile)
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(uri, "video/mp4")
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    startActivity(intent)
-                } catch (_: Exception) {
-                    Toast.makeText(this, "Video evidence verified locally: ${localVideoFile.name}", Toast.LENGTH_SHORT).show()
-                }
+                playVideoWithInAppFallback(localVideoFile)
             } else if (videoEvidence != null) {
                 lifecycleScope.launch {
                     val base = apiClient.getBaseUrl()
@@ -1602,5 +1669,56 @@ class MainActivity : AppCompatActivity(), SensorEventListener, SyncManager.SyncE
             .show()
     }
 
+    private fun checkAndRequestAppPermissions() {
+        val permissions = mutableListOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.SEND_SMS
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        val missing = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 1001)
+        }
+    }
 
+    private fun playVideoWithInAppFallback(videoFile: File) {
+        try {
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", videoFile)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "video/mp4")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        } catch (_: Exception) {
+            showInAppVideoPlayer(videoFile)
+        }
+    }
+
+    private fun showInAppVideoPlayer(videoFile: File) {
+        val vv = VideoView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 800)
+            setVideoPath(videoFile.absolutePath)
+            val mc = MediaController(this@MainActivity)
+            mc.setAnchorView(this)
+            setMediaController(mc)
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("🎥 Incident Video Playback")
+            .setView(vv)
+            .setPositiveButton("Close") { d, _ ->
+                vv.stopPlayback()
+                d.dismiss()
+            }
+            .setOnDismissListener { vv.stopPlayback() }
+            .create()
+        dialog.show()
+        vv.start()
+    }
 }

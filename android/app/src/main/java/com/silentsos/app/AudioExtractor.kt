@@ -46,33 +46,44 @@ object AudioExtractor {
             val muxerAudioTrack = muxer.addTrack(audioFormat)
             muxer.start()
 
-            val maxBufferSize = if (audioFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
-                audioFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
-            } else {
-                1024 * 128
-            }
-            val buffer = ByteBuffer.allocate(maxBufferSize)
+            val maxBufferSize = maxOf(
+                if (audioFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) audioFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE) else 0,
+                1024 * 256
+            )
+            val buffer = ByteBuffer.allocateDirect(maxBufferSize)
             val bufferInfo = MediaCodec.BufferInfo()
+
+            var lastPresentationTimeUs = 0L
+            var samplesWritten = 0
 
             while (true) {
                 val sampleSize = extractor.readSampleData(buffer, 0)
                 if (sampleSize < 0) {
                     break
                 }
-                bufferInfo.offset = 0
-                bufferInfo.size = sampleSize
-                bufferInfo.presentationTimeUs = extractor.sampleTime
-                bufferInfo.flags = extractor.sampleFlags
-                muxer.writeSampleData(muxerAudioTrack, buffer, bufferInfo)
+                val sampleTime = extractor.sampleTime
+                if (sampleTime >= lastPresentationTimeUs) {
+                    bufferInfo.offset = 0
+                    bufferInfo.size = sampleSize
+                    bufferInfo.presentationTimeUs = sampleTime
+                    bufferInfo.flags = extractor.sampleFlags
+                    muxer.writeSampleData(muxerAudioTrack, buffer, bufferInfo)
+                    lastPresentationTimeUs = sampleTime
+                    samplesWritten++
+                }
                 extractor.advance()
             }
 
-            muxer.stop()
+            try {
+                muxer.stop()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             muxer.release()
             muxer = null
             extractor.release()
 
-            outputAudioFile.exists() && outputAudioFile.length() > 500L
+            samplesWritten > 0 && outputAudioFile.exists() && outputAudioFile.length() > 1000L
         } catch (e: Exception) {
             e.printStackTrace()
             try { muxer?.release() } catch (_: Exception) {}

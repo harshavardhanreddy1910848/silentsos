@@ -75,6 +75,17 @@ class AlertActiveActivity : AppCompatActivity() {
         val isImmediate = intent.getBooleanExtra("EXTRA_IMMEDIATE_DISPATCH", false)
         val dispatchType = intent.getStringExtra("EXTRA_DISPATCH_TYPE") ?: "Emergency SOS"
 
+        val missingPermissions = mutableListOf<String>()
+        if (checkSelfPermission(android.Manifest.permission.CAMERA) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            missingPermissions.add(android.Manifest.permission.CAMERA)
+        }
+        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            missingPermissions.add(android.Manifest.permission.RECORD_AUDIO)
+        }
+        if (missingPermissions.isNotEmpty()) {
+            requestPermissions(missingPermissions.toTypedArray(), 999)
+        }
+
         if (isImmediate) {
             dispatchSosDistress()
             Toast.makeText(this, "🚨 $dispatchType Activated!", Toast.LENGTH_SHORT).show()
@@ -292,18 +303,18 @@ class AlertActiveActivity : AppCompatActivity() {
 
         if (actualVideoFile != null && actualVideoFile.exists() && actualVideoFile.length() > 50000L) {
             val extracted = AudioExtractor.extractAudioTrackFromMp4(actualVideoFile, targetAudio)
-            if (extracted && targetAudio.exists() && targetAudio.length() > 5000L && vaultManager.verifyAudio(targetAudio)) {
+            if (extracted && targetAudio.exists() && targetAudio.length() > 1000L && vaultManager.verifyAudio(targetAudio)) {
                 actualAudioFile = targetAudio
             }
         }
 
-        // If audio extraction was not possible, record standalone audio via MediaRecorder sequentially
+        // If audio extraction was not possible, record standalone audio via MediaRecorder sequentially for 30s
         if (actualAudioFile == null || !actualAudioFile.exists()) {
             cameraXCapture.unbind()
-            actualAudioFile = mediaRecorder.recordAudioForDuration(targetAudio, durationSeconds = 10) { sec ->
+            actualAudioFile = mediaRecorder.recordAudioForDuration(targetAudio, durationSeconds = 30) { sec ->
                 runOnUiThread {
                     if (!isFinishing && !isDestroyed) {
-                        tvEvidenceStatus.text = "🎙️ Recording Fallback Audio: ${sec}s / 10s"
+                        tvEvidenceStatus.text = "🎙️ Recording Fallback Audio: ${sec}s / 30s"
                     }
                 }
             }
