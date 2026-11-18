@@ -22,21 +22,24 @@ if hasattr(sys.stderr, 'reconfigure'):
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-# Styles
-HEADER_FILL = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
-SUBHEADER_FILL = PatternFill(start_color="334155", end_color="334155", fill_type="solid")
-PASS_FILL = PatternFill(start_color="DCFCE7", end_color="DCFCE7", fill_type="solid")
-PASS_FONT = Font(name="Calibri", size=10, bold=True, color="166534")
+# Styles - Fully Opaque (Alpha = FF)
+HEADER_FILL = PatternFill(start_color="FF1E293B", end_color="FF1E293B", fill_type="solid")
+SUBHEADER_FILL = PatternFill(start_color="FF334155", end_color="FF334155", fill_type="solid")
+PASS_FILL = PatternFill(start_color="FFDCFCE7", end_color="FFDCFCE7", fill_type="solid")
+PASS_FONT = Font(name="Calibri", size=10, bold=True, color="FF166534")
+FAIL_FILL = PatternFill(start_color="FFFEE2E2", end_color="FFFEE2E2", fill_type="solid")
+FAIL_FONT = Font(name="Calibri", size=10, bold=True, color="FF991B1B")
 THIN_BORDER = Border(
-    left=Side(style='thin', color='CBD5E1'),
-    right=Side(style='thin', color='CBD5E1'),
-    top=Side(style='thin', color='CBD5E1'),
-    bottom=Side(style='thin', color='CBD5E1')
+    left=Side(style='thin', color='FFCBD5E1'),
+    right=Side(style='thin', color='FFCBD5E1'),
+    top=Side(style='thin', color='FFCBD5E1'),
+    bottom=Side(style='thin', color='FFCBD5E1')
 )
-HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
-TITLE_FONT = Font(name="Calibri", size=14, bold=True, color="0F172A")
-BOLD_FONT = Font(name="Calibri", size=10, bold=True, color="1E293B")
-REGULAR_FONT = Font(name="Calibri", size=10, color="334155")
+HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="FFFFFFFF")
+TITLE_FONT = Font(name="Calibri", size=14, bold=True, color="FF0F172A")
+SECTION_FONT = Font(name="Calibri", size=11, bold=True, color="FF1E293B")
+BOLD_FONT = Font(name="Calibri", size=10, bold=True, color="FF0F172A")
+REGULAR_FONT = Font(name="Calibri", size=10, color="FF1E293B")
 
 SUITES = [
     {
@@ -216,9 +219,15 @@ def bundle_reports():
     ws_exec = wb_final.create_sheet(title="EXECUTIVE SUMMARY")
     ws_exec.views.sheetView[0].showGridLines = True
 
-    ws_exec.merge_cells("B2:G2")
-    ws_exec["B2"] = "SILENTSOS ENTERPRISE TEST AUTOMATION & DEPLOYMENT SUMMARY"
-    ws_exec["B2"].font = TITLE_FONT
+    ws_exec.merge_cells("A1:H1")
+    title_cell = ws_exec.cell(row=1, column=1, value="SILENTSOS ENTERPRISE TEST AUTOMATION & DEPLOYMENT SUMMARY")
+    title_cell.font = TITLE_FONT
+    ws_exec.row_dimensions[1].height = 26
+
+    ws_exec.merge_cells("A2:H2")
+    sub_cell = ws_exec.cell(row=2, column=1, value=f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')} | Full Quality Gate Verification")
+    sub_cell.font = REGULAR_FONT
+    ws_exec.row_dimensions[2].height = 20
 
     kpis = [
         ("Grand Total Test Cases", grand_total),
@@ -232,50 +241,93 @@ def bundle_reports():
         ("Target Mobile Application", "SilentSOS Android Native App (Kotlin)")
     ]
 
-    for idx, (label, val) in enumerate(kpis, start=4):
-        ws_exec.cell(row=idx, column=2, value=label).font = BOLD_FONT
-        c = ws_exec.cell(row=idx, column=3, value=val)
-        c.font = REGULAR_FONT
+    ws_exec.cell(row=4, column=1, value="EXECUTIVE SUMMARY METRICS").font = SECTION_FONT
+    ws_exec.row_dimensions[4].height = 22
+
+    h_lbl = ws_exec.cell(row=5, column=1, value="Metric Field")
+    h_lbl.font = HEADER_FONT
+    h_lbl.fill = HEADER_FILL
+    h_lbl.border = THIN_BORDER
+
+    h_val = ws_exec.cell(row=5, column=2, value="Value")
+    h_val.font = HEADER_FONT
+    h_val.fill = HEADER_FILL
+    h_val.border = THIN_BORDER
+    ws_exec.row_dimensions[5].height = 24
+
+    for idx, (label, val) in enumerate(kpis, start=6):
+        cell_lbl = ws_exec.cell(row=idx, column=1, value=label)
+        cell_val = ws_exec.cell(row=idx, column=2, value=val)
+        cell_lbl.font = BOLD_FONT
+        cell_val.font = REGULAR_FONT
+        cell_lbl.border = THIN_BORDER
+        cell_val.border = THIN_BORDER
+        cell_lbl.alignment = Alignment(vertical="center", indent=1)
+        cell_val.alignment = Alignment(vertical="center", indent=1)
+        ws_exec.row_dimensions[idx].height = 20
+
         if label == "Deployment Readiness Verdict":
-            c.font = Font(name="Calibri", size=10, bold=True, color="166534" if grand_failed == 0 else "991B1B")
-            c.fill = PASS_FILL if grand_failed == 0 else FAIL_FILL
+            cell_val.font = PASS_FONT if grand_failed == 0 else FAIL_FONT
+            cell_val.fill = PASS_FILL if grand_failed == 0 else FAIL_FILL
 
     # Breakdown table
-    start_table_row = len(kpis) + 6
-    ws_exec.cell(row=start_table_row, column=2, value="Testing Suites Performance Breakdown").font = TITLE_FONT
+    start_table_row = len(kpis) + 8
+    ws_exec.cell(row=start_table_row, column=1, value="Testing Suites Performance Breakdown").font = SECTION_FONT
+    ws_exec.row_dimensions[start_table_row].height = 22
     table_headers = ["Testing Suite Name", "Category", "Target Scope", "Total Tests", "Passed", "Failed", "Pass Rate %", "Status"]
 
-    for col_idx, h_text in enumerate(table_headers, start=2):
-        c = ws_exec.cell(row=start_table_row + 2, column=col_idx, value=h_text)
+    for col_idx, h_text in enumerate(table_headers, start=1):
+        c = ws_exec.cell(row=start_table_row + 1, column=col_idx, value=h_text)
         c.font = HEADER_FONT
-        c.fill = HEADER_FILL
+        c.fill = SUBHEADER_FILL
         c.border = THIN_BORDER
         c.alignment = Alignment(horizontal="center", vertical="center")
+    ws_exec.row_dimensions[start_table_row + 1].height = 24
 
-    curr_row = start_table_row + 3
+    curr_row = start_table_row + 2
     for s in suite_results:
-        ws_exec.cell(row=curr_row, column=2, value=s["name"]).font = BOLD_FONT
-        ws_exec.cell(row=curr_row, column=3, value=s["category"]).font = REGULAR_FONT
-        ws_exec.cell(row=curr_row, column=4, value=s["target"]).font = REGULAR_FONT
-        ws_exec.cell(row=curr_row, column=5, value=s["total"]).font = REGULAR_FONT
-        ws_exec.cell(row=curr_row, column=6, value=s["passed"]).font = REGULAR_FONT
-        ws_exec.cell(row=curr_row, column=7, value=s["failed"]).font = REGULAR_FONT
-        ws_exec.cell(row=curr_row, column=8, value=f"{s['pass_rate']:.1f}%").font = BOLD_FONT
-        
-        status_cell = ws_exec.cell(row=curr_row, column=9, value="PASSED" if s["failed"] == 0 else "FAILED")
-        status_cell.font = PASS_FONT if s["failed"] == 0 else Font(name="Calibri", size=10, bold=True, color="991B1B")
-        status_cell.fill = PASS_FILL if s["failed"] == 0 else FAIL_FILL
-        status_cell.alignment = Alignment(horizontal="center", vertical="center")
+        c1 = ws_exec.cell(row=curr_row, column=1, value=s["name"])
+        c2 = ws_exec.cell(row=curr_row, column=2, value=s["category"])
+        c3 = ws_exec.cell(row=curr_row, column=3, value=s["target"])
+        c4 = ws_exec.cell(row=curr_row, column=4, value=s["total"])
+        c5 = ws_exec.cell(row=curr_row, column=5, value=s["passed"])
+        c6 = ws_exec.cell(row=curr_row, column=6, value=s["failed"])
+        c7 = ws_exec.cell(row=curr_row, column=7, value=f"{s['pass_rate']:.1f}%")
+        c8 = ws_exec.cell(row=curr_row, column=8, value="PASSED" if s["failed"] == 0 else "FAILED")
 
-        for c_idx in range(2, 10):
+        c1.font = BOLD_FONT
+        c2.font = REGULAR_FONT
+        c3.font = REGULAR_FONT
+        c4.font = REGULAR_FONT
+        c5.font = REGULAR_FONT
+        c6.font = REGULAR_FONT
+        c7.font = BOLD_FONT
+        c8.font = PASS_FONT if s["failed"] == 0 else FAIL_FONT
+        c8.fill = PASS_FILL if s["failed"] == 0 else FAIL_FILL
+
+        c1.alignment = Alignment(vertical="center", indent=1)
+        c2.alignment = Alignment(vertical="center", indent=1)
+        c3.alignment = Alignment(vertical="center", indent=1)
+        c4.alignment = Alignment(horizontal="center", vertical="center")
+        c5.alignment = Alignment(horizontal="center", vertical="center")
+        c6.alignment = Alignment(horizontal="center", vertical="center")
+        c7.alignment = Alignment(horizontal="center", vertical="center")
+        c8.alignment = Alignment(horizontal="center", vertical="center")
+
+        for c_idx in range(1, 9):
             ws_exec.cell(row=curr_row, column=c_idx).border = THIN_BORDER
+        ws_exec.row_dimensions[curr_row].height = 20
         curr_row += 1
 
-    # Auto column width for Executive Summary
-    for col in ws_exec.columns:
-        max_l = max(len(str(cell.value or '')) for cell in col)
-        col_letter = get_column_letter(col[0].column)
-        ws_exec.column_dimensions[col_letter].width = max(max_l + 4, 15)
+    # Explicit Clean Column Widths for Executive Summary
+    ws_exec.column_dimensions['A'].width = 38
+    ws_exec.column_dimensions['B'].width = 30
+    ws_exec.column_dimensions['C'].width = 26
+    ws_exec.column_dimensions['D'].width = 14
+    ws_exec.column_dimensions['E'].width = 14
+    ws_exec.column_dimensions['F'].width = 14
+    ws_exec.column_dimensions['G'].width = 16
+    ws_exec.column_dimensions['H'].width = 16
 
     # Individual suite sheets
     for s in suite_results:
@@ -290,24 +342,32 @@ def bundle_reports():
             cell.fill = HEADER_FILL
             cell.border = THIN_BORDER
             cell.alignment = Alignment(horizontal="center", vertical="center")
+        ws_suite.row_dimensions[1].height = 26
 
         for r_idx, tc in enumerate(s["cases"], start=2):
-            ws_suite.cell(row=r_idx, column=1, value=tc["test_id"]).font = REGULAR_FONT
-            ws_suite.cell(row=r_idx, column=2, value=tc["test_name"]).font = REGULAR_FONT
-            ws_suite.cell(row=r_idx, column=3, value=tc["category"]).font = REGULAR_FONT
-            ws_suite.cell(row=r_idx, column=4, value=tc["execution_time"]).font = REGULAR_FONT
+            c1 = ws_suite.cell(row=r_idx, column=1, value=tc["test_id"])
+            c2 = ws_suite.cell(row=r_idx, column=2, value=tc["test_name"])
+            c3 = ws_suite.cell(row=r_idx, column=3, value=tc["category"])
+            c4 = ws_suite.cell(row=r_idx, column=4, value=tc["execution_time"])
             st_cell = ws_suite.cell(row=r_idx, column=5, value=tc["status"])
-            st_cell.font = PASS_FONT if tc["status"] == "PASS" else Font(name="Calibri", size=10, bold=True, color="991B1B")
+
+            c1.font = REGULAR_FONT
+            c2.font = REGULAR_FONT
+            c3.font = REGULAR_FONT
+            c4.font = REGULAR_FONT
+            st_cell.font = PASS_FONT if tc["status"] == "PASS" else FAIL_FONT
             st_cell.fill = PASS_FILL if tc["status"] == "PASS" else FAIL_FILL
             st_cell.alignment = Alignment(horizontal="center", vertical="center")
 
             for c_idx in range(1, 6):
                 ws_suite.cell(row=r_idx, column=c_idx).border = THIN_BORDER
+            ws_suite.row_dimensions[r_idx].height = 20
 
-        for col in ws_suite.columns:
-            max_l = max(len(str(cell.value or '')) for cell in col)
-            col_letter = get_column_letter(col[0].column)
-            ws_suite.column_dimensions[col_letter].width = max(max_l + 3, 14)
+        ws_suite.column_dimensions['A'].width = 18
+        ws_suite.column_dimensions['B'].width = 45
+        ws_suite.column_dimensions['C'].width = 28
+        ws_suite.column_dimensions['D'].width = 16
+        ws_suite.column_dimensions['E'].width = 14
 
     final_excel_path = os.path.join(BASE_DIR, "reports", "FINAL_TEST_SUMMARY.xlsx")
     wb_final.save(final_excel_path)
