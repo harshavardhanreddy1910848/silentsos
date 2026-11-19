@@ -47,7 +47,8 @@ def create_excel_report(
     """
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     wb = openpyxl.Workbook()
-    wb.remove(wb.active) # Remove default sheet
+    if wb.active is not None:
+        wb.remove(wb.active) # Remove default sheet
 
     total_tests = len(test_cases)
     passed_tests = sum(1 for tc in test_cases if tc.get("status", "").upper() == "PASS")

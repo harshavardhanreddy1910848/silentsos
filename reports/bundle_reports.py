@@ -213,7 +213,8 @@ def bundle_reports():
     # 1. BUILD FINAL_TEST_SUMMARY.xlsx
     # -------------------------------------------------------------------------
     wb_final = openpyxl.Workbook()
-    wb_final.remove(wb_final.active) # Remove default
+    if wb_final.active is not None:
+        wb_final.remove(wb_final.active) # Remove default
 
     # Sheet: EXECUTIVE SUMMARY
     ws_exec = wb_final.create_sheet(title="EXECUTIVE SUMMARY")
