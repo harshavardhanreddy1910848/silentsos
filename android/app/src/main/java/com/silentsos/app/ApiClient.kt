@@ -54,6 +54,13 @@ class ApiClient(private val context: Context) {
         .writeTimeout(20, TimeUnit.SECONDS)
         .build()
 
+    private val uploadClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(90, TimeUnit.SECONDS)
+        .writeTimeout(90, TimeUnit.SECONDS)
+        .build()
+
     private val probeClient = OkHttpClient.Builder()
         .connectTimeout(2, TimeUnit.SECONDS)
         .readTimeout(2, TimeUnit.SECONDS)
@@ -550,11 +557,18 @@ class ApiClient(private val context: Context) {
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val base = getBaseUrl()
+            val user = sessionManager.currentUser
+            val profile = sessionManager.userProfile
             val json = JSONObject().apply {
                 if (!alertId.isNullOrBlank()) {
                     put("id", alertId)
                 }
                 put("type", type)
+                put("userId", user?.id ?: profile?.id ?: "android_user")
+                put("userName", user?.name ?: profile?.name ?: "SilentSOS User")
+                put("userEmail", user?.email ?: profile?.email ?: "")
+                put("userPhone", profile?.phone ?: "")
+                put("bloodGroup", profile?.bloodGroup ?: "")
                 put("location", JSONObject().apply {
                     put("lat", lat)
                     put("lng", lng)
@@ -616,7 +630,13 @@ class ApiClient(private val context: Context) {
     suspend fun completeAlert(alertId: String, contacts: List<Contact> = emptyList()): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             val base = getBaseUrl()
+            val user = sessionManager.currentUser
+            val profile = sessionManager.userProfile
             val json = JSONObject().apply {
+                put("userName", user?.name ?: profile?.name ?: "SilentSOS User")
+                put("userEmail", user?.email ?: profile?.email ?: "")
+                put("userPhone", profile?.phone ?: "")
+                put("bloodGroup", profile?.bloodGroup ?: "")
                 if (contacts.isNotEmpty()) {
                     val contactsArr = org.json.JSONArray()
                     for (c in contacts) {
@@ -723,7 +743,7 @@ class ApiClient(private val context: Context) {
                 .post(requestBody)
                 .build()
 
-            val response = client.newCall(request).execute()
+            val response = uploadClient.newCall(request).execute()
             if (response.isSuccessful) {
                 Result.success(true)
             } else {
